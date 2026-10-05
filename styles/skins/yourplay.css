@@ -1,0 +1,406 @@
+/*
+ * Segotari Agent (2019), "Your Play". The first Agent was a handheld game console: execs were
+ * laughed at for pulling "a pastel toy" out of their pocket (All About Agents, pp. 2–3). Candy
+ * plastic with a D-pad and A/B buttons under the screen, texts as RPG dialogue boxes that type out
+ * the first time (AgentPhone._typeOut), the dock as a game menu, money as "ITEM GET!" and job offers
+ * as "QUEST ACCEPTED?".
+ */
+
+.ctp-phone-app.skin-yourplay {
+  --agent-good: #1a6e35;
+  --shell: linear-gradient(160deg, #ffc9e3, #e7c6ff 45%, #bfe9ff);
+  --box: linear-gradient(to bottom, #2c3a8c, #1a2366);
+  --agent-bg: #f7f3ff;
+  --agent-panel: #ece4ff;
+  --agent-text: #2a2346;
+  --agent-muted: #7a6f9c;
+  --agent-cyan-rgb: 86, 72, 190;
+  --agent-magenta-rgb: 236, 72, 153;
+  --agent-yellow-rgb: 190, 110, 0;
+  --agent-font: "VT323", "Lucida Console", monospace;
+  --pixel: "Press Start 2P", "Silkscreen", monospace;
+  color-scheme: light;
+  border: 2px solid #b48ad6;
+  border-radius: 26px 26px 40px 40px;
+  background: var(--shell);
+  box-shadow: inset 0 3px 2px rgba(255, 255, 255, 0.7), inset 0 -4px 8px rgba(120, 60, 160, 0.3), 0 10px 24px rgba(60, 20, 90, 0.45);
+  backdrop-filter: none;
+}
+
+.ctp-phone-app.skin-yourplay .window-header {
+  background: transparent;
+  border: none;
+  color: #7b4fa8;
+  font-family: var(--pixel);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app.skin-yourplay .window-header a {
+  color: #7b4fa8;
+}
+
+/* The screen in its bezel, with the controls in the chin below it. */
+.ctp-phone-app.skin-yourplay .window-content {
+  position: relative;
+  padding: 2px 16px 86px;
+  background: transparent;
+}
+
+.ctp-phone-app.skin-yourplay.minimized .window-content {
+  padding: 0;
+}
+
+.ctp-phone-app.skin-yourplay .window-content::before {
+  /* the D-pad */
+  content: "";
+  position: absolute;
+  left: 30px;
+  bottom: 24px;
+  width: 54px;
+  height: 54px;
+  pointer-events: none;
+  background:
+    linear-gradient(#3d2f57, #3d2f57) center / 18px 54px no-repeat,
+    linear-gradient(#3d2f57, #3d2f57) center / 54px 18px no-repeat;
+  filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.6));
+}
+
+.ctp-phone-app.skin-yourplay .window-content::after {
+  /* A and B, then START and SELECT */
+  content: "";
+  position: absolute;
+  right: 26px;
+  bottom: 22px;
+  width: 90px;
+  height: 60px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, #ff5fa2 0 13px, #c23a78 14px, transparent 15px) 62px 4px / 30px 30px no-repeat,
+    radial-gradient(circle, #ff5fa2 0 13px, #c23a78 14px, transparent 15px) 26px 22px / 30px 30px no-repeat,
+    linear-gradient(#9c86c2, #9c86c2) 0 52px / 22px 6px no-repeat;
+}
+
+.ctp-phone-app.skin-yourplay .agent-phone {
+  box-sizing: border-box;
+  border: 6px solid #4c3f6b;
+  border-radius: 8px 8px 22px 8px;
+  background: var(--agent-bg);
+  font-size: calc(20px * var(--agent-font-scale, 1));
+  line-height: 1.1;
+}
+
+.ctp-phone-app.skin-yourplay .agent-phone::after {
+  background: repeating-linear-gradient(to bottom, rgba(76, 63, 107, 0.05) 0 1px, transparent 1px 3px);
+}
+
+.ctp-phone-app.skin-yourplay .agent-statusbar {
+  background: none;
+  color: var(--agent-text);
+  font-family: var(--pixel);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  letter-spacing: 0;
+}
+
+.ctp-phone-app.skin-yourplay .agent-brand {
+  color: rgb(var(--agent-magenta-rgb));
+}
+
+.ctp-phone-app.skin-yourplay .agent-signal i {
+  background: var(--agent-text);
+}
+
+.ctp-phone-app.skin-yourplay .agent-date {
+  border-color: rgba(var(--agent-cyan-rgb), 0.3);
+  font-size: calc(18px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-yourplay .agent-inbox-bar,
+.ctp-phone-app.skin-yourplay .agent-thread-bar {
+  background: var(--box);
+  border: 2px solid #fff;
+  border-radius: 6px;
+  margin: 2px 4px;
+  color: #fff;
+}
+
+.ctp-phone-app.skin-yourplay .agent-inbox-bar *,
+.ctp-phone-app.skin-yourplay .agent-thread-bar * {
+  color: #fff;
+}
+
+.ctp-phone-app.skin-yourplay .agent-inbox-name,
+.ctp-phone-app.skin-yourplay .agent-thread-name {
+  font-family: var(--pixel);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  font-weight: normal;
+  letter-spacing: 0;
+}
+
+.ctp-phone-app.skin-yourplay .agent-avatar {
+  border: 2px solid #4c3f6b;
+  border-radius: 4px;
+  background: #fff;
+  color: #4c3f6b;
+  image-rendering: pixelated;
+}
+
+.ctp-phone-app.skin-yourplay .agent-row {
+  border-bottom: 2px dotted rgba(var(--agent-cyan-rgb), 0.25);
+}
+
+/* The row under the pointer gets the menu cursor. */
+.ctp-phone-app.skin-yourplay .agent-row:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.08);
+  box-shadow: inset 4px 0 0 rgb(var(--agent-magenta-rgb));
+}
+
+.ctp-phone-app.skin-yourplay .agent-row-name {
+  font-size: calc(21px * var(--agent-font-scale, 1));
+  letter-spacing: 0;
+}
+
+.ctp-phone-app.skin-yourplay .agent-row-preview,
+.ctp-phone-app.skin-yourplay .agent-row-time {
+  font-size: calc(19px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-yourplay input,
+.ctp-phone-app.skin-yourplay textarea,
+.ctp-phone-app.skin-yourplay .agent-dropdown-btn {
+  background: #fff;
+  border: 2px solid #4c3f6b;
+  border-radius: 4px;
+  color: var(--agent-text);
+  font-family: var(--agent-font);
+  font-size: calc(19px * var(--agent-font-scale, 1));
+}
+
+/* Every message is a dialogue box: full width, blue with a white frame; yours are pink. */
+.ctp-phone-app.skin-yourplay .agent-messages {
+  gap: 8px;
+  padding: 8px 6px;
+}
+
+.ctp-phone-app.skin-yourplay .agent-msg {
+  max-width: 100%;
+  width: 100%;
+}
+
+.ctp-phone-app.skin-yourplay .agent-bubble {
+  position: relative;
+  padding: 6px 10px 8px;
+  border: 3px double #fff;
+  border-radius: 6px;
+  outline: 2px solid #1a2366;
+  background: var(--box);
+  color: #fff;
+  font-size: calc(21px * var(--agent-font-scale, 1));
+  line-height: 1.15;
+}
+
+.ctp-phone-app.skin-yourplay .agent-msg.mine .agent-bubble {
+  border: 3px double #fff;
+  border-radius: 6px;
+  outline-color: #9c2a63;
+  background: linear-gradient(to bottom, #e0559a, #a8316f);
+}
+
+.ctp-phone-app.skin-yourplay .agent-msg.mine.persona .agent-bubble {
+  box-shadow: inset 4px 0 0 var(--persona);
+}
+
+.ctp-phone-app.skin-yourplay .agent-bubble * {
+  color: #fff;
+}
+
+/* ▼: more to read, blinking on the newest line from the other side. */
+.ctp-phone-app.skin-yourplay .agent-msg.theirs:nth-last-child(1 of .agent-msg) .agent-bubble::after {
+  content: "▼";
+  position: absolute;
+  right: 6px;
+  bottom: 1px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  animation: ctp-yourplay-blink 0.8s steps(1) infinite;
+}
+
+.ctp-phone-app.skin-yourplay .agent-msg.typing .agent-bubble::after {
+  display: none;
+}
+
+@keyframes ctp-yourplay-blink {
+  50% { opacity: 0; }
+}
+
+.ctp-phone-app.skin-yourplay .agent-msg-sender {
+  color: var(--agent-text);
+  font-family: var(--pixel);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-yourplay .agent-meta {
+  color: var(--agent-muted);
+  font-size: calc(17px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-yourplay .agent-system {
+  border: none;
+  color: var(--agent-muted);
+  font-family: var(--pixel);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  line-height: 1.6;
+}
+
+/* Money: ITEM GET! Jobs: QUEST! */
+.ctp-phone-app.skin-yourplay .agent-money,
+.ctp-phone-app.skin-yourplay .agent-job {
+  border: 2px solid #fff;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.ctp-phone-app.skin-yourplay .agent-money::before,
+.ctp-phone-app.skin-yourplay .agent-job::before {
+  display: block;
+  margin-bottom: 2px;
+  color: #ffe45c;
+  font-family: var(--pixel);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-yourplay .agent-money::before {
+  content: "★ ITEM GET! ★";
+}
+
+.ctp-phone-app.skin-yourplay .agent-job::before {
+  content: "QUEST";
+}
+
+.ctp-phone-app.skin-yourplay .agent-job.offered::before {
+  content: "QUEST ACCEPTED?";
+}
+
+.ctp-phone-app.skin-yourplay .agent-job.accepted::before {
+  content: "QUEST ACCEPTED!";
+}
+
+/* The dock is the game menu: words, no icons, ▶ on the one you're in. */
+.ctp-phone-app.skin-yourplay .agent-dock {
+  flex-wrap: wrap;
+  gap: 0 6px;
+  padding: 4px 6px;
+  background: var(--box);
+  border: 2px solid #fff;
+  border-radius: 6px;
+  margin: 2px 4px 4px;
+}
+
+.ctp-phone-app.skin-yourplay .agent-dock-app {
+  flex: none;
+  flex-direction: row;
+  gap: 2px;
+  padding: 2px 4px;
+  border-radius: 0;
+  color: #fff;
+}
+
+.ctp-phone-app.skin-yourplay .agent-dock-app > i:first-child {
+  display: none;
+}
+
+.ctp-phone-app.skin-yourplay .agent-dock-app span {
+  font-family: var(--pixel);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-yourplay .agent-dock-app::before {
+  content: "▶";
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  visibility: hidden;
+}
+
+.ctp-phone-app.skin-yourplay .agent-dock-app.active,
+.ctp-phone-app.skin-yourplay .agent-dock-app:hover {
+  background: none;
+  color: #ffe45c;
+  text-shadow: none;
+}
+
+.ctp-phone-app.skin-yourplay .agent-dock-app.active::before,
+.ctp-phone-app.skin-yourplay .agent-dock-app:hover::before {
+  visibility: visible;
+}
+
+.ctp-phone-app.skin-yourplay .agent-dock-badge {
+  position: static;
+  min-width: 0;
+  height: auto;
+  padding: 0 3px;
+  border-radius: 2px;
+  font-family: var(--pixel);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  line-height: 1.5;
+}
+
+.ctp-phone-app.skin-yourplay .agent-dock-dot {
+  position: static;
+  width: 6px;
+  height: 6px;
+  border-radius: 0;
+}
+
+.ctp-phone-app.skin-yourplay .agent-wide-btn,
+.ctp-phone-app.skin-yourplay .agent-card-action,
+.ctp-phone-app.skin-yourplay .agent-quick-reply {
+  border: 2px solid #4c3f6b;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--agent-text);
+  font-family: var(--pixel);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-yourplay .agent-dropdown-menu,
+.ctp-phone-app.skin-yourplay .agent-emoji-picker {
+  background: #fff;
+  border: 2px solid #4c3f6b;
+  border-radius: 4px;
+}
+
+.ctp-phone-app.skin-yourplay .agent-acting-as {
+  color: #8a4b00;
+}
+
+.ctp-phone-app.skin-yourplay .window-resizable-handle {
+  border-top: 1px solid #b48ad6;
+  border-radius: 0 0 40px 40px;
+  background:
+    repeating-linear-gradient(90deg, #9c86c2 0 2px, transparent 2px 5px) center / 36px 4px no-repeat,
+    #dcc8f5;
+}
+
+.ctp-phone-app.skin-yourplay .window-resizable-handle i {
+  color: #7b4fa8;
+}
+
+/* The Home button: the SELECT pill. */
+.ctp-phone-app.skin-yourplay .agent-home-button {
+  width: auto;
+  height: 18px;
+  padding: 0 10px;
+  border: 2px solid #4c3f6b;
+  border-radius: 9px;
+  background: #9c86c2;
+  color: #fff;
+  font-size: 0;
+}
+
+.ctp-phone-app.skin-yourplay .agent-home-button::after {
+  content: "HOME";
+  font-family: var(--pixel);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-yourplay .agent-home-button i {
+  display: none;
+}

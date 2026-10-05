@@ -1,0 +1,23 @@
+<form class="ctp-pick-form ctp-location-form">
+  {{#if current}}
+    <label class="ctp-pick ctp-pick-current">
+      <input type="radio" name="pin" value="current"><i class="fas fa-crosshairs"></i><span>My Current Location</span>
+    </label>
+  {{/if}}
+  {{#if scenes.length}}
+    <div class="form-group">
+      <label>Map</label>
+      <select name="scene">{{#each scenes}}<option value="{{id}}" {{#if shown}}selected{{/if}}>{{name}}</option>{{/each}}</select>
+    </div>
+    <div class="form-group"><input type="text" name="filter" placeholder="Search pins"></div>
+  {{/if}}
+  <div class="ctp-location-list">
+    {{#each scenes as |scene|}}
+      {{#each scene.notes}}
+        <label class="ctp-pick" data-scene="{{scene.id}}" {{#unless scene.shown}}hidden{{/unless}}>
+          <input type="radio" name="pin" value="{{scene.id}}|{{id}}"><i class="fas fa-location-dot"></i><span>{{label}}</span>
+        </label>
+      {{/each}}
+    {{/each}}
+  </div>
+</form>

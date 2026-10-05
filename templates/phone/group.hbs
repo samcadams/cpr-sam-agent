@@ -1,0 +1,22 @@
+<div class="agent-thread-bar">
+  <a class="agent-icon-btn" data-action="back" title="Back"><i class="fas fa-chevron-left"></i></a>
+  <span class="agent-avatar"><i class="fas fa-users"></i></span>
+  <div class="agent-thread-title">
+    <div class="agent-thread-name">{{group.name}}</div>
+    <div class="agent-thread-sub">{{group.subtitle}}</div>
+  </div>
+  {{#if group.canCall}}
+    <a class="agent-icon-btn" data-action="call" title="Group call"><i class="{{@root.appearance.icons.call}}"></i></a>
+  {{/if}}
+  <a class="agent-icon-btn" data-action="group-info" title="Group info"><i class="fas fa-circle-info"></i></a>
+</div>
+
+<div class="agent-messages">
+  {{#each group.messages}}
+    {{> agent-message canReact=@root.group.canReact}}
+  {{else}}
+    <div class="agent-empty">No messages yet.</div>
+  {{/each}}
+</div>
+
+{{> agent-compose placeholder=group.placeholder canSend=group.canSend}}

@@ -1,0 +1,58 @@
+<div class="agent-thread-bar">
+  <a class="agent-icon-btn" data-action="quest-back" title="Back"><i class="fas fa-chevron-left"></i></a>
+  <div class="agent-thread-title">
+    <div class="agent-thread-name">{{quest.name}}</div>
+    <div class="agent-thread-sub">{{quest.statusLabel}}{{#if quest.hidden}} · hidden from players{{/if}}</div>
+  </div>
+  {{#if quest.manage}}
+    <a class="agent-icon-btn{{#if quest.hidden}} active{{/if}}" data-action="quest-hide" title="{{#if quest.hidden}}Reveal to players{{else}}Hide from players{{/if}}">
+      <i class="fas {{#if quest.hidden}}fa-eye-slash{{else}}fa-eye{{/if}}"></i>
+    </a>
+    <a class="agent-icon-btn" data-action="quest-edit" title="Edit job"><i class="fas fa-pen"></i></a>
+    <a class="agent-icon-btn" data-action="quest-delete" title="Delete job"><i class="fas fa-trash"></i></a>
+  {{/if}}
+</div>
+<div class="agent-info agent-quest">
+  {{#if quest.manage}}
+    <div class="agent-info-row agent-quest-status">
+      <label class="agent-info-label">Status</label>
+      {{> agent-dropdown quest.statusPicker}}
+    </div>
+  {{else}}
+    <span class="agent-quest-badge status-{{quest.status}}">{{quest.statusLabel}}</span>
+  {{/if}}
+  {{#if quest.img}}
+    <img class="agent-quest-img" src="{{quest.img}}" alt="{{quest.name}}" data-action="open-photo" data-src="{{quest.img}}">
+  {{/if}}
+  {{#if quest.description}}<div class="agent-quest-desc">{{quest.description}}</div>{{/if}}
+
+  <label class="agent-info-label">Objectives</label>
+  <ol class="agent-objectives">
+    {{#each quest.objectives}}
+      <li class="agent-objective state-{{state}}{{#if hidden}} is-hidden{{/if}}{{#if hiddenByParent}} is-hidden-parent{{/if}}" style="padding-left: {{indent}}px">
+        {{#if depth}}<span class="agent-objective-branch">└</span>{{/if}}
+        {{#if ../quest.manage}}
+          <a class="agent-objective-box" data-action="objective-cycle" data-objective-id="{{id}}" title="Click to cycle: incomplete → complete → failed"><i class="{{icon}}"></i></a>
+        {{else}}
+          <span class="agent-objective-box"><i class="{{icon}}"></i></span>
+        {{/if}}
+        <span class="agent-objective-text">{{text}}</span>
+        {{#if ../quest.manage}}
+          <span class="agent-objective-tools">
+            <a data-action="objective-move" data-objective-id="{{id}}" data-dir="-1" title="Move up"{{#unless canUp}} class="disabled"{{/unless}}><i class="fas fa-arrow-up"></i></a>
+            <a data-action="objective-move" data-objective-id="{{id}}" data-dir="1" title="Move down"{{#unless canDown}} class="disabled"{{/unless}}><i class="fas fa-arrow-down"></i></a>
+            <a data-action="objective-hide" data-objective-id="{{id}}" title="{{#if hidden}}Reveal to players{{else}}Hide from players{{/if}}"><i class="fas {{#if hidden}}fa-eye-slash{{else}}fa-eye{{/if}}"></i></a>
+            <a data-action="objective-add" data-parent-id="{{id}}" title="Add a branch under this"><i class="fas fa-code-branch"></i></a>
+            <a data-action="objective-edit" data-objective-id="{{id}}" title="Edit / move"><i class="fas fa-pen"></i></a>
+            <a data-action="objective-delete" data-objective-id="{{id}}" title="Delete"><i class="fas fa-trash"></i></a>
+          </span>
+        {{/if}}
+      </li>
+    {{else}}
+      <li class="agent-empty">No objectives yet.</li>
+    {{/each}}
+  </ol>
+  {{#if quest.manage}}
+    <button type="button" class="agent-wide-btn" data-action="objective-add"><i class="fas fa-plus"></i> Add objective</button>
+  {{/if}}
+</div>

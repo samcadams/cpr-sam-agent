@@ -1,0 +1,76 @@
+<div class="agent-inbox-bar">
+  <span class="agent-inbox-name">{{inboxName}}</span>
+  {{#if canSilence}}
+    <a class="agent-icon-btn{{#if silent}} active{{/if}}" data-action="toggle-silent" title="{{#if silent}}Silent — tap to turn sound on{{else}}Sound on — tap to silence{{/if}}">
+      <i class="fas {{#if silent}}fa-bell-slash{{else}}fa-bell{{/if}}"></i>
+    </a>
+  {{/if}}
+  {{#if canNewText}}
+    <a class="agent-icon-btn" data-action="app" data-app="contacts" title="New message"><i class="fas fa-pen-to-square"></i></a>
+  {{/if}}
+  {{#if canGroup}}
+    <a class="agent-icon-btn" data-action="new-group" title="New group"><i class="fas fa-users"></i></a>
+  {{/if}}
+  {{#if canCompose}}
+    <a class="agent-icon-btn" data-action="new-thread" title="New conversation"><i class="fas fa-pen-to-square"></i></a>
+  {{/if}}
+  {{#if gmConsole}}
+    <a class="agent-icon-btn" data-action="app-settings" data-app="messages" title="Settings: photos, map pins, quick replies"><i class="fas fa-gear"></i></a>
+  {{/if}}
+</div>
+
+{{#if pickers}}{{> agent-gm-pickers pickers}}{{/if}}
+
+{{#if sims}}
+  <div class="agent-sims" title="Act as…">
+    <a class="agent-sim{{#if sims.all}} active{{/if}}" data-action="sim-pick" data-name=""><span class="agent-sim-chip"><i class="fas fa-users"></i></span><span class="agent-sim-name">All</span></a>
+    {{#each sims.tiles}}
+      <a class="agent-sim{{#if active}} active{{/if}}" style="--persona: {{color}}" data-action="sim-pick" data-name="{{name}}" title="Act as {{name}}">
+        <span class="agent-sim-chip">{{initials}}</span>
+        <span class="agent-sim-name">{{name}}</span>
+        {{#if unread}}<b class="agent-dock-badge">{{unread}}</b>{{/if}}
+      </a>
+    {{/each}}
+  </div>
+{{/if}}
+
+<div class="agent-search">
+  <i class="fas fa-magnifying-glass"></i>
+  <input type="search" name="search" value="{{search}}" placeholder="Search" autocomplete="off">
+</div>
+
+<ol class="agent-inbox">
+  {{#each rows}}
+    <li class="agent-row{{#if unread}} unread{{/if}}{{#if color}} persona{{/if}}" {{#if color}}style="--persona: {{color}}"{{/if}} data-action="open-thread" data-kind="{{kind}}"
+        data-thread-id="{{threadId}}" data-actor-id="{{actorId}}" data-contact="{{contact}}" data-hidden="{{hidden}}"
+        data-group-id="{{groupId}}" data-service-id="{{serviceId}}">
+      {{#if isGroup}}
+        <span class="agent-avatar"><i class="fas fa-users"></i></span>
+      {{else}}
+        {{> agent-avatar}}
+      {{/if}}
+      <div class="agent-row-main">
+        <div class="agent-row-top">
+          <span class="agent-row-name">{{name}}</span>
+          {{#if isService}}<span class="agent-service-tag">SERVICE</span>{{/if}}
+          {{#if hiddenBadge}}<span class="agent-hidden-tag" title="Caller ID hidden from them"><i class="fas fa-user-secret"></i> hidden</span>{{/if}}
+          {{#if blocked}}<i class="fas fa-ban agent-blocked-icon" title="Blocked"></i>{{/if}}
+          {{#if owner}}<span class="agent-row-owner">{{#unless isGroup}}⇄ {{/unless}}{{owner}}</span>{{/if}}
+          <span class="agent-row-time">{{time}}</span>
+        </div>
+        <div class="agent-row-preview">{{preview}}</div>
+      </div>
+      {{#if ../canClear}}{{#if thread}}
+        <a class="agent-row-delete" data-action="clear-thread" data-pin-key="{{pinKey}}" title="Delete conversation"><i class="fas fa-trash"></i></a>
+      {{/if}}{{/if}}
+      {{#if ../canPin}}
+        <a class="agent-pin{{#if pinned}} pinned{{/if}}" data-action="pin" data-pin-key="{{pinKey}}" title="{{#if pinned}}Unpin{{else}}Pin{{/if}}"><i class="fas fa-thumbtack"></i></a>
+      {{else if pinned}}
+        <i class="fas fa-thumbtack agent-pin pinned"></i>
+      {{/if}}
+      {{#if unread}}<span class="agent-unread">{{unread}}</span>{{/if}}
+    </li>
+  {{else}}
+    <li class="agent-empty">{{emptyText}}</li>
+  {{/each}}
+</ol>

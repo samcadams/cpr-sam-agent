@@ -1,0 +1,13 @@
+<form class="ctp-attach-photo">
+  {{#if canUpload}}
+    <div class="form-group"><label>Upload</label><input type="file" name="file" accept="image/*"></div>
+  {{/if}}
+  <div class="form-group">
+    <label>{{#if canUpload}}Or a link{{else}}Link{{/if}}</label>
+    <div class="form-fields">
+      <input type="text" name="link" placeholder="https://… or a path on the server">
+      {{#if canBrowse}}<button type="button" class="ctp-browse" title="Pick a file already on the server"><i class="fas fa-folder-open"></i></button>{{/if}}
+    </div>
+  </div>
+  {{#unless canUpload}}<p class="notes">Uploading needs Foundry's "Upload New Files" permission.</p>{{/unless}}
+</form>

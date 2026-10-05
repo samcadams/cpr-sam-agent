@@ -1,0 +1,198 @@
+/* Colours shared by everything, and the themes (colour overrides; Internal Agents also get the HUD look). */
+
+/* Agent phone — all rules scoped to .ctp-phone-app, .ctp-float-button, .ctp-contacts and .ctp-services */
+.ctp-phone-app,
+.ctp-float-button,
+#ctp-toasts,
+#ctp-call-widget {
+  --agent-bg: #0b0f14;
+  --agent-panel: #121922;
+  --agent-cyan-rgb: 0, 240, 255;
+  --agent-magenta-rgb: 255, 42, 109;
+  --agent-yellow-rgb: 245, 230, 99;
+  --agent-cyan: rgb(var(--agent-cyan-rgb));
+  --agent-magenta: rgb(var(--agent-magenta-rgb));
+  --agent-yellow: rgb(var(--agent-yellow-rgb));
+  --agent-text: #e6f7ff;
+  --agent-muted: #6b8494;
+  /* "Done / paid / joined" green as text, readable on the phone's background (light skins darken it). */
+  --agent-good: #39ff88;
+  --agent-font: "Share Tech Mono", "Consolas", "Courier New", monospace;
+}
+
+.ctp-phone-app.theme-arasaka {
+  --agent-bg: #0d0707;
+  --agent-panel: #1a0c0c;
+  --agent-cyan-rgb: 255, 70, 70;
+  --agent-magenta-rgb: 210, 210, 215;
+  --agent-yellow-rgb: 255, 150, 130;
+  --agent-text: #f5eaea;
+  --agent-muted: #8a6b6b;
+}
+
+.ctp-phone-app.theme-militech {
+  --agent-bg: #0c0e08;
+  --agent-panel: #161a10;
+  --agent-cyan-rgb: 180, 205, 90;
+  --agent-magenta-rgb: 235, 150, 40;
+  --agent-yellow-rgb: 235, 205, 95;
+  --agent-text: #e8ecd8;
+  --agent-muted: #7d8567;
+}
+
+.ctp-phone-app.theme-biotechnica {
+  --agent-bg: #06100c;
+  --agent-panel: #0e1c16;
+  --agent-cyan-rgb: 60, 230, 150;
+  --agent-magenta-rgb: 40, 185, 225;
+  --agent-yellow-rgb: 190, 240, 120;
+  --agent-text: #e2fff2;
+  --agent-muted: #5f8a79;
+}
+
+.ctp-phone-app.theme-kangtao {
+  --agent-bg: #0e0b05;
+  --agent-panel: #1b150b;
+  --agent-cyan-rgb: 240, 190, 70;
+  --agent-magenta-rgb: 225, 60, 60;
+  --agent-yellow-rgb: 255, 220, 140;
+  --agent-text: #fff4dc;
+  --agent-muted: #8f8163;
+}
+
+.ctp-phone-app.theme-trauma {
+  --agent-bg: #06101c;
+  --agent-panel: #0d1a2a;
+  --agent-cyan-rgb: 90, 170, 255;
+  --agent-magenta-rgb: 235, 242, 255;
+  --agent-yellow-rgb: 255, 85, 85;
+  --agent-text: #eef5ff;
+  --agent-muted: #6f86a0;
+}
+
+/*
+ * Internal Agent: a faint retinal overlay. Pale ice-blue on near-transparent glass, deliberately a
+ * little hard to read, like text projected onto the eye.
+ */
+.ctp-phone-app.theme-internal {
+  --agent-bg: rgba(8, 12, 18, var(--hud-alpha, 0.8));
+  --agent-panel: rgba(20, 28, 38, calc(var(--hud-alpha, 0.8) * 0.9 + 0.1));
+  --agent-cyan-rgb: 175, 215, 240;
+  --agent-magenta-rgb: 200, 185, 235;
+  --agent-yellow-rgb: 225, 235, 245;
+  --agent-text: rgba(225, 238, 250, 0.88);
+  --agent-muted: rgba(150, 170, 190, 0.7);
+  border-color: rgba(var(--agent-cyan-rgb), 0.35);
+  border-radius: 4px;
+  box-shadow: 0 0 18px rgba(var(--agent-cyan-rgb), 0.12);
+  backdrop-filter: blur(2px) brightness(0.85);
+}
+
+.ctp-phone-app.theme-internal .window-header {
+  background: var(--agent-bg);
+  border-bottom-color: rgba(var(--agent-cyan-rgb), 0.2);
+}
+
+.ctp-phone-app.theme-internal .window-content {
+  background: transparent;
+}
+
+.ctp-phone-app.theme-internal .agent-phone {
+  opacity: calc(0.9 + var(--hud-alpha, 0.8) * 0.1);
+  text-shadow: 0 0 3px rgba(var(--agent-cyan-rgb), 0.35);
+  letter-spacing: 0.5px;
+}
+
+.ctp-phone-app.theme-internal .agent-phone::after {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.035) 0,
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+
+.ctp-phone-app.theme-internal .agent-bubble {
+  border-radius: 2px;
+  background: rgba(var(--agent-cyan-rgb), 0.06);
+}
+
+.ctp-phone-app.theme-internal .agent-msg.mine .agent-bubble {
+  background: rgba(var(--agent-magenta-rgb), 0.06);
+}
+
+/*
+ * Internal Agent colour variants. They sit on top of .theme-internal (the element carries both
+ * classes), so square edges, blur and translucency come from the base; only colours change here.
+ */
+.ctp-phone-app.theme-internal-nightcity {
+  --agent-bg: rgba(8, 10, 18, var(--hud-alpha, 0.8));
+  --agent-panel: rgba(18, 22, 36, calc(var(--hud-alpha, 0.8) * 0.9 + 0.1));
+  --agent-cyan-rgb: 120, 235, 250;
+  --agent-magenta-rgb: 255, 120, 170;
+  --agent-yellow-rgb: 245, 230, 140;
+  --agent-text: rgba(230, 245, 255, 0.88);
+  --agent-muted: rgba(140, 165, 185, 0.7);
+}
+
+.ctp-phone-app.theme-internal-arasaka {
+  --agent-bg: rgba(18, 8, 9, var(--hud-alpha, 0.8));
+  --agent-panel: rgba(34, 16, 17, calc(var(--hud-alpha, 0.8) * 0.9 + 0.1));
+  --agent-cyan-rgb: 255, 120, 120;
+  --agent-magenta-rgb: 225, 225, 230;
+  --agent-yellow-rgb: 255, 175, 155;
+  --agent-text: rgba(250, 234, 234, 0.88);
+  --agent-muted: rgba(175, 140, 140, 0.7);
+}
+
+.ctp-phone-app.theme-internal-militech {
+  --agent-bg: rgba(12, 14, 8, var(--hud-alpha, 0.8));
+  --agent-panel: rgba(24, 28, 16, calc(var(--hud-alpha, 0.8) * 0.9 + 0.1));
+  --agent-cyan-rgb: 195, 215, 125;
+  --agent-magenta-rgb: 240, 175, 85;
+  --agent-yellow-rgb: 240, 220, 135;
+  --agent-text: rgba(236, 240, 222, 0.88);
+  --agent-muted: rgba(150, 158, 125, 0.7);
+}
+
+.ctp-phone-app.theme-internal-biotechnica {
+  --agent-bg: rgba(6, 15, 12, var(--hud-alpha, 0.8));
+  --agent-panel: rgba(14, 30, 24, calc(var(--hud-alpha, 0.8) * 0.9 + 0.1));
+  --agent-cyan-rgb: 120, 235, 180;
+  --agent-magenta-rgb: 100, 205, 235;
+  --agent-yellow-rgb: 205, 240, 155;
+  --agent-text: rgba(228, 255, 243, 0.88);
+  --agent-muted: rgba(120, 165, 148, 0.7);
+}
+
+.ctp-phone-app.theme-internal-kangtao {
+  --agent-bg: rgba(15, 12, 6, var(--hud-alpha, 0.8));
+  --agent-panel: rgba(30, 24, 12, calc(var(--hud-alpha, 0.8) * 0.9 + 0.1));
+  --agent-cyan-rgb: 242, 205, 115;
+  --agent-magenta-rgb: 235, 115, 105;
+  --agent-yellow-rgb: 255, 228, 165;
+  --agent-text: rgba(255, 246, 225, 0.88);
+  --agent-muted: rgba(172, 158, 122, 0.7);
+}
+
+.ctp-phone-app.theme-internal-trauma {
+  --agent-bg: rgba(6, 12, 22, var(--hud-alpha, 0.8));
+  --agent-panel: rgba(14, 24, 40, calc(var(--hud-alpha, 0.8) * 0.9 + 0.1));
+  --agent-cyan-rgb: 135, 190, 255;
+  --agent-magenta-rgb: 235, 242, 255;
+  --agent-yellow-rgb: 255, 125, 125;
+  --agent-text: rgba(238, 245, 255, 0.88);
+  --agent-muted: rgba(135, 158, 185, 0.7);
+}
+
+/* Colourless: a pale grey overlay that stays out of the way. */
+.ctp-phone-app.theme-internal-ghost {
+  --agent-bg: rgba(12, 13, 15, var(--hud-alpha, 0.8));
+  --agent-panel: rgba(26, 28, 31, calc(var(--hud-alpha, 0.8) * 0.9 + 0.1));
+  --agent-cyan-rgb: 225, 230, 236;
+  --agent-magenta-rgb: 175, 182, 190;
+  --agent-yellow-rgb: 255, 255, 255;
+  --agent-text: rgba(236, 239, 242, 0.85);
+  --agent-muted: rgba(150, 155, 162, 0.7);
+}

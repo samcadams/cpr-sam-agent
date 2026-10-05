@@ -1,0 +1,41 @@
+<div class="agent-inbox-bar">
+  <span class="agent-inbox-name"><i class="{{appearance.icons.jobs}}"></i> {{appearance.names.quests}}</span>
+  {{#if quests.manage}}
+    <a class="agent-icon-btn" data-action="quest-new" title="New job"><i class="fas fa-plus"></i></a>
+    <a class="agent-icon-btn" data-action="app-settings" data-app="quests" title="Settings: the Available tab"><i class="fas fa-gear"></i></a>
+  {{/if}}
+</div>
+<div class="agent-tabs">
+  {{#each quests.tabs}}
+    <a class="agent-tab{{#if active}} active{{/if}}" data-action="quest-tab" data-tab="{{id}}">
+      {{label}}{{#if count}} <span class="agent-tab-count">{{count}}</span>{{/if}}
+    </a>
+  {{/each}}
+</div>
+<ol class="agent-inbox agent-quest-list">
+  {{#each quests.rows}}
+    <li class="agent-row" data-action="quest-open" data-quest-id="{{id}}">
+      {{#if img}}
+        <img class="agent-quest-thumb" src="{{img}}" alt="{{name}}">
+      {{else}}
+        <span class="agent-quest-thumb"><i class="fas fa-bullseye"></i></span>
+      {{/if}}
+      <div class="agent-row-main">
+        <div class="agent-row-top">
+          <span class="agent-row-name">{{name}}</span>
+          {{#if hidden}}<i class="fas fa-eye-slash agent-hidden-icon" title="Hidden from players"></i>{{/if}}
+          {{#if progress}}<span class="agent-row-time">{{progress}}</span>{{/if}}
+        </div>
+        <div class="agent-row-preview">{{summary}}</div>
+      </div>
+    </li>
+  {{else}}
+    <li class="agent-empty">{{quests.emptyText}}</li>
+  {{/each}}
+</ol>
+{{#if quests.availableNote}}
+  <div class="agent-tab-note{{#unless quests.availableNote.shown}} hidden-tab{{/unless}}">
+    <i class="fas {{#if quests.availableNote.shown}}fa-eye{{else}}fa-eye-slash{{/if}}"></i> {{quests.availableNote.text}}
+    <a class="agent-tab-note-link" data-action="jobs-available-toggle" title="The &quot;Available&quot; jobs tab switch in Control">{{#if quests.availableNote.shown}}Hide{{else}}Show{{/if}} it</a>
+  </div>
+{{/if}}

@@ -1,0 +1,675 @@
+/* The phone window: frame, status bar, shared controls, header bars and the dock. */
+
+.ctp-phone-app {
+  /* Native controls (scrollbars, inputs) drawn dark to match, in every browser. */
+  color-scheme: dark;
+  background: var(--agent-bg);
+  border: 2px solid var(--agent-cyan);
+  border-radius: 22px;
+  box-shadow: 0 0 14px rgba(var(--agent-cyan-rgb), 0.4), inset 0 0 14px rgba(var(--agent-magenta-rgb), 0.1);
+  overflow: hidden;
+  min-width: 260px;
+  min-height: 300px;
+}
+
+.ctp-phone-app.minimized {
+  min-height: 0;
+}
+
+/*
+ * The resize handle: a grip bar along the whole bottom edge, always there and above everything, so
+ * no skin, dock or bezel can cover it. Foundry resizes by how far it's dragged, so it can be grabbed
+ * anywhere along the bar.
+ */
+.ctp-phone-app .window-content {
+  margin-bottom: 14px;
+}
+
+.ctp-phone-app .window-resizable-handle {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: 14px;
+  padding: 0;
+  border: none;
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.3);
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(var(--agent-cyan-rgb), 0.5) 0 2px, transparent 2px 5px) center / 36px 4px no-repeat,
+    var(--agent-panel);
+  cursor: nwse-resize;
+  opacity: 1;
+}
+
+.ctp-phone-app .window-resizable-handle i {
+  position: absolute;
+  right: 6px;
+  color: var(--agent-cyan);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  transform: rotate(45deg);
+}
+
+.ctp-phone-app .window-resizable-handle:hover {
+  background-color: rgba(var(--agent-cyan-rgb), 0.18);
+}
+
+.ctp-phone-app.minimized .window-content {
+  margin-bottom: 0;
+}
+
+.ctp-phone-app.minimized .window-resizable-handle {
+  display: none;
+}
+
+.ctp-phone-app .window-header {
+  background: #05080c;
+  border-bottom: 1px solid rgba(var(--agent-cyan-rgb), 0.3);
+  color: var(--agent-yellow);
+  font-family: var(--agent-font);
+  letter-spacing: 3px;
+}
+
+.ctp-phone-app .window-header a {
+  color: var(--agent-muted);
+  letter-spacing: normal;
+}
+
+.ctp-phone-app .window-content {
+  padding: 0;
+  background: var(--agent-bg);
+  color: var(--agent-text);
+  overflow: hidden;
+}
+
+.ctp-phone-app .agent-phone {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: var(--agent-font);
+  /* Text size (Settings → Look): every font size in the phone is multiplied by --agent-font-scale. */
+  font-size: calc(1em * var(--agent-font-scale, 1));
+  position: relative;
+}
+
+/* Subtle scanlines */
+.ctp-phone-app .agent-phone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.02) 0,
+    rgba(255, 255, 255, 0.02) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+.ctp-phone-app .agent-statusbar {
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 4px 12px;
+  background: linear-gradient(90deg, rgba(var(--agent-magenta-rgb), 0.25), rgba(var(--agent-cyan-rgb), 0.15));
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+}
+
+.ctp-phone-app .agent-brand {
+  justify-self: start;
+  color: var(--agent-yellow);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-time {
+  justify-self: center;
+}
+
+.ctp-phone-app .agent-signal {
+  justify-self: end;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 10px;
+}
+
+.ctp-phone-app .agent-signal i {
+  display: block;
+  width: 3px;
+  background: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-signal i:nth-child(1) { height: 3px; }
+
+.ctp-phone-app .agent-signal i:nth-child(2) { height: 5px; }
+
+.ctp-phone-app .agent-signal i:nth-child(3) { height: 7px; }
+
+.ctp-phone-app .agent-signal i:nth-child(4) { height: 10px; opacity: 0.35; }
+
+.ctp-phone-app .agent-signal.offline {
+  height: auto;
+  color: var(--agent-magenta);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app .agent-date {
+  flex: none;
+  padding: 2px 12px 4px;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-align: center;
+  border-bottom: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+}
+
+.ctp-phone-app .agent-date:empty {
+  display: none;
+}
+
+.ctp-phone-app .agent-avatar {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--agent-cyan);
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--agent-panel);
+  color: var(--agent-cyan);
+  font-weight: bold;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+/* Pictures zoom in a little: token art and portraits often have empty space around the figure.
+   (object-view-box: Chromium-based browsers and Foundry's app; elsewhere the whole picture shows.) */
+.ctp-phone-app img.agent-avatar {
+  object-view-box: inset(var(--agent-avatar-crop, 10%));
+}
+
+.ctp-phone-app .agent-icon-btn {
+  flex: none;
+  color: var(--agent-cyan);
+  padding: 4px 6px;
+  font-size: calc(14px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-icon-btn:hover {
+  text-shadow: 0 0 6px var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-empty {
+  padding: 16px;
+  color: var(--agent-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+/* The phone's own dropdowns (templates/phone/parts/dropdown.hbs). */
+.ctp-phone-app .agent-dropdown {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: 24px;
+  padding: 0 8px;
+  background: var(--agent-bg);
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  border-radius: 6px;
+  color: var(--agent-text);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-dropdown-btn:hover,
+.ctp-phone-app .agent-dropdown-btn.open {
+  border-color: var(--agent-cyan);
+  box-shadow: 0 0 6px rgba(var(--agent-cyan-rgb), 0.35);
+}
+
+.ctp-phone-app .agent-dropdown-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-dropdown-caret {
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-dropdown-menu {
+  position: absolute;
+  z-index: 30;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  overflow-y: auto;
+  background: var(--agent-panel);
+  border: 1px solid var(--agent-cyan);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+  color: var(--agent-text);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-dropdown-menu[hidden] {
+  display: none;
+}
+
+.ctp-phone-app .agent-dropdown-search {
+  position: sticky;
+  top: -4px;
+  z-index: 1;
+  margin: -4px -4px 4px;
+  padding: 4px;
+  background: var(--agent-panel);
+  border-bottom: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+}
+
+.ctp-phone-app .agent-dropdown-search input {
+  width: 100%;
+  height: auto;
+  padding: 3px 6px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  border-radius: 5px;
+  background: var(--agent-bg);
+  color: var(--agent-text);
+  font: inherit;
+}
+
+.ctp-phone-app .agent-dropdown-option[hidden] {
+  display: none;
+}
+
+.ctp-phone-app .agent-dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-dropdown-option:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.14);
+}
+
+.ctp-phone-app .agent-dropdown-option.selected {
+  color: var(--agent-cyan);
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-dropdown-option.action {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-dropdown-count {
+  margin-left: auto;
+  min-width: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--agent-magenta);
+  color: #fff;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  line-height: 16px;
+  text-align: center;
+}
+
+/* A person's colour (model/threads.js personaColor), as a dot. */
+.ctp-phone-app .agent-persona-dot {
+  flex: none;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: var(--persona, var(--agent-yellow));
+  box-shadow: 0 0 5px var(--persona, var(--agent-yellow));
+  vertical-align: middle;
+}
+
+/* GM Phone: whose phone it shows and who it acts as. */
+.ctp-phone-app .agent-gm-pickers {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--agent-panel);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-gm-pickers label {
+  flex: none;
+  color: var(--agent-muted);
+}
+
+/* GM Phone: the token selected on the canvas, offered as a switch. */
+.ctp-phone-app .agent-token-prompt {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: rgba(var(--agent-cyan-rgb), 0.08);
+  border-bottom: 1px dashed rgba(var(--agent-cyan-rgb), 0.4);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-token-prompt .agent-avatar {
+  flex-basis: 24px;
+  width: 24px;
+  height: 24px;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  border-color: var(--persona, var(--agent-cyan));
+}
+
+.ctp-phone-app .agent-token-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--persona, var(--agent-text));
+}
+
+.ctp-phone-app .agent-token-name small {
+  display: block;
+  color: var(--agent-muted);
+  font-size: calc(8px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-token-apply {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid var(--agent-cyan);
+  border-radius: 10px;
+  color: var(--agent-cyan);
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-token-apply:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.15);
+}
+
+.ctp-phone-app .agent-inbox-bar,
+.ctp-phone-app .agent-thread-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--agent-panel);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-dock {
+  flex: none;
+  display: flex;
+  justify-content: space-around;
+  padding: 4px 10px 6px;
+  background: var(--agent-panel);
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-dock-app {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 0;
+  border-radius: 8px;
+  color: var(--agent-muted);
+  font-size: calc(16px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-dock-app span {
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-dock-app.active {
+  color: var(--agent-cyan);
+  text-shadow: 0 0 6px rgba(var(--agent-cyan-rgb), 0.6);
+}
+
+.ctp-phone-app .agent-dock-app:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.08);
+}
+
+.ctp-phone-app .agent-dock-badge {
+  position: absolute;
+  top: 0;
+  left: calc(50% + 6px);
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--agent-magenta);
+  color: #fff;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  line-height: 16px;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-dock-dot {
+  position: absolute;
+  top: 3px;
+  left: calc(50% + 9px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--agent-yellow);
+  box-shadow: 0 0 6px rgba(var(--agent-yellow-rgb), 0.8);
+}
+
+/* GM Phone and NPC phones: "TEXTING AS ROGUE → V" across the top of the page. */
+.ctp-phone-app .agent-acting-as {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 5px 10px;
+  background: rgba(var(--agent-yellow-rgb), 0.12);
+  border-top: 1px solid rgba(var(--agent-yellow-rgb), 0.6);
+  border-bottom: 1px solid rgba(var(--agent-yellow-rgb), 0.6);
+  color: var(--agent-yellow);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-acting-verb {
+  opacity: 0.75;
+}
+
+.ctp-phone-app .agent-acting-name {
+  font-weight: bold;
+  color: var(--persona, var(--agent-yellow));
+  text-shadow: 0 0 6px rgba(var(--agent-yellow-rgb), 0.6);
+}
+
+.ctp-phone-app .agent-acting-as .agent-dropdown-btn {
+  height: 20px;
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(var(--agent-yellow-rgb), 0.6);
+  color: var(--agent-yellow);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-acting-target {
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-acting-note {
+  flex-basis: 100%;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  opacity: 0.8;
+}
+
+/* Split view (a wide window): the conversation list on the left, the open page on the right. */
+.ctp-phone-app .agent-split {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.ctp-phone-app .agent-split-list {
+  flex: 0 0 min(42%, 300px);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-right: 1px solid rgba(var(--agent-cyan-rgb), 0.3);
+}
+
+.ctp-phone-app .agent-split-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-split-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/*
+ * Every button, field and button-like link on the phone uses the skin's own pair of colours: its
+ * panel behind its text (each skin makes those contrast), so nothing is left to Foundry's defaults
+ * or sits in an accent colour over a background it doesn't suit. Skins restyle them on top of this.
+ *
+ * The Cyberpunk RED system colours every button in every window
+ * (".window-app .window-content button": its pale input colours, dark text). This matches that
+ * selector's weight and loads after it, so the phone's own colours win; the phone's button classes
+ * below use "button.<class>" (the same weight, later still), and skins beat all of it.
+ */
+.ctp-phone-app .window-content button,
+.ctp-phone-app .agent-wide-btn,
+.ctp-phone-app .agent-app-chip,
+.ctp-phone-app .agent-money-actions a {
+  background-color: var(--agent-panel);
+  color: var(--agent-text);
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.ctp-phone-app .window-content button {
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.5);
+  font-family: var(--agent-font);
+}
+
+.ctp-phone-app .window-content button:hover:not(:disabled) {
+  border-color: var(--agent-cyan);
+  box-shadow: 0 0 6px rgba(var(--agent-cyan-rgb), 0.35);
+}
+
+.ctp-phone-app .window-content button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ctp-phone-app input:not([type="checkbox"], [type="radio"], [type="range"]),
+.ctp-phone-app textarea,
+.ctp-phone-app select {
+  background-color: var(--agent-bg);
+  color: var(--agent-text);
+}
+
+.ctp-phone-app input::placeholder,
+.ctp-phone-app textarea::placeholder {
+  color: var(--agent-muted);
+  opacity: 1;
+}
+
+/* Answer buttons: the first is the "yes" (solid green), the others outlined in the skin's colours. */
+.ctp-phone-app .agent-money-actions a {
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.5);
+}
+
+.ctp-phone-app .agent-money-actions a.decline {
+  border-color: var(--agent-magenta);
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-money-actions a.pay {
+  border-color: #1faa59;
+  background-color: #1faa59;
+  color: #fff;
+}
+
+/*
+ * Home-screen navigation (the phone's "Getting around" setting): no dock, a Home button at the foot
+ * of the screen. Each skin gives the button its own look (styles/skins/).
+ */
+.ctp-phone-app .agent-home-bar {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-home-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.6);
+  border-radius: 50%;
+  background: var(--agent-panel);
+  color: var(--agent-cyan);
+  font-size: calc(14px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-home-button:hover,
+.ctp-phone-app .agent-home-button.active {
+  box-shadow: 0 0 8px rgba(var(--agent-cyan-rgb), 0.6);
+}
+
+.ctp-phone-app .agent-home-button .agent-dock-badge {
+  top: -4px;
+  left: auto;
+  right: -8px;
+}

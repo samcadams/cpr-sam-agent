@@ -1,0 +1,41 @@
+{{!-- GM Phone: every call the GM holds an NPC in (ui/phone/pages/call.js gmCallData). --}}
+<div class="agent-gm-calls">
+  {{#each calls}}
+    <section class="agent-gm-call{{#if ringing}} ringing{{/if}}">
+      <div class="agent-gm-call-head">
+        <i class="fas fa-phone{{#if ringing}} fa-shake{{/if}}"></i>
+        <span class="agent-gm-call-title">{{title}}{{#if line}} · {{line}}{{/if}}</span>
+        <span class="agent-call-status" {{#if startedAt}}data-started-at="{{startedAt}}"{{/if}}>{{timer}}</span>
+      </div>
+      <ol class="agent-call-people">
+        {{#each participants}}
+          <li class="state-{{state}}{{#if held}} held{{/if}}"{{#if color}} style="--persona: {{color}}"{{/if}}>
+            {{> agent-avatar}}
+            <span class="agent-call-person">{{#if held}}<i class="agent-persona-dot"></i>{{/if}}{{name}}{{#if held}} <small>(you)</small>{{/if}}</span>
+            {{#if canAnswer}}
+              <a class="agent-call-mini decline" data-action="call-decline" data-call-id="{{../id}}" data-key="{{key}}" title="Decline as {{name}}"><i class="fas fa-phone-slash"></i></a>
+              <a class="agent-call-mini accept" data-action="call-answer" data-call-id="{{../id}}" data-key="{{key}}" title="Answer as {{name}}"><i class="fas fa-phone"></i> Answer</a>
+            {{else if canLeave}}
+              <a class="agent-call-mini" data-action="call-hangup" data-call-id="{{../id}}" data-key="{{key}}" title="{{name}} leaves the call">Leave</a>
+            {{else}}
+              <span class="agent-call-state">{{label}}</span>
+            {{/if}}
+          </li>
+        {{/each}}
+      </ol>
+      <div class="agent-gm-call-actions">
+        {{#if canAnswerAll}}
+          <a class="agent-call-mini accept" data-action="call-answer-all" data-call-id="{{id}}"><i class="fas fa-phone"></i> Answer as all</a>
+        {{/if}}
+        {{#if addKey}}
+          <a class="agent-call-mini" data-action="call-add" data-call-id="{{id}}" data-key="{{addKey}}" title="Add someone (your NPCs join at once)"><i class="fas fa-user-plus"></i> Add</a>
+        {{/if}}
+        <a class="agent-call-mini decline" data-action="call-close" data-call-id="{{id}}" title="Hang up for everyone"><i class="fas fa-phone-slash"></i> End call</a>
+      </div>
+    </section>
+  {{/each}}
+  <div class="agent-gm-calls-foot">
+    <a class="agent-call-minimize" data-action="call-hide" title="Back to messages (the call carries on)"><i class="fas fa-comment-dots"></i> Messages</a>
+    <a class="agent-call-minimize" data-action="call-minimize" title="Minimise: keep the call in a small card"><i class="fas fa-down-left-and-up-right-to-center"></i> Minimise</a>
+  </div>
+</div>

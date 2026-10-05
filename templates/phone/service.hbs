@@ -1,0 +1,37 @@
+<div class="agent-thread-bar">
+  <a class="agent-icon-btn" data-action="back" title="Back"><i class="fas fa-chevron-left"></i></a>
+  {{> agent-avatar service}}
+  <div class="agent-thread-title">
+    <div class="agent-thread-name">{{service.name}} <span class="agent-service-tag">SERVICE</span></div>
+    {{#if service.subtitle}}<div class="agent-thread-sub">{{service.subtitle}}</div>{{/if}}
+  </div>
+  {{#if service.canCall}}
+    <span class="agent-line-call">
+      <a class="agent-icon-btn" data-action="service-call" title="Call{{#if service.multiLine}}…{{/if}}"><i class="{{@root.appearance.icons.call}}"></i></a>
+      {{#if service.multiLine}}
+        <span class="agent-line-picker" hidden>
+          {{#each service.lines}}<a data-action="call" data-line="{{this}}"><i class="fas fa-phone"></i> {{this}}</a>{{/each}}
+        </span>
+      {{/if}}
+    </span>
+  {{/if}}
+</div>
+
+<div class="agent-messages">
+  {{#each service.messages}}
+    {{> agent-message canReact=@root.service.canReact}}
+  {{else}}
+    <div class="agent-empty">Choose an option below.</div>
+  {{/each}}
+</div>
+
+{{#if service.actions.length}}
+  <div class="agent-service-actions">
+    {{#each service.actions}}
+      <button type="button" data-action="service-action" data-action-id="{{id}}" {{#unless ../service.canAct}}disabled{{/unless}}>{{label}}</button>
+    {{/each}}
+  </div>
+{{/if}}
+{{#if service.canCompose}}
+  {{> agent-compose placeholder=service.placeholder canSend=true}}
+{{/if}}

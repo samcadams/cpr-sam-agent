@@ -1,0 +1,10 @@
+{{!-- The emoji picker for a reaction keyboard. Context: emojiCatalog() (ui/phone/pages/settings.js). --}}
+<div class="agent-emoji-catalog">
+  {{#each this}}
+    <div class="agent-emoji-group">{{name}}</div>
+    <div class="agent-emoji-grid">
+      {{#each emoji}}<a class="{{#if on}}on{{/if}}" data-action="emoji-toggle" data-emoji="{{e}}" title="{{#if on}}Remove{{else}}Add{{/if}}">{{e}}</a>{{/each}}
+    </div>
+  {{/each}}
+  <p class="agent-info-note">Tap to add or remove. You can also type or paste any emoji into the box.</p>
+</div>

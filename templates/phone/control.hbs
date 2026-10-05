@@ -1,0 +1,133 @@
+{{!-- The GM Phone's Control app (ui/phone/pages/control.js). Each section folds away. --}}
+<div class="agent-inbox-bar">
+  <span class="agent-inbox-name"><i class="{{appearance.icons.control}}"></i> {{appearance.names.control}}</span>
+</div>
+<div class="agent-info agent-control">
+  <details class="agent-section" data-section="characters" {{#if control.open.characters}}open{{/if}}>
+    <summary>Characters</summary>
+    <ol class="agent-members">
+      {{#each control.characters}}
+        <li>
+          {{> agent-avatar}}
+          <span class="agent-member-name">{{name}}</span>
+          {{#if noSignal}}<span class="agent-member-tag no-signal">No signal</span>{{/if}}
+          <a class="agent-icon-btn{{#if noSignal}} active{{/if}}" data-action="control-signal" data-actor-id="{{id}}"
+             title="{{#if noSignal}}Restore cellular service{{else}}Cut cellular service (their incoming messages are held){{/if}}"><i class="fas fa-tower-cell"></i></a>
+          {{#if @root.control.comms}}<a class="agent-icon-btn" data-action="control-contacts" data-actor-id="{{id}}" title="Edit contacts"><i class="fas fa-address-book"></i></a>{{/if}}
+        </li>
+      {{else}}
+        <li class="agent-empty">No player characters.</li>
+      {{/each}}
+    </ol>
+  </details>
+
+  <details class="agent-section" data-section="apps" {{#if control.open.apps}}open{{/if}}>
+    <summary>Apps</summary>
+    <div class="agent-toggle-grid">
+      {{#each control.apps}}
+        <label class="agent-radio"{{#if title}} title="{{title}}"{{/if}}><input type="checkbox" data-feature="{{key}}" {{#if on}}checked{{/if}}> <i class="{{icon}}"></i> {{label}}</label>
+      {{/each}}
+    </div>
+    <p class="agent-info-note">Off: the app leaves everyone's phone. Each app's own options are behind the gear in its header.</p>
+    <p class="agent-info-note">Communications is {{appearance.names.contacts}}, {{appearance.names.messages}} and calls together. Off: phones open on the Apps page, calls in progress end, and nothing can be texted or called. Conversations and contacts are kept for when it's back on.</p>
+  </details>
+
+  <details class="agent-section" data-section="gmPhone" {{#if control.open.gmPhone}}open{{/if}}>
+    <summary>This GM Phone</summary>
+    {{> agent-look-settings control.phone}}
+  </details>
+
+  <details class="agent-section" data-section="everyPhone" {{#if control.open.everyPhone}}open{{/if}}>
+    <summary>Every phone</summary>
+    {{#each control.features}}
+      <label class="agent-radio"><input type="checkbox" data-feature="{{key}}" {{#if on}}checked{{/if}}> {{label}}</label>
+      <p class="agent-info-note">{{note}}</p>
+    {{/each}}
+    <label class="agent-radio"><input type="checkbox" data-feature="blood" {{#if control.blood.on}}checked{{/if}}> Blood on badly hurt characters' screens</label>
+    <p class="agent-info-note">Below half HP; heavier below 1 HP. Only the player holding the phone sees it.</p>
+    <div class="agent-setting-row"><span>Preview here</span>{{> agent-dropdown control.blood.preview}}</div>
+
+    <div class="agent-control-field">
+      <span class="agent-control-field-head">Reaction emoji
+        <a class="agent-icon-btn{{#if control.catalog}} active{{/if}}" data-action="emoji-catalog" title="Pick emoji"><i class="far fa-face-smile"></i> Pick</a>
+      </span>
+      <textarea name="emoji" rows="3" placeholder="Separated by spaces">{{control.emoji}}</textarea>
+    </div>
+    {{#if control.catalog}}{{> agent-emoji-catalog control.catalog}}{{/if}}
+    <p class="agent-info-note">Every phone's reaction keyboard, unless its player made their own.</p>
+
+    <div class="agent-clock">
+      <label class="agent-info-label">Clock</label>
+      <div class="agent-setting-row"><span>Time from</span>{{> agent-dropdown control.clock.source}}</div>
+      {{#if control.clock.noCalendar}}<p class="agent-info-note">Simple Calendar isn't active: using system time.</p>{{/if}}
+      {{#if control.clock.system}}
+        <label class="agent-radio"><input type="checkbox" name="clockOtherDate" {{#if control.clock.system.otherDate}}checked{{/if}}> On another date</label>
+        {{#if control.clock.system.otherDate}}
+          <div class="agent-setting-row"><span>Date</span><input type="date" name="clockSystemDate" value="{{control.clock.system.date}}"></div>
+          <p class="agent-info-note">The real time of day, on this date. It moves on a day at midnight.</p>
+        {{/if}}
+      {{/if}}
+      {{#if control.clock.custom}}
+        <div class="agent-setting-row"><span>Date</span><input type="date" name="clockDate" value="{{control.clock.custom.date}}"></div>
+        <div class="agent-setting-row"><span>Time</span><input type="time" name="clockTime" value="{{control.clock.custom.time}}"></div>
+        <p class="agent-info-note">Every phone shows this, and it runs on from here. Change either to set it again.</p>
+      {{/if}}
+      <label class="agent-radio"><input type="checkbox" name="clockDayPrefix" {{#if control.clock.dayPrefix}}checked{{/if}}> "Day" before the date's number</label>
+      <p class="agent-info-note">Now: {{control.clock.now.time}}{{#if control.clock.now.date}} · {{control.clock.now.date}}{{/if}}. Automatic: Simple Calendar, else SmallTime's world time, else system time.</p>
+    </div>
+  </details>
+
+  <details class="agent-section" data-section="labels" {{#if control.open.labels}}open{{/if}}>
+    <summary>Labels</summary>
+    <div class="agent-control-field">
+      <span>Money <small>(e.g. {{control.money.example}})</small></span>
+      <div class="agent-money-format">
+        <input type="text" data-money="prefix" value="{{control.money.prefix}}" placeholder="Prefix" title="Before the amount (blank for none)">
+        <span>1,500</span>
+        <input type="text" data-money="suffix" value="{{control.money.suffix}}" placeholder="Suffix" title="After the amount, e.g. eb (blank for none)">
+      </div>
+    </div>
+    {{#each control.labels}}
+      <label class="agent-control-field">{{name}}{{#if isDefault}} <small>(default)</small>{{/if}}
+        <input type="text" data-label="{{key}}" value="{{value}}" placeholder="{{placeholder}}">
+      </label>
+    {{/each}}
+    <label class="agent-control-field">Hidden caller ID
+      <input type="text" name="unknownLabel" value="{{control.unknownLabel}}" placeholder="Unknown Number">
+    </label>
+    <label class="agent-info-label">App names</label>
+    {{#each control.names}}
+      <label class="agent-control-field">{{name}}{{#if isDefault}} <small>(default)</small>{{/if}}
+        <input type="text" data-app-name="{{key}}" value="{{value}}" placeholder="{{placeholder}}">
+      </label>
+    {{/each}}
+    <label class="agent-control-field">BrainGen ads <small>(one per line)</small>
+      <textarea name="brainGenAds" rows="5">{{control.ads}}</textarea>
+    </label>
+  </details>
+
+  <details class="agent-section" data-section="icons" {{#if control.open.icons}}open{{/if}}>
+    <summary>Icons</summary>
+    {{#each control.icons}}
+      <label class="agent-control-field agent-control-icon">
+        <span><i class="{{value}}"></i> {{name}}{{#if isDefault}} <small>(default)</small>{{/if}}</span>
+        <input type="text" data-icon="{{key}}" value="{{value}}" placeholder="{{placeholder}}">
+      </label>
+    {{/each}}
+    <p class="agent-info-note">Font Awesome classes, e.g. <em>fas fa-skull</em>. Clear a field to go back to its default.</p>
+  </details>
+
+  <button type="button" class="agent-wide-btn" data-action="control-reset-look"><i class="fas fa-rotate-left"></i> Reset Emoji, Labels, and Icons to Default</button>
+
+  <details class="agent-section danger" data-section="clearing" {{#if control.open.clearing}}open{{/if}}>
+    <summary>Clear app data</summary>
+    <div class="agent-setting-row"><span>Whose</span>{{> agent-dropdown control.clearing.who}}</div>
+    {{#each control.clearing.apps}}
+      <div class="agent-clear-row">
+        <span class="agent-clear-app"><i class="{{icon}}"></i> {{name}}</span>
+        {{#each items}}<a class="agent-app-chip" data-action="app-clear" data-target="{{target}}">{{label}}</a>{{/each}}
+      </div>
+    {{/each}}
+    <p class="agent-info-note">Each asks first. Pick a character to clear only theirs (some things are everyone's only). Messages and Contacts and notes together wipe a character's phone.</p>
+  </details>
+</div>

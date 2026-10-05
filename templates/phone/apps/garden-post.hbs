@@ -1,0 +1,23 @@
+{{!-- One Garden post (ui/phone/pages/garden.js _gardenPostRow). --}}
+<li class="agent-garden-post{{#if repLabel}} rep{{/if}}">
+  <a class="agent-garden-author" data-action="garden-profile" data-account-id="{{author.id}}">
+    {{#if author.avatar}}<img class="agent-avatar" src="{{author.avatar}}" alt="">{{else}}<span class="agent-avatar">{{author.initials}}</span>{{/if}}
+  </a>
+  <div class="agent-garden-main">
+    <div class="agent-garden-head">
+      <a data-action="garden-profile" data-account-id="{{author.id}}"><b>{{author.name}}</b>{{#if author.verified}} <i class="fas fa-seedling agent-garden-verified" title="Verified"></i>{{/if}} <span class="agent-garden-handle">{{author.handle}}</span></a>
+      <span class="agent-row-time">{{ago}}</span>
+    </div>
+    {{#if graftedHere}}<div class="agent-garden-grafted"><i class="fas fa-code-branch"></i> {{graftedHere}} grafted this</div>{{/if}}
+    {{#if repLabel}}<div class="agent-garden-rep"><i class="fas fa-star"></i> #rep {{repLabel}}</div>{{/if}}
+    <div class="agent-garden-text" data-action="garden-open" data-post-id="{{id}}">{{text}}</div>
+    {{#if image}}<img class="agent-photo agent-garden-img" src="{{image}}" data-action="open-photo" data-src="{{image}}" alt="">{{/if}}
+    <div class="agent-garden-counts">
+      <a class="{{#if liked}}on{{/if}}" {{#if @root.garden.me}}data-action="garden-like" data-post-id="{{id}}"{{/if}} title="Sprouts"><i class="fas fa-seedling"></i> {{likes}}</a>
+      <a class="{{#if grafted}}on{{/if}}" {{#if @root.garden.me}}data-action="garden-graft" data-post-id="{{id}}"{{/if}} title="Grafts"><i class="fas fa-code-branch"></i> {{grafts}}</a>
+      <a data-action="garden-open" data-post-id="{{id}}" title="Replies"><i class="far fa-comment"></i> {{replyCount}}</a>
+      {{#if tierName}}<span class="agent-garden-tier">{{tierName}}</span>{{/if}}
+      {{#if @root.garden.gm}}<a data-action="garden-delete" data-post-id="{{id}}" title="Delete"><i class="fas fa-trash"></i></a>{{/if}}
+    </div>
+  </div>
+</li>

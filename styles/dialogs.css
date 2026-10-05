@@ -1,0 +1,76 @@
+/* Dialog forms: member and location pickers, the job form. */
+
+/* Member picker dialog */
+.ctp-pick-form h4 {
+  margin: 8px 0 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.ctp-pick-form .ctp-pick {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.ctp-pick-form .ctp-pick img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: none;
+}
+
+.ctp-location-form .ctp-location-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.ctp-location-form .ctp-pick[hidden] {
+  display: none;
+}
+
+.ctp-pick-form .ctp-pick-current {
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.ctp-quest-form .ctp-pick-img {
+  flex: 0 0 32px;
+}
+
+/* New conversation (GM Phone): drop an actor onto the dialog. */
+.ctp-new-thread .ctp-drop-actor {
+  margin: 4px 0 8px;
+  padding: 8px;
+  border: 1px dashed var(--color-border-light-primary, #999);
+  border-radius: 6px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.ctp-new-thread .ctp-drop-actor.dropped {
+  border-style: solid;
+  opacity: 1;
+  font-weight: bold;
+}
+
+/* Money dialog on the GM Phone: who it's paying as. */
+.ctp-money-as {
+  margin: 0 0 6px;
+}
+
+/* Fields dialogs: "Choose a .txt file" on one line, the file's name beside it. */
+.ctp-fields-form .ctp-load-text {
+  flex: 0 0 auto;
+  width: auto;
+  white-space: nowrap;
+}
+
+.ctp-fields-form .ctp-load-text-name {
+  flex: 1;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

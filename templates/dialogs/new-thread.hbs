@@ -1,0 +1,30 @@
+<form class="ctp-new-thread">
+  {{#if characters}}
+    <div class="form-group">
+      <label>Text</label>
+      <select name="actor">{{#each characters}}<option value="{{id}}">{{name}}</option>{{/each}}</select>
+    </div>
+  {{else}}
+    <div class="form-group">
+      <label>Text as</label>
+      <select name="pick">
+        {{#if contacts.length}}
+          <optgroup label="{{owner}}'s contacts">
+            {{#each contacts}}<option value="c:{{name}}">{{name}}{{#if active}} · conversation{{/if}}</option>{{/each}}
+          </optgroup>
+        {{/if}}
+        {{#if actors.length}}
+          <optgroup label="Other characters">
+            {{#each actors}}<option value="a:{{id}}">{{name}}</option>{{/each}}
+          </optgroup>
+        {{/if}}
+      </select>
+    </div>
+    <div class="ctp-drop-actor"><i class="fas fa-hand-point-down"></i> <span>Or drop an actor here</span></div>
+    <div class="form-group">
+      <label>Other name</label>
+      <input type="text" name="name" placeholder="Optional: someone with no sheet">
+    </div>
+  {{/if}}
+  <div class="form-group"><label>Hide caller ID</label><input type="checkbox" name="hidden"></div>
+</form>

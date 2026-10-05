@@ -1,0 +1,86 @@
+{{!-- The Agent app (ui/phone/pages/agentApp.js). --}}
+{{> agent-app-bar agentApp.bar}}
+<div class="agent-info agent-app agent-agent">
+  {{#if agentApp.gm}}
+    <label class="agent-info-label">Send an SAAI alert</label>
+    <ol class="agent-members agent-pick-list">
+      <li class="agent-member-link{{#if agentApp.allOn}} on{{/if}}" data-action="alert-target" data-actor-id="all">
+        <i class="fas {{#if agentApp.allOn}}fa-square-check{{else}}fa-square{{/if}}"></i> <span class="agent-member-name">Everyone</span>
+      </li>
+      {{#each agentApp.characters}}
+        <li class="agent-member-link{{#if on}} on{{/if}}" data-action="alert-target" data-actor-id="{{id}}">
+          <i class="fas {{#if on}}fa-square-check{{else}}fa-square{{/if}}"></i>
+          {{> agent-avatar}}
+          <span class="agent-member-name">{{name}}<small>{{agent}} · {{personality}}</small></span>
+        </li>
+      {{else}}
+        <li class="agent-empty">No player characters.</li>
+      {{/each}}
+    </ol>
+    <div class="agent-setting-row"><span>Kind</span>{{> agent-dropdown agentApp.kind}}</div>
+    <textarea name="alertText" rows="3" placeholder="I have a bad feeling about this place…">{{agentApp.draft.text}}</textarea>
+    <input type="text" name="alertChoices" value="{{agentApp.draft.choices}}" placeholder="Answers, comma separated (optional): Book it, Not now">
+    <div class="agent-btn-row">
+      <button type="button" class="agent-wide-btn" data-action="alert-send"><i class="fas fa-paper-plane"></i> Send</button>
+      <button type="button" class="agent-wide-btn" data-action="alert-save" title="Keep it for next time"><i class="fas fa-bookmark"></i> Save</button>
+    </div>
+    <p class="agent-info-note">It pops up from their own Agent, signed with its name. Answers come back to you.</p>
+
+    {{#if agentApp.saved.length}}
+      <label class="agent-info-label">Saved</label>
+      <ol class="agent-app-list">
+        {{#each agentApp.saved}}
+          <li class="agent-app-item compact">
+            <a class="agent-app-item-main" data-action="alert-load" data-index="{{index}}"><small>{{kindName}}</small> {{text}}</a>
+            <a class="agent-icon-btn" data-action="alert-unsave" data-index="{{index}}" title="Forget"><i class="fas fa-xmark"></i></a>
+          </li>
+        {{/each}}
+      </ol>
+    {{/if}}
+    <label class="agent-info-label">Sent</label>
+  {{else}}
+    <label class="agent-info-label">Your Agent</label>
+    <div class="agent-setting-row"><span>Name</span><input type="text" name="agentName" value="{{agentApp.name}}" placeholder="{{agentApp.placeholder}}" maxlength="24"></div>
+    <div class="agent-setting-row"><span>Personality</span>{{> agent-dropdown agentApp.personality}}</div>
+    {{#if agentApp.custom}}
+      <textarea name="personalityText" rows="2" placeholder="How does it talk? The GM reads this.">{{agentApp.personalityText}}</textarea>
+    {{else if agentApp.voice}}
+      <p class="agent-info-note">{{agentApp.voice}}</p>
+    {{/if}}
+
+    {{#if agentApp.biomonitor}}
+      <label class="agent-info-label">Biometrics</label>
+      {{#if agentApp.vitals}}
+        <div class="agent-vitals-tile state-{{agentApp.vitals.state}}">
+          <span><i class="fas fa-heart-pulse"></i> HP <b>{{agentApp.vitals.hp}}/{{agentApp.vitals.max}}</b></span>
+          {{#if agentApp.vitals.body}}<span>BODY <b>{{agentApp.vitals.body}}</b></span>{{/if}}
+          <span class="agent-vitals-state">{{agentApp.vitals.stateLabel}}</span>
+          {{#if agentApp.vitals.injury}}<span class="agent-vitals-injury"><i class="fas fa-bone"></i> {{agentApp.vitals.injury}}</span>{{/if}}
+        </div>
+      {{/if}}
+      <label class="agent-radio"><input type="checkbox" name="biometrics" {{#if agentApp.biometrics}}checked{{/if}}> Warn me when I'm badly hurt</label>
+    {{/if}}
+    <label class="agent-info-label">Notifications</label>
+  {{/if}}
+
+  <ol class="agent-app-list">
+    {{#each agentApp.alerts}}
+      <li class="agent-app-item agent-alert kind-{{kind}}{{#if open}} open{{/if}}">
+        <i class="fas {{icon}} agent-app-item-icon"></i>
+        <div class="agent-app-item-main">
+          <div class="agent-app-item-top"><b>{{from}}</b>{{#if owner}} → {{owner}}{{/if}}<span class="agent-row-time">{{time}}</span></div>
+          <div>{{text}}</div>
+          {{#if answer}}<div class="agent-alert-answer"><i class="fas fa-reply"></i> {{answer}}</div>{{/if}}
+          {{#if open}}{{#unless ../agentApp.gm}}
+            <div class="agent-money-actions">
+              {{#each choices}}<a class="{{#if @first}}pay{{else}}decline{{/if}}" data-action="alert-answer" data-alert-id="{{../id}}" data-choice="{{this}}">{{this}}</a>{{/each}}
+            </div>
+          {{/unless}}{{/if}}
+        </div>
+        {{#unless open}}<a class="agent-icon-btn agent-app-item-x" data-action="alert-dismiss" data-alert-id="{{id}}" title="Clear"><i class="fas fa-xmark"></i></a>{{/unless}}
+      </li>
+    {{else}}
+      <li class="agent-empty">Nothing yet.</li>
+    {{/each}}
+  </ol>
+</div>

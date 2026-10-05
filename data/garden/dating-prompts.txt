@@ -1,0 +1,125 @@
+# Dating prompts for random profiles (three each).
+# One per line. Lines starting with # are ignored.
+Ideal date: a quiet bar in Heywood where nobody's shooting
+Green flag: owns their own gun
+I'll know it's love when you share your Trauma Team plan
+Two truths and a lie: I've been to the Moon, I've never flatlined, I can cook
+Looking for: someone who texts back
+Don't message me if you're in Maelstrom
+Most chrome I've ever seen on one person: my ex
+Weekend plans: braindance and bad decisions
+Deal breaker: Kibble for dinner. Every night.
+My Agent says I'm "a lot"
+Ideal date: rooftop, two cans of Smash, watching the red sky
+Ideal date: Night Market, cheap noodles, nobody gets stabbed
+Ideal date: somewhere with two exits
+Ideal date: karaoke in Little China, you pick the song, I pick the fight
+Ideal date: a drive out to the Badlands before the nomads notice
+Ideal date: the Afterlife, if you can get us in
+Ideal date: anywhere the NCPD isn't
+Ideal date: real food. Not scop. I'll know.
+Ideal date: a gig that goes well for once
+Ideal date: rebuilding Watson one brick at a time, together 🧱
+Green flag: knows a good ripperdoc
+Green flag: has a fixer who actually pays
+Green flag: never once said "trust me, choom"
+Green flag: keeps a med kit in the car
+Green flag: all original meat, no weird chrome
+Green flag: all chrome, no weird meat
+Green flag: remembers my blood type
+Green flag: sits facing the door
+Green flag: splits the bill in eddies, not favors
+Green flag: has a mainline-sized heart
+Red flag: "I'm between gangs right now"
+Red flag: their cyberarm has a name
+Red flag: lives in the Hot Zone "for the rent"
+Red flag: still has a Militech loyalty card
+Red flag: calls every rockerboy a sellout
+Red flag: owes money to the Tyger Claws
+Red flag: "my last three dates were Max-Tac calls, but that's not my fault"
+Red flag: posts conspiracy threads at 4am
+Red flag: uses a netrunner to read my messages
+Red flag: says they're "a little bit cyberpsycho, lol"
+I'll know it's love when you let me hold your deck
+I'll know it's love when you give me your real handle
+I'll know it's love when you take a bullet for me (or at least duck)
+I'll know it's love when you introduce me to your ripperdoc
+I'll know it's love when you share your safehouse location
+I'll know it's love when you don't sell my data
+I'll know it's love when your Agent stops screening my calls
+Two truths and a lie: I've met Kerry Eurodyne, I've never been arrested, I own a car
+Two truths and a lie: I survived the 2023 nuke, I'm 100% meat, I'm a great dancer
+Two truths and a lie: I was a corpo, I've ridden with the Aldecaldos, I'm 25
+Two truths and a lie: I've jacked into the Old NET, I have a cat, I've never lied on this app
+Two truths and a lie: I can hotwire anything, I know three languages, I pay my taxes
+Two truths and a lie: I've outrun Trauma Team, I've been in a braindance, I'm emotionally available
+Looking for: someone who'll drive the getaway car
+Looking for: a mainline, not a gig
+Looking for: a +1 for my cousin's nomad wedding
+Looking for: someone who won't sell me out for 500eb
+Looking for: a solo with a soft side
+Looking for: a netrunner who'll fix my Agent (and my heart)
+Looking for: a quiet life. Ha.
+Looking for: someone to split rent in a megabuilding
+Looking for: whoever keeps stealing my parking spot. I just want to talk.
+Looking for: anyone who still has real coffee
+Don't message me if you're a corpo
+Don't message me if you're a Bozo. I cannot do the makeup.
+Don't message me if you've been deltaed by NCPD more than twice
+Don't message me if you're a bot (you know who you are)
+Don't message me if your pfp is a braindance still
+Don't message me if you're a gonk. Everyone thinks they aren't.
+Don't message me if you're on the run. Unless it's fun.
+Don't message me if you call me "choom" on the first date
+Most chrome I've ever seen on one person: my dad, somehow
+Most chrome I've ever seen on one person: a Maelstrom guy at the bus stop
+Most chrome I've ever seen on one person: me, after payday
+Weekend plans: Night Market haul and a nap
+Weekend plans: helping a friend "move some boxes" (don't ask)
+Weekend plans: rooftop BBQ in Pacifica, bring armor
+Weekend plans: recovering from Friday
+Weekend plans: whatever my fixer calls about
+Weekend plans: installing new chrome and complaining about it
+Deal breaker: doesn't tip the bartender
+Deal breaker: calls NCPD on anyone
+Deal breaker: thinks the Arasaka Tower nuke was faked
+Deal breaker: keeps a live grenade in the glovebox
+Deal breaker: cheaper chrome than me
+Deal breaker: still uses a flip-phone Agent
+Deal breaker: likes Samurai "ironically"
+My Agent says I'm "emotionally unavailable (low signal)"
+My Agent says I'm "a risk-positive individual"
+My Agent says I have "too many unread messages from my ex"
+My Agent says I should "stop swiping at 3am"
+My Agent says we're a 94% match. My ripperdoc says I have 6 months.
+My most controversial opinion: kibble is actually good
+My most controversial opinion: nomads have it figured out
+My most controversial opinion: Watson is the best district
+My love language: covering fire
+My love language: sharing my last stim
+My love language: showing up when you call, no questions
+My love language: cooking real food (it's expensive, you should be flattered)
+I'm weirdly attracted to: people who can patch a wound in the dark
+I'm weirdly attracted to: cyberoptics that glow when you laugh
+I'm weirdly attracted to: bad tattoos and good aim
+The way to win me over: real eddies, real flowers, real food
+The way to win me over: fix my scooter
+The way to win me over: tell me a secret Arasaka doesn't know
+Biggest risk I've ever taken: this profile
+Biggest risk I've ever taken: taking a gig from a fixer named "Lucky"
+Biggest risk I've ever taken: a cheap ripperdoc in the Combat Zone
+First date icebreaker: tell me your worst gig
+First date icebreaker: where were you when the NET came back?
+First date icebreaker: show me your most expensive chrome
+Together we could: finally afford a two-room conapt
+Together we could: flatline anyone who gets in our way (joking) (mostly)
+Together we could: get out of Night City. Someday.
+Fun fact: I've never been shot. Recently.
+Fun fact: my car has more armor than my apartment
+Fun fact: I've been banned from three bars in Heywood
+Fun fact: I know every noodle stall in Little China by smell
+Swipe right if: you're alive and mostly sane
+Swipe right if: you've got a car that runs
+Swipe right if: your mom's cooking beats scop
+Swipe left if: you're only here to recruit me for a gig
+Swipe left if: your chrome is still under warranty from Rocklin

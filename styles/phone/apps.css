@@ -1,0 +1,914 @@
+/* Group info, settings, the Jobs app and the Contacts app. */
+
+.ctp-phone-app .agent-info {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-info-label {
+  display: block;
+  margin: 8px 0 4px;
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-info-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ctp-phone-app .agent-info input[type="text"] {
+  flex: 1;
+  background: var(--agent-bg);
+  color: var(--agent-text);
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  font-family: var(--agent-font);
+}
+
+.ctp-phone-app .agent-members {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+}
+
+.ctp-phone-app .agent-members li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ctp-phone-app .agent-member-name {
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-member-tag {
+  color: var(--agent-muted);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app button.agent-wide-btn {
+  width: 100%;
+  margin-top: 6px;
+  background: var(--agent-panel);
+  border: 1px solid var(--agent-cyan);
+  border-radius: 8px;
+  color: var(--agent-text);
+  font-family: var(--agent-font);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.ctp-phone-app button.agent-wide-btn i {
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app button.agent-wide-btn:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.15);
+}
+
+.ctp-phone-app button.agent-wide-btn.danger {
+  border-color: var(--agent-magenta);
+  color: var(--agent-magenta);
+}
+
+.ctp-phone-app .agent-info textarea {
+  width: 100%;
+  background: var(--agent-bg);
+  color: var(--agent-text);
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  font-family: var(--agent-font);
+}
+
+.ctp-phone-app .agent-info-note {
+  margin: 4px 0;
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-requests {
+  flex: none;
+  padding: 6px 10px;
+  background: rgba(var(--agent-yellow-rgb), 0.07);
+  border-bottom: 1px solid rgba(var(--agent-yellow-rgb), 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-requests-title {
+  color: var(--agent-yellow);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.ctp-phone-app .agent-request {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 0;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-request-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-request-note {
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  font-style: italic;
+}
+
+.ctp-phone-app .agent-info input[type="range"] {
+  flex: 1;
+}
+
+.ctp-phone-app .agent-tabs {
+  flex: none;
+  display: flex;
+  border-bottom: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-tab {
+  flex: 1;
+  padding: 6px 2px;
+  border-bottom: 2px solid transparent;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-tab.active {
+  border-bottom-color: var(--agent-cyan);
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-tab-count {
+  padding: 0 4px;
+  border-radius: 6px;
+  background: rgba(var(--agent-cyan-rgb), 0.15);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-quest-thumb {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid rgba(var(--agent-yellow-rgb), 0.6);
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--agent-panel);
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-quest-status {
+  gap: 8px;
+}
+
+.ctp-phone-app .agent-quest-status .agent-info-label {
+  margin: 0;
+}
+
+.ctp-phone-app .agent-quest-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid var(--agent-cyan);
+  border-radius: 10px;
+  color: var(--agent-cyan);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-quest-badge.status-completed { border-color: var(--agent-good); color: var(--agent-good); }
+
+.ctp-phone-app .agent-quest-badge.status-failed { border-color: var(--agent-magenta); color: var(--agent-magenta); }
+
+.ctp-phone-app .agent-quest-img {
+  display: block;
+  width: 100%;
+  max-height: 160px;
+  margin: 8px 0;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  border-radius: 6px;
+  object-fit: cover;
+  cursor: zoom-in;
+}
+
+.ctp-phone-app .agent-quest-desc {
+  margin: 6px 0;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.ctp-phone-app .agent-objectives {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.ctp-phone-app .agent-objective {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 4px 0;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-objective-branch {
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-objective-box {
+  flex: none;
+  color: var(--agent-cyan);
+  font-size: calc(14px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-objective.state-complete .agent-objective-box { color: var(--agent-good); }
+
+.ctp-phone-app .agent-objective.state-complete .agent-objective-text { color: var(--agent-muted); text-decoration: line-through; }
+
+.ctp-phone-app .agent-objective.state-failed .agent-objective-box { color: var(--agent-magenta); }
+
+.ctp-phone-app .agent-objective.state-failed .agent-objective-text { color: var(--agent-magenta); opacity: 0.75; }
+
+.ctp-phone-app .agent-objective-text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* GM view: hidden objectives are dimmed and dashed */
+.ctp-phone-app .agent-objective.is-hidden,
+.ctp-phone-app .agent-objective.is-hidden-parent {
+  opacity: 0.5;
+}
+
+.ctp-phone-app .agent-objective.is-hidden .agent-objective-text {
+  font-style: italic;
+}
+
+.ctp-phone-app .agent-objective-tools {
+  flex: none;
+  display: flex;
+  gap: 6px;
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  opacity: 0;
+}
+
+.ctp-phone-app .agent-objective:hover .agent-objective-tools {
+  opacity: 1;
+}
+
+.ctp-phone-app .agent-objective-tools a:hover {
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-list-heading {
+  list-style: none;
+  padding: 8px 12px 3px;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-row-go {
+  flex: none;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  color: var(--agent-muted);
+  opacity: 0.6;
+}
+
+.ctp-phone-app .agent-contact-list .agent-row-preview {
+  font-style: italic;
+}
+
+/* The GM Phone's Control app. */
+.ctp-phone-app .agent-radio.disabled {
+  opacity: 0.45;
+}
+
+.ctp-phone-app .agent-control .agent-members li {
+  gap: 4px;
+}
+
+.ctp-phone-app .agent-member-tag.no-signal {
+  color: var(--agent-magenta);
+  border-color: var(--agent-magenta);
+}
+
+.ctp-phone-app .agent-control-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-control-field input,
+.ctp-phone-app .agent-control-field textarea {
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-control-icon i {
+  width: 16px;
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-control .agent-wide-btn + .agent-wide-btn {
+  margin-top: 4px;
+}
+
+/* A contact card (templates/phone/card.hbs). --persona is the contact's colour on the GM Phone. */
+.ctp-phone-app .agent-card-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 0 4px;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-card-avatar .agent-avatar {
+  flex-basis: 72px;
+  width: 72px;
+  height: 72px;
+  font-size: calc(24px * var(--agent-font-scale, 1));
+  border-width: 2px;
+  border-color: var(--persona, var(--agent-cyan));
+  box-shadow: 0 0 12px rgba(var(--agent-cyan-rgb), 0.35);
+}
+
+.ctp-phone-app .agent-card-name {
+  color: var(--persona, var(--agent-cyan));
+  font-size: calc(16px * var(--agent-font-scale, 1));
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-card-sub {
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.ctp-phone-app .agent-card-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 64px;
+  padding: 6px 8px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  border-radius: 10px;
+  color: var(--agent-cyan);
+  font-size: calc(16px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-card-action span {
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-card-action:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.1);
+  box-shadow: 0 0 6px rgba(var(--agent-cyan-rgb), 0.4);
+}
+
+.ctp-phone-app .agent-card textarea[name=notes] {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.ctp-phone-app .agent-card-notes {
+  color: var(--agent-text);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  white-space: pre-wrap;
+}
+
+.ctp-phone-app .agent-card-notes.clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+
+.ctp-phone-app .agent-card-more {
+  display: inline-block;
+  margin-top: 2px;
+  color: var(--agent-cyan);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-card-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-card-row > i {
+  width: 16px;
+  color: var(--agent-cyan);
+  text-align: center;
+}
+
+.ctp-phone-app .agent-card-row span {
+  flex: 1;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-card-row small {
+  display: block;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-card-row:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.06);
+}
+
+.ctp-phone-app .agent-card-row.danger,
+.ctp-phone-app .agent-card-row.danger > i {
+  color: var(--agent-magenta);
+}
+
+/* An on/off switch at the end of a card row. */
+.ctp-phone-app .agent-switch {
+  flex: none;
+  position: relative;
+  width: 28px;
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.ctp-phone-app .agent-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--agent-muted);
+  transition: left 0.15s;
+}
+
+.ctp-phone-app .agent-card-row.on .agent-switch {
+  background: rgba(var(--agent-magenta-rgb), 0.5);
+}
+
+.ctp-phone-app .agent-card-row.on .agent-switch::after {
+  left: 16px;
+  background: var(--agent-magenta);
+}
+
+/* Settings (players' Settings app, the GM's Control): a label with its control beside it. */
+.ctp-phone-app .agent-setting-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 2px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-setting-row > span {
+  flex: 0 0 96px;
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-setting-row input[type="date"],
+.ctp-phone-app .agent-setting-row input[type="time"] {
+  flex: 1;
+  min-width: 0;
+  background: var(--agent-bg);
+  color: var(--agent-text);
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  font-family: var(--agent-font);
+}
+
+.ctp-phone-app .agent-setting-row input[type="range"] {
+  flex: 1;
+}
+
+.ctp-phone-app .agent-font-scale-value {
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-inbox-owner {
+  margin-left: auto;
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app a.agent-inbox-owner-link {
+  cursor: pointer;
+  color: var(--agent-accent);
+}
+
+.ctp-phone-app a.agent-inbox-owner-link:hover {
+  text-decoration: underline;
+}
+
+/* Control: the GM Phone's own settings, set apart from the world-wide ones. */
+.ctp-phone-app .agent-control-section {
+  margin: 12px -4px;
+  padding: 2px 8px 8px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  background: rgba(var(--agent-cyan-rgb), 0.04);
+}
+
+.ctp-phone-app .agent-control-heading {
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-control-field-head {
+  display: flex;
+  align-items: center;
+}
+
+.ctp-phone-app .agent-control-field-head .agent-icon-btn {
+  margin-left: auto;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-control-field small {
+  opacity: 0.7;
+}
+
+/* Control: the emoji picker. Chosen emoji are lit. */
+.ctp-phone-app .agent-emoji-catalog {
+  margin: 4px 0 8px;
+  padding: 6px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.3);
+  background: var(--agent-panel);
+}
+
+.ctp-phone-app .agent-emoji-group {
+  margin: 4px 0 2px;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+  gap: 2px;
+}
+
+.ctp-phone-app .agent-emoji-grid a {
+  padding: 2px 0;
+  border: 1px solid transparent;
+  font-size: calc(18px * var(--agent-font-scale, 1));
+  line-height: 24px;
+  text-align: center;
+  opacity: 0.55;
+}
+
+.ctp-phone-app .agent-emoji-grid a:hover {
+  opacity: 1;
+}
+
+.ctp-phone-app .agent-emoji-grid a.on {
+  border-color: var(--agent-cyan);
+  background: rgba(var(--agent-cyan-rgb), 0.15);
+  opacity: 1;
+}
+
+/* Contact cards: the player's name for a contact. */
+.ctp-phone-app .agent-card-renamed {
+  color: var(--agent-yellow);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-card input[name=contactAlias] {
+  width: 100%;
+}
+
+/* Group info: players open a member's contact card. */
+.ctp-phone-app .agent-member-link {
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-member-link:hover .agent-member-name {
+  color: var(--agent-cyan);
+  text-decoration: underline;
+}
+
+/* Jobs: reordering, and whether players see the Available tab. */
+.ctp-phone-app .agent-objective-tools a.disabled {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.ctp-phone-app .agent-tab-note {
+  flex: none;
+  padding: 6px 10px;
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.2);
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-tab-note.hidden-tab {
+  background: rgba(var(--agent-magenta-rgb), 0.12);
+  color: var(--agent-magenta);
+}
+
+/* The lock screen. */
+.ctp-phone-app .agent-lock {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 18px 12px 12px;
+  cursor: pointer;
+  background: radial-gradient(ellipse at 50% 0%, rgba(var(--agent-cyan-rgb), 0.16), transparent 65%);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-lock-clock {
+  text-align: center;
+}
+
+.ctp-phone-app .agent-lock-time {
+  color: var(--agent-cyan);
+  font-size: calc(54px * var(--agent-font-scale, 1));
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 2px;
+  text-shadow: 0 0 18px rgba(var(--agent-cyan-rgb), 0.5);
+}
+
+.ctp-phone-app .agent-lock-date {
+  margin-top: 4px;
+  color: var(--agent-muted);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-lock-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 18px 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.ctp-phone-app .agent-lock-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding: 8px;
+  background: var(--agent-panel);
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  border-left: 3px solid var(--agent-magenta);
+}
+
+.ctp-phone-app .agent-lock-note:hover {
+  border-color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-lock-more {
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  text-align: center;
+}
+
+.ctp-phone-app .agent-lock-unlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-lock-unlock i {
+  color: var(--agent-cyan);
+  font-size: calc(28px * var(--agent-font-scale, 1));
+  animation: ctp-lock-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes ctp-lock-breathe {
+  50% { opacity: 0.4; }
+}
+
+/* GM Phone: a SIM tile per NPC in use. */
+.ctp-phone-app .agent-sims {
+  flex: none;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-sim {
+  position: relative;
+  flex: 0 0 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 2px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.2);
+  /* a SIM card's clipped corner */
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-sim.active {
+  border-color: var(--persona, var(--agent-cyan));
+  background: rgba(var(--agent-cyan-rgb), 0.1);
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-sim-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 22px;
+  border-radius: 3px;
+  background: var(--persona, var(--agent-panel));
+  color: #000;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-sim-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-sim .agent-dock-badge {
+  top: 0;
+  left: auto;
+  right: 2px;
+}
+
+/* Settings and Control: sections that fold away. */
+.ctp-phone-app .agent-section {
+  margin: 0 0 8px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  border-radius: 8px;
+  background: rgba(var(--agent-cyan-rgb), 0.03);
+}
+
+.ctp-phone-app .agent-section > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  color: var(--agent-cyan);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+}
+
+.ctp-phone-app .agent-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ctp-phone-app .agent-section > summary::before {
+  content: "\f054";
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro";
+  font-weight: 900;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  transition: transform 0.15s;
+}
+
+.ctp-phone-app .agent-section[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.ctp-phone-app .agent-section[open] > summary {
+  border-bottom: 1px solid rgba(var(--agent-cyan-rgb), 0.2);
+}
+
+.ctp-phone-app .agent-section > :not(summary) {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.ctp-phone-app .agent-section > :last-child {
+  margin-bottom: 10px;
+}
+
+.ctp-phone-app .agent-section.danger > summary {
+  color: var(--agent-magenta);
+}
+
+/* More room between Control's fields (labels, names, icons). */
+.ctp-phone-app .agent-section .agent-control-field {
+  margin: 8px 10px;
+  gap: 4px;
+}
+
+.ctp-phone-app .agent-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 2px 8px;
+  margin-top: 6px;
+}
+
+.ctp-phone-app .agent-money-format {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ctp-phone-app .agent-money-format input {
+  width: 64px;
+  flex: none;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-money-format span {
+  color: var(--agent-muted);
+}
+
+/* Control → Clear app data: one row of buttons per app. */
+.ctp-phone-app .agent-clear-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 6px 10px;
+}
+
+.ctp-phone-app .agent-clear-app {
+  flex: 0 0 100%;
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-clear-row .agent-app-chip {
+  border-color: rgba(var(--agent-magenta-rgb), 0.6);
+}

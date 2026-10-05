@@ -1,0 +1,148 @@
+<div class="agent-phone">
+  {{#if topScreen}}
+    {{!-- The Double Agent's lid: a second screen you can't touch. --}}
+    <div class="agent-topscreen" aria-hidden="true">
+      <div class="agent-topscreen-clock"><span>{{topScreen.time}}</span><small>{{topScreen.date}}</small></div>
+      <div class="agent-topscreen-label">{{topScreen.label}}</div>
+      {{#if topScreen.name}}<div class="agent-topscreen-name">{{topScreen.name}}</div>{{/if}}
+      {{#if topScreen.text}}<div class="agent-topscreen-ticker"><span>{{topScreen.text}}</span></div>{{/if}}
+    </div>
+    <div class="agent-hinge"><span>SEGOTARI</span></div>
+  {{/if}}
+  <div class="agent-statusbar">
+    <span class="agent-brand">{{brand}}{{#if silent}} <i class="fas fa-bell-slash" title="Silent"></i>{{/if}}</span>
+    <span class="agent-time">{{time}}</span>
+    {{#if online}}
+      <span class="agent-signal"><i></i><i></i><i></i><i></i></span>
+    {{else}}
+      <span class="agent-signal offline">{{appearance.labels.noSignal}}</span>
+    {{/if}}
+  </div>
+  <div class="agent-date">{{date}}</div>
+  {{#if vitals}}
+    <div class="agent-vitals vitals-{{vitals.state}}">
+      <span class="agent-vitals-beat"><i class="fas fa-heart-pulse"></i> {{vitals.bpm}} BPM</span>
+      <span class="agent-vitals-line" aria-hidden="true"></span>
+      <span>HP {{vitals.hp}}</span>
+      <span class="agent-vitals-label">{{vitals.label}}</span>
+    </div>
+  {{/if}}
+  {{#if ad}}<div class="agent-ad{{#if ad.fresh}} fresh{{/if}}"><b>SPONSORED</b> <span>{{ad.text}}</span></div>{{/if}}
+
+  {{#if callBar}}
+    <a class="agent-call-bar" data-action="call-show">
+      <i class="fas fa-phone"></i> On a call{{#if callBar.as}} as {{callBar.as}}{{/if}}
+      <span {{#if callBar.startedAt}}data-started-at="{{callBar.startedAt}}"{{/if}}>{{callBar.timer}}</span>
+      <span class="agent-call-bar-return">Return</span>
+    </a>
+  {{/if}}
+
+  {{#if tokenPrompt}}
+    {{> agent-token-prompt tokenPrompt}}
+  {{/if}}
+
+  {{#if page.lock}}
+    {{> agent-lock}}
+  {{/if}}
+
+  {{!-- Split view (a wide window): the conversation list on the left, the page on the right. --}}
+  {{#if split}}<div class="agent-split"><div class="agent-split-list">{{> agent-inbox}}</div><div class="agent-split-main">{{/if}}
+
+  {{#if actingAs}}
+    {{> agent-acting-as actingAs}}
+  {{/if}}
+
+  {{#if page.none}}
+    <div class="agent-empty">No Agent in hand.</div>
+  {{/if}}
+
+  {{#if page.incoming}}
+    {{> agent-incoming}}
+  {{/if}}
+
+  {{#if page.call}}
+    {{> agent-call}}
+  {{/if}}
+
+  {{#if page.gmCalls}}
+    {{> agent-gm-calls}}
+  {{/if}}
+
+  {{#if page.direct}}
+    {{> agent-direct}}
+  {{/if}}
+
+  {{#if page.group}}
+    {{> agent-group}}
+  {{/if}}
+
+  {{#if page.card}}
+    {{> agent-card}}
+  {{/if}}
+
+  {{#if page.groupInfo}}
+    {{> agent-group-info}}
+  {{/if}}
+
+  {{#if page.service}}
+    {{> agent-service}}
+  {{/if}}
+
+  {{#if page.settings}}
+    {{> agent-settings}}
+  {{/if}}
+
+  {{#if page.contacts}}
+    {{> agent-contacts}}
+  {{/if}}
+
+  {{#if page.inbox}}
+    {{> agent-inbox}}
+  {{/if}}
+
+  {{#if page.quests}}
+    {{> agent-quests}}
+  {{/if}}
+
+  {{#if page.quest}}
+    {{> agent-quest}}
+  {{/if}}
+
+  {{#if page.control}}
+    {{> agent-control}}
+  {{/if}}
+
+  {{!-- The apps (ui/phone/pages/home.js and the pages it opens). --}}
+  {{#if page.appSettings}}{{> agent-app-settings}}{{/if}}
+  {{#if page.home}}{{> agent-home}}{{/if}}
+  {{#if page.agent}}{{> agent-agent-app}}{{/if}}
+  {{#if page.bangme}}{{> agent-bangme}}{{/if}}
+  {{#if page.trauma}}{{> agent-trauma}}{{/if}}
+  {{#if page.alex}}{{> agent-alex}}{{/if}}
+  {{#if page.watchbox}}{{> agent-watchbox}}{{/if}}
+  {{#if page.garden}}{{> agent-garden}}{{/if}}
+
+  {{#if page.splitEmpty}}
+    <div class="agent-empty agent-split-empty"><i class="{{appearance.icons.messages}}"></i> Pick a conversation.</div>
+  {{/if}}
+  {{#if split}}</div></div>{{/if}}
+
+  {{#if dock}}
+    {{> agent-dock}}
+  {{/if}}
+  {{#if homeButton}}
+    {{!-- Home-screen navigation: no dock, one Home button (each skin draws its own). --}}
+    <div class="agent-home-bar">
+      <a class="agent-home-button{{#if homeButton.active}} active{{/if}}" data-action="app" data-app="home" title="{{appearance.names.home}}">
+        <i class="fas fa-circle-dot"></i>
+        {{#if homeButton.badge}}<b class="agent-dock-badge">{{homeButton.badge}}</b>{{/if}}
+      </a>
+    </div>
+  {{/if}}
+
+  <div class="agent-emoji-picker" hidden>
+    {{#each emoji}}<a data-action="pick-emoji" data-emoji="{{this}}">{{this}}</a>{{/each}}
+  </div>
+
+  {{#if blood}}<div class="agent-blood {{blood}}" aria-hidden="true"><i></i><i></i><i></i></div>{{/if}}
+</div>

@@ -1,0 +1,22 @@
+{{!--
+  A dropdown drawn by the phone (see ui/phone/pages/dropdown.js).
+  Context: dropdown(): { name, options: [{ value, label, selected, color?, count? }], current, title?, cls?, search? }.
+  search: a box at the top of the list that narrows the options as you type.
+--}}
+<div class="agent-dropdown {{cls}}" data-name="{{name}}">
+  <a class="agent-dropdown-btn" data-action="dropdown-toggle" title="{{title}}">
+    {{#if current.color}}<i class="agent-persona-dot" style="--persona: {{current.color}}"></i>{{/if}}
+    <span class="agent-dropdown-label">{{current.label}}</span>
+    <i class="fas fa-caret-down agent-dropdown-caret"></i>
+  </a>
+  <ol class="agent-dropdown-menu" data-name="{{name}}" hidden>
+    {{#if search}}<li class="agent-dropdown-search"><input type="text" placeholder="Search…" autocomplete="off"></li>{{/if}}
+    {{#each options}}
+      <li class="agent-dropdown-option{{#if selected}} selected{{/if}}{{#if action}} action{{/if}}" data-action="dropdown-pick" data-name="{{../name}}" data-value="{{value}}">
+        {{#if color}}<i class="agent-persona-dot" style="--persona: {{color}}"></i>{{/if}}
+        <span>{{label}}</span>
+        {{#if count}}<b class="agent-dropdown-count">{{count}}</b>{{/if}}
+      </li>
+    {{/each}}
+  </ol>
+</div>

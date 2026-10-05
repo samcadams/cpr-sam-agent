@@ -1,0 +1,30 @@
+<div class="agent-call-screen incoming">
+  <div class="agent-call-label">{{#if call.groupName}}Group call · {{call.groupName}}{{else if call.line}}{{call.line}}{{/if}}</div>
+  {{#if call.caller.img}}
+    <img class="agent-call-avatar ringing" src="{{call.caller.img}}" alt="{{call.caller.name}}">
+  {{else}}
+    <span class="agent-call-avatar ringing">{{call.caller.initials}}</span>
+  {{/if}}
+  <div class="agent-call-name">{{call.caller.name}}</div>
+  <div class="agent-call-status">Incoming call…</div>
+  {{#if call.busy}}
+    <div class="agent-call-prompt">
+      <strong>Hang up and answer?</strong>
+      <span>Answering ends your current call.</span>
+    </div>
+  {{/if}}
+  <div class="agent-call-actions{{#if call.busy}} labelled{{/if}}">
+    <div class="agent-call-choice">
+      <a class="agent-call-btn decline" data-action="call-decline" data-call-id="{{call.id}}" title="Decline">
+        <i class="fas fa-phone-slash"></i>
+      </a>
+      {{#if call.busy}}<span>Decline</span>{{/if}}
+    </div>
+    <div class="agent-call-choice">
+      <a class="agent-call-btn accept" data-action="call-answer" data-call-id="{{call.id}}" title="{{#if call.busy}}Hang up and answer{{else}}Answer{{/if}}">
+        <i class="fas fa-phone"></i>
+      </a>
+      {{#if call.busy}}<span>Hang up &amp; Answer</span>{{/if}}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,444 @@
+/* Calls: the call bar, incoming and active call screens. */
+
+.ctp-phone-app .agent-call-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  background: rgba(57, 255, 136, 0.15);
+  border-bottom: 1px solid rgba(57, 255, 136, 0.5);
+  color: var(--agent-good);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-call-bar-return {
+  margin-left: auto;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-call-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 20px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 30%, rgba(var(--agent-cyan-rgb), 0.12), transparent 60%);
+  position: relative;
+  z-index: 1;
+  min-height: 0;
+}
+
+.ctp-phone-app .agent-call-label {
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  min-height: 14px;
+}
+
+.ctp-phone-app .agent-call-avatar {
+  width: 96px;
+  height: 96px;
+  margin: 18px 0 12px;
+  border-radius: 50%;
+  border: 2px solid var(--agent-cyan);
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--agent-panel);
+  color: var(--agent-cyan);
+  font-size: calc(30px * var(--agent-font-scale, 1));
+  font-weight: bold;
+}
+
+@keyframes agent-ring-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(var(--agent-cyan-rgb), 0.6); }
+  100% { box-shadow: 0 0 0 22px rgba(var(--agent-cyan-rgb), 0); }
+}
+
+.ctp-phone-app .agent-call-avatar.ringing {
+  animation: agent-ring-pulse 1.2s ease-out infinite;
+}
+
+.ctp-phone-app .agent-call-name {
+  color: var(--agent-text);
+  font-size: calc(18px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-call-status {
+  margin-top: 4px;
+  color: var(--agent-cyan);
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+}
+
+.ctp-phone-app .agent-call-sub {
+  margin-top: 4px;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-call-people {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+  text-align: left;
+}
+
+.ctp-phone-app .agent-call-people li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ctp-phone-app .agent-call-person {
+  flex: 1;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app .agent-call-state {
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-call-people .state-joined .agent-call-state { color: var(--agent-good); }
+
+.ctp-phone-app .agent-call-people .state-ringing .agent-call-state { color: var(--agent-yellow); }
+
+.ctp-phone-app .agent-call-people .state-left,
+.ctp-phone-app .agent-call-people .state-declined,
+.ctp-phone-app .agent-call-people .state-missed { opacity: 0.5; }
+
+.ctp-phone-app .agent-call-actions {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding-top: 12px;
+}
+
+.ctp-phone-app .agent-call-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(22px * var(--agent-font-scale, 1));
+  color: #fff;
+}
+
+.ctp-phone-app .agent-call-btn.accept {
+  background: #1faa59;
+  box-shadow: 0 0 12px rgba(57, 255, 136, 0.6);
+}
+
+.ctp-phone-app .agent-call-btn.decline {
+  background: #d7263d;
+  box-shadow: 0 0 12px rgba(var(--agent-magenta-rgb), 0.6);
+}
+
+.ctp-phone-app .agent-call-btn.small {
+  width: 40px;
+  height: 40px;
+  font-size: calc(16px * var(--agent-font-scale, 1));
+  border: 1px solid var(--agent-cyan);
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-call-minimize {
+  margin-top: 10px;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-call-minimize:hover {
+  color: var(--agent-cyan);
+}
+
+/* GM Phone: every call it holds an NPC in, one card each. */
+.ctp-phone-app .agent-gm-calls {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-gm-call {
+  padding: 8px 10px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  border-radius: 10px;
+  background: rgba(var(--agent-cyan-rgb), 0.05);
+}
+
+.ctp-phone-app .agent-gm-call.ringing {
+  border-color: var(--agent-yellow);
+  box-shadow: 0 0 10px rgba(var(--agent-yellow-rgb), 0.35);
+}
+
+.ctp-phone-app .agent-gm-call-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-gm-call.ringing .agent-gm-call-head {
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-gm-call-title {
+  flex: 1;
+  min-width: 0;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-gm-call .agent-call-status {
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-gm-call .agent-call-people {
+  flex: none;
+  margin: 6px 0;
+}
+
+.ctp-phone-app .agent-gm-call .agent-avatar {
+  flex-basis: 26px;
+  width: 26px;
+  height: 26px;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-call-people li.held .agent-avatar {
+  border-color: var(--persona, var(--agent-yellow));
+}
+
+.ctp-phone-app .agent-call-people li.held .agent-call-person {
+  color: var(--persona, var(--agent-yellow));
+}
+
+.ctp-phone-app .agent-call-person small {
+  color: var(--agent-muted);
+  text-transform: none;
+}
+
+.ctp-phone-app .agent-call-mini {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid var(--agent-cyan);
+  border-radius: 10px;
+  color: var(--agent-cyan);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-call-mini.accept {
+  border-color: #1faa59;
+  background: #1faa59;
+  color: #fff;
+}
+
+.ctp-phone-app .agent-call-mini.decline {
+  border-color: #d7263d;
+  color: #ff6b7d;
+}
+
+.ctp-phone-app .agent-gm-call-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.ctp-phone-app .agent-gm-calls-foot {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: auto;
+}
+
+/* The minimised call card (ui/CallWidget.js). */
+#ctp-call-widget {
+  position: fixed;
+  z-index: 76;
+  width: 220px;
+  padding: 8px 10px;
+  background: var(--agent-bg);
+  border: 1px solid var(--agent-good);
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(57, 255, 136, 0.35);
+  color: var(--agent-text);
+  font-family: var(--agent-font);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+#ctp-call-widget[hidden] {
+  display: none;
+}
+
+#ctp-call-widget .ctp-call-widget-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--agent-good);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+#ctp-call-widget .ctp-call-widget-timer {
+  margin-left: auto;
+}
+
+#ctp-call-widget .ctp-call-widget-head {
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+#ctp-call-widget .ctp-call-widget-grip {
+  opacity: 0.5;
+}
+
+#ctp-call-widget .ctp-call-widget-as {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--agent-yellow);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  text-transform: uppercase;
+}
+
+#ctp-call-widget ol.ctp-call-widget-as li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 0;
+  color: var(--persona, var(--agent-yellow));
+}
+
+#ctp-call-widget ol.ctp-call-widget-as a {
+  margin-left: auto;
+  color: var(--agent-magenta);
+}
+
+#ctp-call-widget .agent-persona-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--persona);
+}
+
+#ctp-call-widget .ctp-call-widget-people {
+  margin: 6px 0;
+  padding: 0;
+  list-style: none;
+}
+
+#ctp-call-widget .ctp-call-widget-people li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+#ctp-call-widget .ctp-call-widget-people img,
+#ctp-call-widget .ctp-call-widget-initials {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+#ctp-call-widget .ctp-call-widget-initials {
+  display: inline-grid;
+  place-items: center;
+  background: var(--agent-panel);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+}
+
+#ctp-call-widget .ctp-call-widget-people em {
+  margin-left: auto;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+#ctp-call-widget .ctp-call-widget-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+#ctp-call-widget .ctp-call-widget-actions a {
+  padding: 4px 10px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.5);
+  border-radius: 6px;
+  color: var(--agent-cyan);
+}
+
+#ctp-call-widget .ctp-call-widget-actions a.hangup {
+  border-color: #ff3b3b;
+  color: #ff3b3b;
+}
+
+/* Ringing while on another call: say what answering does, and label both buttons. */
+.ctp-phone-app .agent-call-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 14px;
+  padding: 8px 12px;
+  border: 1px solid rgba(var(--agent-yellow-rgb), 0.6);
+  background: rgba(var(--agent-yellow-rgb), 0.1);
+  color: var(--agent-text);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-call-prompt strong {
+  color: var(--agent-yellow);
+  font-size: calc(14px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-call-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.ctp-phone-app .agent-call-choice span {
+  color: var(--agent-text);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-call-actions.labelled {
+  gap: 40px;
+}

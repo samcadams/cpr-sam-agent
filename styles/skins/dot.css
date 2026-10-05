@@ -1,0 +1,327 @@
+/*
+ * Microtech Dot: pre-war salvage. Agents from before the 4th Corporate War turned up in warehouses,
+ * and Techs "make CitiNet protocol chips and slot them in" (All About Agents, p. 2). A chunky 2020
+ * shell held together with repair tape and a hand-written chip sticker, running a glossy,
+ * skeuomorphic interface 25 years out of date: bevelled bars, gel buttons, pinstripe backgrounds.
+ * A blinking chip stands in for the signal bars, and "NET UNAVAILABLE" haunts the inbox.
+ */
+
+.ctp-phone-app.skin-dot {
+  --agent-good: #1a6e35;
+  --agent-bg: #e9edf2;
+  --agent-panel: #d5dce5;
+  --agent-text: #1f2a36;
+  --agent-muted: #607083;
+  --agent-cyan-rgb: 42, 110, 200;
+  --agent-magenta-rgb: 60, 170, 70;
+  --agent-yellow-rgb: 170, 100, 0;
+  --agent-font: "Nunito", "Helvetica Neue", Arial, sans-serif;
+  --gloss: linear-gradient(to bottom, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.15) 50%, transparent 51%);
+  --tape: rgba(236, 226, 190, 0.85);
+  color-scheme: light;
+  border: 2px solid #8c8a83;
+  border-radius: 38px;
+  background: linear-gradient(150deg, #d9d6cd, #b7b3a8 55%, #9d998d);
+  box-shadow: inset 0 3px 2px rgba(255, 255, 255, 0.6), inset 0 -4px 8px rgba(0, 0, 0, 0.3), 0 10px 24px rgba(0, 0, 0, 0.5);
+  backdrop-filter: none;
+}
+
+/* Repair tape across two corners. */
+.ctp-phone-app.skin-dot::before,
+.ctp-phone-app.skin-dot::after {
+  content: "";
+  position: absolute;
+  z-index: 101;
+  width: 64px;
+  height: 18px;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, var(--tape) 0 6px, rgba(236, 226, 190, 0.7) 6px 7px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.ctp-phone-app.skin-dot::before {
+  top: 10px;
+  left: -10px;
+  transform: rotate(-38deg);
+}
+
+.ctp-phone-app.skin-dot::after {
+  right: -12px;
+  bottom: 40px;
+  transform: rotate(-42deg);
+}
+
+.ctp-phone-app.skin-dot .window-header {
+  background: transparent;
+  border: none;
+  color: #4d4a43;
+  font-family: var(--agent-font);
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ctp-phone-app.skin-dot .window-header a {
+  color: #4d4a43;
+}
+
+/* The screen sits deep in a thick bezel, with the sticker on the chin. */
+.ctp-phone-app.skin-dot .window-content {
+  position: relative;
+  padding: 2px 18px 38px;
+  background: transparent;
+}
+
+.ctp-phone-app.skin-dot.minimized .window-content {
+  padding: 0;
+}
+
+.ctp-phone-app.skin-dot .window-content::after {
+  content: "CITINET CHIP v3";
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  padding: 2px 8px;
+  transform: translateX(-50%) rotate(-2deg);
+  pointer-events: none;
+  background: #fffbe6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  color: #1d3fbf;
+  font-family: "Permanent Marker", cursive;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  white-space: nowrap;
+}
+
+.ctp-phone-app.skin-dot .agent-phone {
+  box-sizing: border-box;
+  border: 5px solid #1c1c1c;
+  border-radius: 24px;
+  background: repeating-linear-gradient(90deg, #e9edf2 0 3px, #e3e8ee 3px 4px);
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  overflow: hidden;
+}
+
+.ctp-phone-app.skin-dot .agent-phone::after {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.35), transparent 35%);
+}
+
+/* The iPhone-era status bar: black gloss. */
+.ctp-phone-app.skin-dot .agent-statusbar {
+  background: var(--gloss), linear-gradient(to bottom, #3a3a3a, #111);
+  color: #f2f2f2;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 0;
+  text-shadow: 0 -1px 0 #000;
+}
+
+.ctp-phone-app.skin-dot .agent-brand {
+  color: #f2f2f2;
+}
+
+/* The jury-rigged chip blinks where the signal bars would be. */
+.ctp-phone-app.skin-dot .agent-signal i {
+  display: none;
+}
+
+.ctp-phone-app.skin-dot .agent-signal:not(.offline)::before {
+  content: "\f2db";
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro";
+  font-weight: 900;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  color: #7dff7d;
+  animation: ctp-dot-blink 1.6s steps(1) infinite;
+}
+
+@keyframes ctp-dot-blink {
+  50% { opacity: 0.25; }
+}
+
+.ctp-phone-app.skin-dot .agent-date {
+  border-bottom: 1px solid #b8c2ce;
+  background: #f4f6f8;
+}
+
+/* Bevelled navy title bars. */
+.ctp-phone-app.skin-dot .agent-inbox-bar,
+.ctp-phone-app.skin-dot .agent-thread-bar {
+  background: var(--gloss), linear-gradient(to bottom, #8aa4c4, #5a7aa3);
+  border-bottom: 1px solid #2d4868;
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.ctp-phone-app.skin-dot .agent-inbox-bar *,
+.ctp-phone-app.skin-dot .agent-thread-bar * {
+  color: #fff;
+}
+
+.ctp-phone-app.skin-dot .agent-inbox-name,
+.ctp-phone-app.skin-dot .agent-thread-name {
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* "NET UNAVAILABLE", faded into the inbox behind the rows. */
+.ctp-phone-app.skin-dot .agent-inbox {
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='60'><text x='110' y='38' font-family='Arial' font-weight='700' font-size='20' fill='%23607083' fill-opacity='0.12' text-anchor='middle' transform='rotate(-12 110 30)'>NET UNAVAILABLE</text></svg>") center / 80% auto no-repeat;
+}
+
+.ctp-phone-app.skin-dot .agent-row {
+  border-bottom: 1px solid #c9d1db;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2));
+}
+
+.ctp-phone-app.skin-dot .agent-row:hover {
+  background: linear-gradient(to bottom, #5a9cf0, #2a6ec8);
+  color: #fff;
+}
+
+.ctp-phone-app.skin-dot .agent-row:hover * {
+  color: #fff;
+}
+
+.ctp-phone-app.skin-dot .agent-row-name {
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ctp-phone-app.skin-dot .agent-avatar {
+  border: 1px solid #7d8a99;
+  border-radius: 6px;
+  background: var(--gloss), #c5d0dc;
+  color: #1f2a36;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.ctp-phone-app.skin-dot .agent-unread,
+.ctp-phone-app.skin-dot .agent-dock-badge {
+  border: 2px solid #fff;
+  background: var(--gloss), #e0262e;
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.ctp-phone-app.skin-dot input,
+.ctp-phone-app.skin-dot textarea,
+.ctp-phone-app.skin-dot .agent-dropdown-btn {
+  border: 1px solid #9aa6b3;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.15);
+  color: var(--agent-text);
+  font-family: var(--agent-font);
+}
+
+/* Gel bubbles. */
+.ctp-phone-app.skin-dot .agent-bubble {
+  border: 1px solid #aab5c2;
+  border-radius: 14px;
+  background: var(--gloss), linear-gradient(to bottom, #f2f4f7, #d9dfe6);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  color: var(--agent-text);
+}
+
+.ctp-phone-app.skin-dot .agent-msg.mine .agent-bubble {
+  border: 1px solid #3f8f3f;
+  border-radius: 14px;
+  background: var(--gloss), linear-gradient(to bottom, #8fe07f, #4fae42);
+  color: #0e2a0c;
+}
+
+.ctp-phone-app.skin-dot .agent-system {
+  border: none;
+  color: var(--agent-muted);
+  text-shadow: 0 1px 0 #fff;
+}
+
+.ctp-phone-app.skin-dot .agent-compose {
+  background: linear-gradient(to bottom, #d7dde4, #b9c3ce);
+  border-top: 1px solid #8793a0;
+}
+
+.ctp-phone-app.skin-dot .agent-compose button,
+.ctp-phone-app.skin-dot .agent-wide-btn,
+.ctp-phone-app.skin-dot .agent-card-action,
+.ctp-phone-app.skin-dot .agent-quick-reply {
+  border: 1px solid #2d4868;
+  border-radius: 8px;
+  background: var(--gloss), linear-gradient(to bottom, #6d95c8, #3c679f);
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* The dock: a row of glossy app icons. */
+.ctp-phone-app.skin-dot .agent-dock {
+  background: linear-gradient(to bottom, #4a4a4a, #1b1b1b);
+  border-top: 1px solid #000;
+}
+
+.ctp-phone-app.skin-dot .agent-dock-app {
+  color: #d8d8d8;
+  font-size: calc(14px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-dot .agent-dock-app > i:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--gloss), linear-gradient(to bottom, #6fa9ff, #1f5fc4);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.ctp-phone-app.skin-dot .agent-dock-app span {
+  font-size: calc(8px * var(--agent-font-scale, 1));
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ctp-phone-app.skin-dot .agent-dock-app.active {
+  color: #fff;
+  text-shadow: none;
+}
+
+.ctp-phone-app.skin-dot .agent-dock-app.active > i:first-child {
+  background: var(--gloss), linear-gradient(to bottom, #8fe07f, #3f9a34);
+}
+
+.ctp-phone-app.skin-dot .agent-dropdown-menu,
+.ctp-phone-app.skin-dot .agent-emoji-picker {
+  background: #f7f9fb;
+  border: 1px solid #7d8a99;
+  border-radius: 10px;
+}
+
+.ctp-phone-app.skin-dot .agent-acting-as {
+  color: #7a4a00;
+}
+
+.ctp-phone-app.skin-dot .window-resizable-handle {
+  border-top: 1px solid #8c8a83;
+  border-radius: 0 0 38px 38px;
+  background:
+    repeating-linear-gradient(90deg, #6f6b61 0 2px, transparent 2px 5px) center / 36px 4px no-repeat,
+    #a8a498;
+}
+
+.ctp-phone-app.skin-dot .window-resizable-handle i {
+  color: #4d4a43;
+}
+
+/* The Home button: the round glossy button of a 2020 phone. */
+.ctp-phone-app.skin-dot .agent-home-bar {
+  background: linear-gradient(to bottom, #4a4a4a, #1b1b1b);
+}
+
+.ctp-phone-app.skin-dot .agent-home-button {
+  width: 34px;
+  border: 2px solid #111;
+  background: radial-gradient(circle at 40% 30%, #6a6a6a, #1c1c1c 70%);
+  color: #e8e8e8;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}

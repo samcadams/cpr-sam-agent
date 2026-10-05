@@ -1,0 +1,85 @@
+{{!-- Ask Alex Anything (ui/phone/pages/alex.js). --}}
+{{> agent-app-bar alex.bar}}
+{{#if alex.gm}}
+  <div class="agent-info agent-app agent-alex">
+    <label class="agent-info-label">Waiting for Alex</label>
+    <ol class="agent-app-list">
+      {{#each alex.waiting}}
+        <li class="agent-app-item agent-alex-query">
+          <div class="agent-app-item-main">
+            <div class="agent-app-item-top"><b>{{name}}</b><span class="agent-row-time">{{ago}}</span></div>
+            <div class="agent-alex-question">"{{text}}"</div>
+            <small>{{suggest}}</small>
+            {{#if needsRoll}}
+              <div class="agent-alex-roll">{{#if roll}}Rolled <b>{{roll.total}}</b> vs DV {{dv}}: {{#if roll.success}}success{{else}}failure{{/if}} <small>({{roll.detail}})</small>{{else}}Waiting for their roll (DV {{dv}})…{{/if}}</div>
+            {{/if}}
+            <textarea data-query-id="{{id}}" rows="3" placeholder="Alex's answer. On a bad roll, make it confident and wrong.">{{draft}}</textarea>
+            {{#if image}}<img class="agent-alex-img" src="{{image}}" alt="">{{/if}}
+            <div class="agent-money-actions">
+              <a class="pay" data-action="alex-answer" data-query-id="{{id}}"><i class="fas fa-reply"></i> Answer</a>
+              <a data-action="alex-photo" data-query-id="{{id}}" title="Attach a picture"><i class="{{@root.appearance.icons.photo}}"></i></a>
+              {{#unless needsRoll}}<input type="number" name="alexDv" data-query-id="{{id}}" value="13" min="1" title="DV"><a data-action="alex-need-roll" data-query-id="{{id}}"><i class="fas fa-dice-d10"></i> Ask for a roll</a>{{/unless}}
+              <a class="decline" data-action="alex-none" data-query-id="{{id}}">No results</a>
+            </div>
+          </div>
+        </li>
+      {{else}}
+        <li class="agent-empty">No questions waiting.</li>
+      {{/each}}
+    </ol>
+    {{#if alex.recent.length}}
+      <label class="agent-info-label">Answered</label>
+      <ol class="agent-app-list">
+        {{#each alex.recent}}
+          <li class="agent-app-item compact"><div class="agent-app-item-main"><b>{{name}}</b>: "{{text}}"<small>{{#if none}}No results{{else}}{{#if instant}}<i class="fas fa-database"></i> From the Data Pool entry <b>{{answer.source}}</b> · {{/if}}{{answer.text}}{{/if}}</small></div></li>
+        {{/each}}
+      </ol>
+    {{/if}}
+    <label class="agent-info-label">Instant answers (the Data Pool)</label>
+    <p class="agent-info-note">Anything the city knows, written ahead of time, answers at once with no roll and no wait:</p>
+    <ul class="agent-info-note agent-help-list">
+      <li>Make a Journal folder named <b>{{alex.folder}}</b>, one entry per topic.</li>
+      <li>The entry's name is a keyword. Add more on a line of the text starting <em>Keywords:</em>, separated by commas.</li>
+      <li>A question with any keyword in it (as a whole word or phrase) gets the entry's text, minus the Keywords line.</li>
+      <li>Example: an entry <em>Afterlife</em> with <em>Keywords: merc bar, rogue</em> answers "Where's a good merc bar?" and "Who's Rogue?".</li>
+      <li>You see every instant answer under Answered, with the entry it came from. Players only see the answer.</li>
+    </ul>
+    <button type="button" class="agent-wide-btn" data-action="alex-example"><i class="fas fa-book-open"></i> Create an example entry</button>
+  </div>
+{{else}}
+  <div class="agent-messages agent-alex-thread">
+    {{#each alex.queries}}
+      <div class="agent-msg mine"><div class="agent-bubble"><div class="agent-bubble-text">{{text}}</div></div><div class="agent-meta">{{time}}</div></div>
+      <div class="agent-msg theirs agent-alex-reply">
+        <div class="agent-msg-sender">Alex</div>
+        <div class="agent-bubble">
+          {{#if crawling}}<div class="agent-alex-crawling">Alex is crawling the Pool<span>.</span><span>.</span><span>.</span></div>{{/if}}
+          {{#if needsRoll}}
+            {{#if roll}}<div>You searched: <b>{{roll.total}}</b>. Alex is sorting what it found…</div>
+            {{else}}<div>Alex needs your help filtering the Pool: Library Search, DV {{dv}}.</div>
+              <div class="agent-money-actions"><a class="pay" data-action="alex-roll" data-query-id="{{id}}"><i class="fas fa-dice-d10"></i> Roll Library Search (+2)</a></div>
+            {{/if}}
+          {{/if}}
+          {{#if answered}}
+            {{#if answer.image}}<img class="agent-photo" src="{{answer.image}}" data-action="open-photo" data-src="{{answer.image}}" alt="">{{/if}}
+            {{#if answer.text}}<div class="agent-bubble-text"{{#if reveal}} data-reveal="{{id}}"{{/if}}>{{answer.text}}</div>{{/if}}
+          {{/if}}
+          {{#if none}}<div class="agent-alex-none">No results in the local Pool.</div>{{/if}}
+        </div>
+      </div>
+    {{else}}
+      <div class="agent-alex-hello">
+        <div class="agent-alex-hello-title"><i class="fas fa-magnifying-glass"></i> Hi, I'm Alex.</div>
+        <p>Ask me anything. I crawl the whole local Data Pool for you: screamsheets and newsfeeds, business directories, maps, Night Market listings, who's hiring, who's hunting, and whatever the city is whispering about today.</p>
+        <p>I read the junk so you don't have to, and give you the short version. The better you help me filter (Library Search), the better my answers get. Mostly.</p>
+        <p class="agent-alex-hello-try">Try: "Who runs the Afterlife?" · "Cheapest ripperdoc in Watson?" · "What happened in Heywood last night?"</p>
+        <small>Ask Alex Anything is brought to you by Ziggurat.</small>
+      </div>
+    {{/each}}
+  </div>
+  <div class="agent-alex-compose">
+    <input type="text" name="alexQuery" data-live value="{{alex.draft}}" placeholder="Ask Alex Anything…" {{#unless alex.online}}disabled{{/unless}}>
+    <button type="button" data-action="alex-ask" title="Ask" {{#unless alex.online}}disabled{{/unless}}><i class="fas fa-magnifying-glass"></i></button>
+    {{#if alex.canClear}}<a class="agent-icon-btn" data-action="alex-clear" title="Clear answered searches"><i class="fas fa-broom"></i></a>{{/if}}
+  </div>
+{{/if}}

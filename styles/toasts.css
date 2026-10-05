@@ -1,0 +1,212 @@
+/* Notification pop-ups beside the phone button. */
+
+#ctp-toasts {
+  position: fixed;
+  z-index: 75;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+  font-family: var(--agent-font);
+}
+
+#ctp-toasts .ctp-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--agent-bg);
+  border: 1px solid var(--agent-cyan);
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(var(--agent-cyan-rgb), 0.45);
+  color: var(--agent-text);
+  cursor: pointer;
+  pointer-events: auto;
+  animation: ctp-toast-in 0.25s ease-out;
+}
+
+#ctp-toasts .ctp-toast.leaving {
+  opacity: 0;
+  transform: translateX(-12px);
+  transition: all 0.25s ease-in;
+}
+
+@keyframes ctp-toast-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+#ctp-toasts .ctp-toast-img {
+  object-view-box: inset(10%); /* zoomed in a little, as on the phone */
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--agent-cyan);
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--agent-panel);
+  color: var(--agent-cyan);
+}
+
+#ctp-toasts .ctp-toast-main {
+  flex: 1;
+  min-width: 0;
+}
+
+#ctp-toasts .ctp-toast-title {
+  color: var(--agent-cyan);
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#ctp-toasts .ctp-toast-body {
+  font-size: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+#ctp-toasts .ctp-toast-close {
+  align-self: flex-start;
+  color: var(--agent-muted);
+}
+
+/* Call notification */
+#ctp-toasts .ctp-toast-actions {
+  display: flex;
+  gap: 6px;
+}
+
+#ctp-toasts .ctp-toast-action {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+#ctp-toasts .ctp-toast-action.accept {
+  background: #1faa59;
+  box-shadow: 0 0 8px rgba(57, 255, 136, 0.6);
+}
+
+#ctp-toasts .ctp-toast-action.decline {
+  background: #d7263d;
+  box-shadow: 0 0 8px rgba(255, 42, 109, 0.6);
+}
+
+#ctp-toasts .ctp-toast-call {
+  border-color: #39ff88;
+  box-shadow: 0 0 12px rgba(57, 255, 136, 0.5);
+}
+
+#ctp-toasts .ctp-toast-call .ctp-toast-img {
+  animation: agent-ring-pulse 1.2s ease-out infinite;
+}
+
+#ctp-toasts .ctp-toast-money {
+  border-color: #39ff88;
+  box-shadow: 0 0 12px rgba(57, 255, 136, 0.45);
+}
+
+#ctp-toasts .ctp-toast-quest {
+  border-color: var(--agent-yellow);
+  box-shadow: 0 0 12px rgba(var(--agent-yellow-rgb), 0.45);
+}
+
+/* Answers with words on them (Agent alerts, GM cards): a row under the text. */
+#ctp-toasts .ctp-toast:has(.ctp-toast-actions.text) {
+  flex-wrap: wrap;
+}
+
+#ctp-toasts .ctp-toast-actions.text {
+  order: 3;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+#ctp-toasts .ctp-toast-action.text {
+  width: auto;
+  height: 24px;
+  padding: 0 10px;
+  gap: 5px;
+  border: 1px solid var(--agent-cyan);
+  border-radius: 12px;
+  color: var(--agent-cyan);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+#ctp-toasts .ctp-toast-action.text:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.15);
+}
+
+#ctp-toasts .ctp-toast-action.text.accept {
+  border-color: #1faa59;
+  color: #fff;
+}
+
+#ctp-toasts .ctp-toast-action.text.decline {
+  background: none;
+  border-color: var(--agent-muted);
+  box-shadow: none;
+  color: var(--agent-muted);
+}
+
+#ctp-toasts .ctp-toast-body {
+  -webkit-line-clamp: 4;
+}
+
+/* From the character's Agent. */
+#ctp-toasts .ctp-toast-agent {
+  border-color: var(--agent-magenta);
+  box-shadow: 0 0 12px rgba(var(--agent-magenta-rgb), 0.45);
+}
+
+#ctp-toasts .ctp-toast-agent .ctp-toast-title {
+  color: var(--agent-magenta);
+}
+
+#ctp-toasts .ctp-toast-agent.kind-trauma,
+#ctp-toasts .ctp-toast-agent.kind-biometric {
+  border-color: #ff4d5e;
+  box-shadow: 0 0 14px rgba(255, 77, 94, 0.55);
+}
+
+/* BangMe!: money landed. */
+#ctp-toasts .ctp-toast-bang .ctp-toast-img {
+  background: radial-gradient(circle, #ffe45c 0 40%, #ff8a00 70%);
+  color: #1a1a1a;
+  animation: ctp-bang 0.6s ease-out;
+}
+
+@keyframes ctp-bang {
+  0% { transform: scale(0.2) rotate(-30deg); }
+  60% { transform: scale(1.4) rotate(10deg); }
+  100% { transform: none; }
+}
+
+/* GM cards from the apps. */
+#ctp-toasts .ctp-toast-gm.urgent {
+  border-color: #ff4d5e;
+  box-shadow: 0 0 16px rgba(255, 77, 94, 0.6);
+  animation: ctp-toast-in 0.25s ease-out, ctp-toast-urgent 1.2s ease-in-out 0.25s 3;
+}
+
+@keyframes ctp-toast-urgent {
+  50% { box-shadow: 0 0 26px rgba(255, 77, 94, 0.95); }
+}

@@ -1,0 +1,74 @@
+<div class="agent-inbox-bar">
+  <span class="agent-inbox-name"><i class="{{appearance.icons.contacts}}"></i> {{contacts.inboxName}}</span>
+  {{#if contacts.canRequest}}
+    <a class="agent-icon-btn" data-action="request-contact" title="Request a contact"><i class="fas fa-user-plus"></i></a>
+  {{/if}}
+  {{#if contacts.gmConsole}}
+    <a class="agent-icon-btn" data-action="contacts" title="Manage contacts"><i class="fas fa-address-book"></i></a>
+    <a class="agent-icon-btn" data-action="services" title="Manage services"><i class="fas fa-truck-medical"></i></a>
+  {{/if}}
+</div>
+
+{{#if contacts.pickers}}{{> agent-gm-pickers contacts.pickers}}{{/if}}
+
+<div class="agent-search">
+  <i class="fas fa-magnifying-glass"></i>
+  <input type="search" name="contactSearch" value="{{contacts.search}}" placeholder="Search contacts" autocomplete="off">
+</div>
+
+{{#if contacts.requests.length}}
+  <div class="agent-requests">
+    <div class="agent-requests-title"><i class="fas fa-user-plus"></i> Contact requests</div>
+    {{#each contacts.requests}}
+      <div class="agent-request">
+        <div class="agent-request-main">
+          <strong>{{owner}}</strong> wants <strong>{{name}}</strong>
+          {{#if note}}<div class="agent-request-note">{{note}}</div>{{/if}}
+        </div>
+        <a class="agent-icon-btn" data-action="request-approve" data-request-id="{{id}}" data-name="{{name}}" title="Approve"><i class="fas fa-check"></i></a>
+        <a class="agent-icon-btn" data-action="request-deny" data-request-id="{{id}}" title="Deny"><i class="fas fa-xmark"></i></a>
+      </div>
+    {{/each}}
+  </div>
+{{/if}}
+
+<ol class="agent-inbox agent-contact-list">
+  {{#each contacts.rows}}
+    <li class="agent-row" data-action="open-contact" data-card="{{card}}" data-kind="{{kind}}" data-actor-id="{{actorId}}" data-contact="{{contact}}">
+      {{> agent-avatar}}
+      <div class="agent-row-main">
+        <div class="agent-row-top">
+          <span class="agent-row-name">{{name}}</span>
+          {{#if blocked}}<i class="fas fa-ban agent-blocked-icon" title="Blocked"></i>{{/if}}
+        </div>
+        {{#if sub}}<div class="agent-row-preview">{{sub}}</div>{{/if}}
+      </div>
+      <i class="fas fa-chevron-right agent-row-go"></i>
+    </li>
+  {{/each}}
+  {{#if contacts.services.length}}
+    <li class="agent-list-heading">Services</li>
+    {{#each contacts.services}}
+      <li class="agent-row" data-action="open-contact" data-kind="service" data-actor-id="{{actorId}}" data-service-id="{{serviceId}}">
+        {{> agent-avatar}}
+        <div class="agent-row-main">
+          <div class="agent-row-top">
+            <span class="agent-row-name">{{name}}</span>
+            <span class="agent-service-tag">SERVICE</span>
+          </div>
+        </div>
+        <i class="fas fa-chevron-right agent-row-go"></i>
+      </li>
+    {{/each}}
+  {{/if}}
+  {{#if contacts.empty}}<li class="agent-empty">{{contacts.emptyText}}</li>{{/if}}
+  {{#each contacts.pending}}
+    <li class="agent-row agent-pending">
+      <span class="agent-avatar"><i class="fas fa-hourglass-half"></i></span>
+      <div class="agent-row-main">
+        <div class="agent-row-top"><span class="agent-row-name">{{name}}</span></div>
+        <div class="agent-row-preview">Waiting for approval</div>
+      </div>
+    </li>
+  {{/each}}
+</ol>

@@ -1,0 +1,63 @@
+{
+  "id": "cpr-slopagent",
+  "title": "CPR Functional Agent",
+  "description": "A semi-functional Agent for texting, 'calling', and some apps based off All About Agents. Full AI Disclosure: This is Claude slop, but it does work. Functional Agent is unofficial content provided under the Homebrew Content Policy of R. Talsorian Games and is not approved or endorsed by RTG.",
+  "version": "1.1.0",
+  "license": "LICENSE",
+  "readme": "README.md",
+  "changelog": "CHANGELOG.md",
+  "authors": [
+    {
+      "name": "samsamsamsam"
+    }
+  ],
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "cyberpunk-red-core",
+        "type": "system"
+      }
+    ],
+    "recommends": [
+      {
+        "id": "foundryvtt-simple-calendar",
+        "type": "module",
+        "reason": "In-world timestamps on texts."
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/base.css",
+    "styles/buttons.css",
+    "styles/toasts.css",
+    "styles/dialogs.css",
+    "styles/managers.css",
+    "styles/phone/frame.css",
+    "styles/phone/inbox.css",
+    "styles/phone/conversation.css",
+    "styles/phone/calls.css",
+    "styles/phone/apps.css",
+    "styles/phone/app-pages.css",
+    "styles/skins/fonts.css",
+    "styles/phone/effects.css",
+    "styles/skins/neon.css",
+    "styles/skins/zetatech.css",
+    "styles/skins/double.css",
+    "styles/skins/yourplay.css",
+    "styles/skins/merlyn.css",
+    "styles/skins/dot.css",
+    "styles/skins/field.css",
+    "styles/skins/burner.css",
+    "styles/skins/zine.css",
+    "styles/skins/braindance.css",
+    "styles/skins/hud-models.css"
+  ],
+  "socket": true
+}

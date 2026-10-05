@@ -1,0 +1,172 @@
+/* Inbox rows: unread, pins, search, deleting, pending requests. */
+
+.ctp-phone-app .agent-inbox-name {
+  flex: 1;
+  color: var(--agent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-inbox {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ctp-phone-app .agent-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-row:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.07);
+}
+
+/* GM Phone: the NPC's colour down the row's edge. */
+.ctp-phone-app .agent-row.persona {
+  box-shadow: inset 3px 0 0 var(--persona);
+}
+
+.ctp-phone-app .agent-hidden-tag {
+  padding: 0 4px;
+  border: 1px solid var(--persona, var(--agent-yellow));
+  border-radius: 3px;
+  color: var(--persona, var(--agent-yellow));
+  font-size: calc(8px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-row-top {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ctp-phone-app .agent-row-name {
+  color: var(--agent-text);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ctp-phone-app .agent-row-owner {
+  color: var(--agent-magenta);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-row-time {
+  margin-left: auto;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-row-preview {
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ctp-phone-app .agent-row.unread .agent-row-preview {
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-unread {
+  flex: none;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--agent-magenta);
+  color: #fff;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  line-height: 18px;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-pin {
+  flex: none;
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  opacity: 0;
+  transform: rotate(35deg);
+}
+
+.ctp-phone-app .agent-row:hover .agent-pin,
+.ctp-phone-app .agent-pin.pinned {
+  opacity: 1;
+}
+
+.ctp-phone-app .agent-pin.pinned {
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-row.agent-pending {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ctp-phone-app .agent-search {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--agent-muted);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-search input {
+  flex: 1;
+  height: 24px;
+  background: var(--agent-bg);
+  color: var(--agent-text);
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.3);
+  border-radius: 12px;
+  padding: 0 10px;
+  font-family: var(--agent-font);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-search input:focus {
+  outline: none;
+  box-shadow: 0 0 6px rgba(var(--agent-cyan-rgb), 0.4);
+}
+
+.ctp-phone-app .agent-row-delete {
+  flex: none;
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  opacity: 0;
+}
+
+.ctp-phone-app .agent-row:hover .agent-row-delete {
+  opacity: 1;
+}
+
+.ctp-phone-app .agent-row-delete:hover {
+  color: var(--agent-magenta);
+}

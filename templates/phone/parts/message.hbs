@@ -1,0 +1,76 @@
+{{!--
+  One message in a conversation. Context: a message from datedMessages() plus
+  canReact (show the react button); optional sender, color and persona (groups: the sender's colour,
+  and whether to mark one of the GM's own NPCs with it), viewed and setViewed (direct: the "Viewed"
+  label, and the GM's button to set it) and action (services).
+--}}
+{{#if dateLabel}}<div class="agent-date-sep">{{dateLabel}}</div>{{/if}}
+{{#if system}}
+  <div class="agent-system">{{#if call}}<i class="fas fa-phone"></i> {{/if}}{{text}} · {{time}}</div>
+{{else}}
+  <div class="agent-msg {{#if mine}}mine{{else}}theirs{{/if}}{{#if persona}} persona{{/if}}" data-message-id="{{id}}"{{#if color}} style="--persona: {{color}}"{{/if}}>
+    {{#if sender}}<div class="agent-msg-sender">{{sender}}</div>{{/if}}
+    {{#if action}}
+      <div class="agent-bubble agent-action-bubble"><i class="fas fa-play"></i> {{text}}</div>
+    {{else}}
+      <div class="agent-bubble{{#if money}} agent-money-bubble{{/if}}">
+        {{#if money}}
+          <div class="agent-money {{money.status}}{{#if money.incoming}} incoming{{/if}}">
+            <div class="agent-money-line">
+              <i class="fas fa-money-bill-transfer"></i> <span class="agent-money-label">{{money.label}}</span>
+              {{#if money.statusLabel}}<span class="agent-money-status">{{money.statusLabel}}</span>{{/if}}
+            </div>
+            {{#if text}}<div class="agent-money-note">{{text}}</div>{{/if}}
+            {{#if money.canPay}}
+              <div class="agent-money-actions">
+                <a class="pay" data-action="money-pay" data-message-id="{{id}}">Pay</a>
+                <a class="decline" data-action="money-decline" data-message-id="{{id}}">Decline</a>
+              </div>
+            {{/if}}
+            {{#if money.canTransfer}}
+              <div class="agent-money-actions">
+                <a class="pay" data-action="money-transfer" data-message-id="{{id}}"><i class="fas fa-building-columns"></i> Transfer</a>
+              </div>
+            {{/if}}
+            {{#if money.canCancel}}
+              <div class="agent-money-actions"><a class="decline" data-action="money-cancel" data-message-id="{{id}}">Cancel</a></div>
+            {{/if}}
+          </div>
+        {{/if}}
+        {{#if job}}
+          <div class="agent-job {{job.status}}">
+            {{#if job.img}}<img class="agent-job-img" src="{{job.img}}" alt="{{job.name}}">{{/if}}
+            <div class="agent-job-line">
+              <i class="{{@root.appearance.icons.jobs}}"></i> <span class="agent-job-name">{{job.name}}</span>
+              <span class="agent-job-status">{{job.statusLabel}}</span>
+            </div>
+            {{#if job.summary}}<div class="agent-job-summary">{{job.summary}}</div>{{/if}}
+            {{#if job.canRespond}}
+              <div class="agent-money-actions">
+                <a class="pay" data-action="job-accept" data-message-id="{{id}}">Accept</a>
+                <a class="decline" data-action="job-decline" data-message-id="{{id}}">Decline</a>
+              </div>
+            {{/if}}
+            {{#if job.canOpen}}<a class="agent-job-open" data-action="job-open" data-quest-id="{{job.questId}}">Open in Jobs <i class="fas fa-chevron-right"></i></a>{{/if}}
+          </div>
+        {{/if}}
+        {{#if image}}<img class="agent-photo" src="{{image}}" data-action="open-photo" data-src="{{image}}" alt="Photo">{{/if}}
+        {{#if location}}
+          <a class="agent-location" data-action="open-location" data-scene-id="{{location.sceneId}}" data-note-id="{{location.noteId}}"
+             data-x="{{location.x}}" data-y="{{location.y}}" title="Open on {{location.sceneName}}">
+            <i class="fas fa-location-dot"></i><span class="agent-location-label">{{location.label}}</span><span class="agent-location-scene">{{location.sceneName}}</span>
+          </a>
+        {{/if}}
+        {{#if text}}{{#unless money}}<div class="agent-bubble-text">{{text}}</div>{{/unless}}{{/if}}
+      </div>
+    {{/if}}
+    <div class="agent-meta">{{time}}{{#if viewed}} · <span class="agent-viewed">{{@root.appearance.labels.viewed}}</span>{{/if}}</div>
+    {{#if setViewed}}<a class="agent-set-viewed" data-action="set-viewed" title="Show the player their message was seen"><i class="fas fa-eye"></i> Set as {{@root.appearance.labels.viewed}}</a>{{/if}}
+    {{#if reactions.length}}
+      <div class="agent-reactions">
+        {{#each reactions}}<a class="agent-reaction{{#if mine}} mine{{/if}}" data-action="react" data-message-id="{{../id}}" data-emoji="{{emoji}}">{{emoji}}{{#if label}} {{label}}{{/if}}</a>{{/each}}
+      </div>
+    {{/if}}
+    {{#if canReact}}<a class="agent-react-btn" data-action="react-open" data-message-id="{{id}}" title="React"><i class="far fa-face-smile"></i></a>{{/if}}
+  </div>
+{{/if}}

@@ -1,0 +1,15 @@
+<form>
+  <p>{{owner}} asked for <strong>{{request.name}}</strong>{{#if request.note}} — <em>{{request.note}}</em>{{/if}}</p>
+  <div class="form-group">
+    <label>Link to sheet</label>
+    <select name="link">
+      <option value="">None: just use the name below</option>
+      {{#each candidates}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Contact name</label>
+    <input type="text" name="name" value="{{request.name}}">
+  </div>
+  <p class="notes">Linking uses the sheet's name and portrait, and lets PC contacts text each other.</p>
+</form>

@@ -1,0 +1,36 @@
+<div class="agent-thread-bar">
+  <a class="agent-icon-btn" data-action="back" title="Back"><i class="fas fa-chevron-left"></i></a>
+  <div class="agent-thread-title"><div class="agent-thread-name">Group info</div></div>
+</div>
+<div class="agent-info">
+  <label class="agent-info-label">Name</label>
+  <div class="agent-info-row">
+    <input type="text" name="groupName" value="{{info.name}}" {{#unless info.canEdit}}disabled{{/unless}}>
+    {{#if info.canEdit}}
+      <a class="agent-icon-btn" data-action="group-rename" title="Rename"><i class="fas fa-check"></i></a>
+    {{/if}}
+  </div>
+
+  <label class="agent-info-label">Members</label>
+  <ol class="agent-members">
+    {{#each info.members}}
+      <li{{#if canCard}} class="agent-member-link" data-action="member-card" data-name="{{name}}" title="Contact card"{{/if}}>
+        {{> agent-avatar}}
+        <span class="agent-member-name">{{name}}</span>
+        <span class="agent-member-tag">{{tag}}</span>
+        {{#if ../info.canEdit}}
+          <a class="agent-icon-btn" data-action="group-remove" data-key="{{key}}" title="{{#if isSelf}}Leave group{{else}}Remove{{/if}}">
+            <i class="fas {{#if isSelf}}fa-right-from-bracket{{else}}fa-user-minus{{/if}}"></i>
+          </a>
+        {{/if}}
+      </li>
+    {{/each}}
+  </ol>
+
+  {{#if info.canEdit}}
+    <button type="button" class="agent-wide-btn" data-action="group-add"><i class="fas fa-user-plus"></i> Add members</button>
+  {{/if}}
+  {{#if info.canDelete}}
+    <button type="button" class="agent-wide-btn danger" data-action="group-delete"><i class="fas fa-trash"></i> Delete group</button>
+  {{/if}}
+</div>

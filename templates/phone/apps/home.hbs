@@ -1,0 +1,33 @@
+{{!-- The home screen (ui/phone/pages/home.js): the apps not on the dock, or (home-screen navigation) every app. --}}
+{{#if home.screen}}
+  <div class="agent-info agent-homescreen">
+    <div class="agent-homescreen-clock">
+      <div class="agent-homescreen-time">{{home.screen.time}}</div>
+      {{#if home.screen.date}}<div class="agent-homescreen-date">{{home.screen.date}}</div>{{/if}}
+    </div>
+    <div class="agent-home">
+      {{#each home.apps}}
+        <a class="agent-home-app app-{{id}}" data-action="app" data-app="{{id}}" title="{{blurb}}">
+          <span class="agent-home-icon"><i class="{{icon}}"></i>{{#if badge}}<b class="agent-dock-badge">{{badge}}</b>{{/if}}{{#if dot}}<b class="agent-dock-dot"></b>{{/if}}</span>
+          <span class="agent-home-name">{{name}}</span>
+        </a>
+      {{/each}}
+    </div>
+  </div>
+{{else}}
+  <div class="agent-inbox-bar">
+    <span class="agent-inbox-name"><i class="{{appearance.icons.apps}}"></i> {{appearance.names.home}}</span>
+  </div>
+  <div class="agent-info">
+    <div class="agent-home">
+      {{#each home.apps}}
+        <a class="agent-home-app app-{{id}}" data-action="app" data-app="{{id}}" title="{{blurb}}">
+          <span class="agent-home-icon"><i class="{{icon}}"></i>{{#if badge}}<b class="agent-dock-badge">{{badge}}</b>{{/if}}{{#if dot}}<b class="agent-dock-dot"></b>{{/if}}</span>
+          <span class="agent-home-name">{{name}}</span>
+        </a>
+      {{else}}
+        <p class="agent-empty">Everything's on your dock.</p>
+      {{/each}}
+    </div>
+  </div>
+{{/if}}

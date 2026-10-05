@@ -1,0 +1,109 @@
+/* GM windows: contacts manager and services manager. */
+
+.ctp-contacts .ctp-character-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.ctp-contacts .ctp-character-row select {
+  flex: 1;
+}
+
+.ctp-contacts .ctp-contacts-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.ctp-contacts .ctp-contact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.ctp-contacts .ctp-contact-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  flex: 0 0 32px;
+}
+
+.ctp-contacts .ctp-contact-name {
+  flex: 1;
+}
+
+.ctp-contacts .ctp-empty {
+  padding: 8px 0;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.ctp-contacts .ctp-contact-block,
+.ctp-contacts .ctp-contact-call {
+  opacity: 0.35;
+}
+
+.ctp-contacts .ctp-contact-call.active {
+  opacity: 1;
+  color: #e0a526;
+}
+
+.ctp-contacts .ctp-contact-block.active {
+  opacity: 1;
+  color: #c9302c;
+}
+
+.ctp-contacts .ctp-contact-note {
+  padding: 2px 0 6px 40px;
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* GM services manager */
+.ctp-services .ctp-services-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.ctp-services .ctp-service {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.ctp-services .ctp-service-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ctp-services .ctp-service-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.ctp-services .ctp-service-name {
+  flex: 1;
+}
+
+.ctp-services .ctp-service-characters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 4px 0 0 18px;
+}

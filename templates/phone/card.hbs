@@ -1,0 +1,75 @@
+{{!-- A contact card (ui/phone/pages/card.js). --}}
+<div class="agent-thread-bar">
+  <a class="agent-icon-btn" data-action="back" title="Back"><i class="fas fa-chevron-left"></i></a>
+  <div class="agent-thread-title"><div class="agent-thread-name">Contact</div></div>
+</div>
+
+<div class="agent-info agent-card"{{#if card.color}} style="--persona: {{card.color}}"{{/if}}>
+  <div class="agent-card-head">
+    {{#if card.gm.canImage}}
+      <a class="agent-avatar-edit agent-card-avatar" data-action="set-contact-img" title="Change this contact's picture">
+        {{> agent-avatar card}}
+        <i class="fas fa-camera"></i>
+      </a>
+    {{else}}
+      <span class="agent-card-avatar">{{> agent-avatar card}}</span>
+    {{/if}}
+    <div class="agent-card-name">{{card.name}}</div>
+    {{#if card.renamed}}<div class="agent-card-renamed"><i class="fas fa-pen"></i> Renamed to “{{card.renamed}}” by {{card.pc}}</div>{{/if}}
+    {{#if card.rename.real}}<div class="agent-card-renamed">Real name: {{card.rename.real}}</div>{{/if}}
+    <div class="agent-card-sub">{{card.sub}}</div>
+    {{#if card.blocked}}<span class="agent-member-tag no-signal"><i class="fas fa-ban"></i> Blocked</span>{{/if}}
+    {{#if card.noCall}}<span class="agent-member-tag"><i class="fas fa-phone-slash"></i> Texts only</span>{{/if}}
+  </div>
+
+  <div class="agent-card-actions">
+    {{#if card.canText}}
+      <a class="agent-card-action" data-action="card-text">
+        <i class="{{appearance.icons.messages}}"></i><span>{{#if card.fromElsewhere}}Send text{{else}}Messages{{/if}}</span>
+      </a>
+    {{/if}}
+    {{#if card.canCall}}
+      <a class="agent-card-action" data-action="call"><i class="{{appearance.icons.call}}"></i><span>Call</span></a>
+    {{/if}}
+    {{#if card.sheet}}
+      <a class="agent-card-action" data-action="card-sheet" data-actor-id="{{card.sheet}}"><i class="fas fa-id-card"></i><span>Sheet</span></a>
+    {{/if}}
+  </div>
+
+  {{#if card.rename}}
+    <label class="agent-info-label">Name on your phone</label>
+    <input type="text" name="contactAlias" value="{{card.rename.value}}" maxlength="60" placeholder="{{card.name}}">
+  {{/if}}
+
+  {{#if card.notes.editable}}
+    <label class="agent-info-label">Notes</label>
+    <textarea name="notes" rows="8" placeholder="Anything worth remembering: who they are, what they owe you…">{{card.notes.text}}</textarea>
+  {{else if card.notes}}
+    <label class="agent-info-label">{{card.pc}}'s notes</label>
+    <div class="agent-card-notes{{#if card.notes.long}}{{#unless card.notes.open}} clamped{{/unless}}{{/if}}">{{card.notes.text}}</div>
+    {{#if card.notes.long}}
+      <a class="agent-card-more" data-action="toggle-notes">{{#if card.notes.open}}Show less{{else}}Show all{{/if}}</a>
+    {{/if}}
+  {{/if}}
+
+  {{#if card.gm}}
+    <label class="agent-info-label">On {{card.pc}}'s phone</label>
+    {{#if card.gm.canBlock}}
+      <a class="agent-card-row{{#if card.noCall}} on{{/if}}" data-action="toggle-calls">
+        <i class="fas fa-phone-slash"></i><span>Texts only<small>{{card.pc}} can text them but not call</small></span><b class="agent-switch"></b>
+      </a>
+      <a class="agent-card-row{{#if card.blocked}} on{{/if}}" data-action="toggle-block">
+        <i class="fas fa-ban"></i><span>Blocked<small>{{card.pc}} can't text or call them</small></span><b class="agent-switch"></b>
+      </a>
+    {{/if}}
+    {{#if card.gm.canReveal}}
+      <a class="agent-card-row" data-action="reveal"><i class="fas fa-user-check"></i><span>Reveal caller ID<small>{{card.pc}} sees who this is from now on</small></span></a>
+    {{/if}}
+    {{#if card.gm.canDelete}}
+      <a class="agent-card-row danger" data-action="delete-thread"><i class="fas fa-trash"></i><span>Delete conversation<small>For everyone. This can't be undone.</small></span></a>
+    {{/if}}
+  {{else if card.canDeleteMine}}
+    <label class="agent-info-label">Conversation</label>
+    <a class="agent-card-row danger" data-action="card-clear"><i class="fas fa-trash"></i><span>Delete from this phone</span></a>
+  {{/if}}
+</div>

@@ -1,0 +1,7 @@
+# Who replies to what: one line per kind of account, then how likely each mood is to reply to it.
+# Kinds: citizen, news, corp, gang, fixer, celebrity, pc, crew; "default" is every kind not listed.
+# Moods: hype, hater, bot, conspiracy, lurker, pr.
+corp: hater 4, conspiracy 3, bot 1, hype 1, lurker 1
+news: lurker 3, conspiracy 3, hater 2, hype 1, bot 1
+celebrity: hype 6, hater 2, bot 1, lurker 1
+default: hype 4, lurker 3, hater 1, bot 1, conspiracy 1

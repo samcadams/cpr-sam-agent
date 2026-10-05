@@ -1,0 +1,35 @@
+{{!--
+  Quick replies, attachments waiting to go, and the message box.
+  Context: the phone's data plus placeholder and canSend.
+--}}
+{{#if quickReplies.length}}
+  <div class="agent-quick">
+    {{#each quickReplies}}<a class="agent-quick-reply" data-action="quick-reply" data-text="{{this}}">{{this}}</a>{{/each}}
+  </div>
+{{/if}}
+{{#if pendingImage}}
+  <div class="agent-pending-location agent-pending-photo">
+    <img src="{{pendingImage}}" alt="Photo"> Photo attached
+    <a data-action="clear-photo" title="Remove"><i class="fas fa-xmark"></i></a>
+  </div>
+{{/if}}
+{{#if pendingJob}}
+  <div class="agent-pending-location agent-pending-job">
+    <i class="{{appearance.icons.jobs}}"></i> Job offer: {{pendingJob.name}}
+    <a data-action="clear-job" title="Remove"><i class="fas fa-xmark"></i></a>
+  </div>
+{{/if}}
+{{#if pendingLocation}}
+  <div class="agent-pending-location">
+    <i class="fas fa-location-dot"></i> {{pendingLocation.label}}
+    <a data-action="clear-location" title="Remove"><i class="fas fa-xmark"></i></a>
+  </div>
+{{/if}}
+<div class="agent-compose">
+  {{#if canLocation}}<a class="agent-icon-btn agent-attach" data-action="attach-location" title="Share a location"><i class="{{appearance.icons.location}}"></i></a>{{/if}}
+  {{#if canMoney}}<a class="agent-icon-btn agent-attach agent-money-btn" data-action="money" title="Send or request eurobucks"><i class="{{appearance.icons.money}}"></i></a>{{/if}}
+  {{#if canJob}}<a class="agent-icon-btn agent-attach" data-action="attach-job" title="Offer a job"><i class="{{appearance.icons.jobs}}"></i></a>{{/if}}
+  {{#if canPhoto}}<a class="agent-icon-btn agent-attach" data-action="attach-photo" title="Send a photo"><i class="{{appearance.icons.photo}}"></i></a>{{/if}}
+  <textarea rows="2" placeholder="{{placeholder}}" {{#unless canSend}}disabled{{/unless}}></textarea>
+  <button type="button" data-action="send" title="Send" {{#unless canSend}}disabled{{/unless}}><i class="fas fa-paper-plane"></i></button>
+</div>

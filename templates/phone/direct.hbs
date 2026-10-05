@@ -1,0 +1,29 @@
+<div class="agent-thread-bar">
+  <a class="agent-icon-btn" data-action="back" title="Back"><i class="fas fa-chevron-left"></i></a>
+  <a class="agent-thread-who" data-action="card" title="{{thread.cardTitle}}">
+    {{> agent-avatar thread}}
+    <div class="agent-thread-title">
+      <div class="agent-thread-name">
+        {{thread.name}}
+        {{#if thread.hidden}}<i class="fas fa-user-secret agent-hidden-icon" title="Caller ID hidden"></i>{{/if}}
+        {{#if thread.blocked}}<i class="fas fa-ban agent-blocked-icon" title="Blocked"></i>{{/if}}
+        {{#if thread.hasNotes}}<i class="fas fa-note-sticky agent-notes-icon" title="Notes on the contact card"></i>{{/if}}
+      </div>
+      <div class="agent-thread-sub">{{#if thread.subtitle}}{{thread.subtitle}}{{else if thread.renamed}}{{thread.renamed}} <i class="fas fa-chevron-right"></i>{{else}}{{thread.cardLabel}} <i class="fas fa-chevron-right"></i>{{/if}}</div>
+    </div>
+  </a>
+  {{#if thread.canCall}}
+    <a class="agent-icon-btn" data-action="call" title="Call"><i class="{{@root.appearance.icons.call}}"></i></a>
+  {{/if}}
+</div>
+
+<div class="agent-messages">
+  {{#each thread.messages}}
+    {{> agent-message canReact=@root.thread.canReact}}
+  {{else}}
+    <div class="agent-empty">No messages yet.</div>
+  {{/each}}
+</div>
+
+{{#if thread.unreachable}}<div class="agent-unreachable">This number cannot be reached.</div>{{/if}}
+{{> agent-compose placeholder=thread.placeholder canSend=thread.canSend}}

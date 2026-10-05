@@ -1,0 +1,525 @@
+/*
+ * "Burner". A chunky 2000s brick phone bought for cash: grey plastic body, a green LCD
+ * screen with visible pixels, inverted selection bars, and a keypad chin under the screen.
+ * Inspired by the Nokia 3310 / 8210 and Motorola feature phones of the era.
+ */
+
+.ctp-phone-app.skin-burner {
+  --agent-good: #1a6e35;
+  --lcd: #b7c49b;
+  --lcd-dark: #a3b186;
+  --ink: #1b2412;
+  --agent-bg: var(--lcd);
+  --agent-panel: var(--lcd-dark);
+  --agent-text: var(--ink);
+  --agent-muted: #4f5d3a;
+  --agent-cyan-rgb: 27, 36, 18;
+  --agent-magenta-rgb: 27, 36, 18;
+  --agent-yellow-rgb: 55, 68, 28;
+  --agent-font: "VT323", "Lucida Console", monospace;
+  background: linear-gradient(160deg, #464b52, #25282c 60%, #1b1d20);
+  border: 2px solid #111;
+  border-radius: 34px 34px 52px 52px;
+  box-shadow: inset 0 2px 1px rgba(255, 255, 255, 0.18), inset 0 -3px 6px rgba(0, 0, 0, 0.6), 0 10px 26px rgba(0, 0, 0, 0.6);
+  backdrop-filter: none;
+}
+
+.ctp-phone-app.skin-burner.minimized {
+  border-radius: 14px;
+}
+
+/* The earpiece: a short slot of speaker holes, centred over the screen. */
+.ctp-phone-app.skin-burner .window-header {
+  position: relative;
+  background: transparent;
+  border: none;
+  color: #9aa1a8;
+  font-family: "Silkscreen", monospace;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+}
+
+.ctp-phone-app.skin-burner .window-header::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 70px;
+  height: 7px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: radial-gradient(circle, #0c0d0f 1.5px, transparent 2px) 0 0 / 7px 7px repeat-x;
+}
+
+.ctp-phone-app.skin-burner .window-header a {
+  color: #9aa1a8;
+}
+
+/* The pixel font runs small: everything on the screen a size up. */
+.ctp-phone-app.skin-burner .agent-info-label,
+.ctp-phone-app.skin-burner .agent-info-note,
+.ctp-phone-app.skin-burner .agent-control-field,
+.ctp-phone-app.skin-burner .agent-radio,
+.ctp-phone-app.skin-burner .agent-setting-row,
+.ctp-phone-app.skin-burner .agent-member-tag,
+.ctp-phone-app.skin-burner .agent-service-tag,
+.ctp-phone-app.skin-burner .agent-hidden-tag,
+.ctp-phone-app.skin-burner .agent-tab,
+.ctp-phone-app.skin-burner .agent-tab-note,
+.ctp-phone-app.skin-burner .agent-card-sub,
+.ctp-phone-app.skin-burner .agent-card-row small,
+.ctp-phone-app.skin-burner .agent-thread-sub,
+.ctp-phone-app.skin-burner .agent-acting-note,
+.ctp-phone-app.skin-burner .agent-sim-name,
+.ctp-phone-app.skin-burner .agent-set-viewed {
+  font-size: calc(15px * var(--agent-font-scale, 1));
+  letter-spacing: 0;
+}
+
+.ctp-phone-app.skin-burner .agent-info-label {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+/* The screen sits in a bezel, with a keypad chin under it. */
+.ctp-phone-app.skin-burner .window-content {
+  padding: 4px 16px 78px;
+  background: transparent;
+  position: relative;
+}
+
+.ctp-phone-app.skin-burner.minimized .window-content {
+  padding: 0;
+}
+
+.ctp-phone-app.skin-burner .window-content::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  width: 190px;
+  height: 52px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background:
+    /* the navigation key */
+    radial-gradient(circle at 50% 50%, #5a6068 0 13px, #2b2f34 14px 22px, transparent 23px),
+    /* two softkeys */
+    radial-gradient(ellipse 22px 9px at 18% 45%, #50565d 90%, transparent 100%),
+    radial-gradient(ellipse 22px 9px at 82% 45%, #50565d 90%, transparent 100%);
+}
+
+.ctp-phone-app.skin-burner .agent-phone {
+  box-sizing: border-box;
+  font-size: calc(16px * var(--agent-font-scale, 1));
+  line-height: 1.1;
+  border: 6px solid #0f1112;
+  border-radius: 6px;
+  background: var(--lcd);
+  box-shadow: inset 0 0 18px rgba(40, 52, 20, 0.45);
+  text-shadow: 1px 1px 0 rgba(27, 36, 18, 0.18);
+}
+
+/* The LCD's pixel grid. */
+.ctp-phone-app.skin-burner .agent-phone::after {
+  background:
+    repeating-linear-gradient(0deg, rgba(27, 36, 18, 0.07) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(27, 36, 18, 0.07) 0 1px, transparent 1px 3px);
+}
+
+.ctp-phone-app.skin-burner .agent-statusbar,
+.ctp-phone-app.skin-burner .agent-date {
+  background: none;
+  border: none;
+  color: var(--ink);
+  font-family: "Silkscreen", monospace;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-burner .agent-brand {
+  color: var(--ink);
+}
+
+.ctp-phone-app.skin-burner .agent-signal i {
+  width: 4px;
+  background: var(--ink);
+}
+
+/* Headings are inverted bars, like a menu title on an old handset. */
+.ctp-phone-app.skin-burner .agent-inbox-bar,
+.ctp-phone-app.skin-burner .agent-thread-bar {
+  background: var(--ink);
+  color: var(--lcd);
+  border: none;
+  padding: 2px 6px;
+}
+
+.ctp-phone-app.skin-burner .agent-inbox-bar *,
+.ctp-phone-app.skin-burner .agent-thread-bar * {
+  color: var(--lcd);
+  text-shadow: none;
+}
+
+.ctp-phone-app.skin-burner .agent-inbox-name,
+.ctp-phone-app.skin-burner .agent-thread-name {
+  font-family: "Silkscreen", monospace;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  font-weight: normal;
+}
+
+.ctp-phone-app.skin-burner .agent-thread-bar .agent-avatar {
+  display: none;
+}
+
+.ctp-phone-app.skin-burner .agent-avatar {
+  border-radius: 0;
+  border: 1px solid var(--ink);
+  background: var(--lcd-dark);
+  color: var(--ink);
+  image-rendering: pixelated;
+  filter: grayscale(1) contrast(1.4) sepia(0.4) hue-rotate(40deg);
+}
+
+.ctp-phone-app.skin-burner .agent-gm-pickers,
+.ctp-phone-app.skin-burner .agent-search {
+  background: none;
+  border-bottom: 1px solid var(--ink);
+}
+
+.ctp-phone-app.skin-burner .agent-search input,
+.ctp-phone-app.skin-burner .agent-dropdown-btn,
+.ctp-phone-app.skin-burner .agent-compose textarea,
+.ctp-phone-app.skin-burner .agent-info textarea,
+.ctp-phone-app.skin-burner .agent-info input[type="text"] {
+  background: var(--lcd);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  color: var(--ink);
+  font-family: var(--agent-font);
+  font-size: calc(15px * var(--agent-font-scale, 1));
+  box-shadow: none;
+}
+
+/* Lists: the row under the pointer is the inverted "selected" bar. */
+.ctp-phone-app.skin-burner .agent-row {
+  padding: 3px 6px;
+  border-bottom: 1px dotted rgba(27, 36, 18, 0.4);
+}
+
+.ctp-phone-app.skin-burner .agent-row:hover,
+.ctp-phone-app.skin-burner .agent-dropdown-option:hover,
+.ctp-phone-app.skin-burner .agent-card-row:hover {
+  background: var(--ink);
+}
+
+.ctp-phone-app.skin-burner .agent-row:hover *,
+.ctp-phone-app.skin-burner .agent-dropdown-option:hover *,
+.ctp-phone-app.skin-burner .agent-card-row:hover * {
+  color: var(--lcd);
+}
+
+.ctp-phone-app.skin-burner .agent-row .agent-avatar {
+  flex-basis: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.ctp-phone-app.skin-burner .agent-row-name,
+.ctp-phone-app.skin-burner .agent-row-preview,
+.ctp-phone-app.skin-burner .agent-row-time {
+  font-size: calc(15px * var(--agent-font-scale, 1));
+  letter-spacing: 0;
+}
+
+.ctp-phone-app.skin-burner .agent-row-owner {
+  color: var(--agent-muted);
+  font-size: calc(14px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-burner .agent-unread,
+.ctp-phone-app.skin-burner .agent-dock-badge,
+.ctp-phone-app.skin-burner .agent-dropdown-count {
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--lcd);
+}
+
+/* Messages: plain boxes; yours are inverted. */
+.ctp-phone-app.skin-burner .agent-messages {
+  gap: 4px;
+  padding: 6px;
+}
+
+.ctp-phone-app.skin-burner .agent-bubble {
+  padding: 2px 6px;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: none;
+  font-size: calc(16px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-burner .agent-msg.mine .agent-bubble {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--lcd);
+}
+
+.ctp-phone-app.skin-burner .agent-msg.mine .agent-bubble * {
+  color: var(--lcd);
+}
+
+.ctp-phone-app.skin-burner .agent-msg-sender,
+.ctp-phone-app.skin-burner .agent-meta {
+  color: var(--agent-muted);
+  font-size: calc(15px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-burner .agent-photo {
+  border-radius: 0;
+  filter: grayscale(1) contrast(1.5) sepia(0.5) hue-rotate(40deg);
+  image-rendering: pixelated;
+}
+
+.ctp-phone-app.skin-burner .agent-system {
+  border-radius: 0;
+  border-color: var(--agent-muted);
+  font-size: calc(13px * var(--agent-font-scale, 1));
+}
+
+/* Colour doesn't exist on this screen: people are marked with a solid square instead. */
+.ctp-phone-app.skin-burner .agent-persona-dot {
+  border-radius: 0;
+  background: var(--ink);
+  box-shadow: none;
+}
+
+.ctp-phone-app.skin-burner .agent-row.persona {
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+
+.ctp-phone-app.skin-burner .agent-acting-as,
+.ctp-phone-app.skin-burner .agent-token-prompt {
+  background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 4px) bottom / 100% 1px no-repeat;
+  border: none;
+  color: var(--ink);
+  font-size: calc(14px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-burner .agent-acting-name,
+.ctp-phone-app.skin-burner .agent-token-name {
+  color: var(--ink);
+  text-shadow: none;
+}
+
+.ctp-phone-app.skin-burner .agent-compose,
+.ctp-phone-app.skin-burner .agent-quick {
+  background: none;
+  border-top: 1px solid var(--ink);
+}
+
+.ctp-phone-app.skin-burner .agent-compose button {
+  border-radius: 0;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+}
+
+/* The dock becomes the softkey labels along the bottom of the screen. */
+.ctp-phone-app.skin-burner .agent-dock {
+  padding: 1px 2px;
+  background: none;
+  border-top: 1px solid var(--ink);
+}
+
+.ctp-phone-app.skin-burner .agent-dock-app {
+  flex-direction: row;
+  justify-content: center;
+  gap: 3px;
+  padding: 1px 0;
+  border-radius: 0;
+  color: var(--ink);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-burner .agent-dock-app span {
+  font-family: "Silkscreen", monospace;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 0;
+}
+
+.ctp-phone-app.skin-burner .agent-dock-app.active {
+  background: var(--ink);
+  color: var(--lcd);
+  text-shadow: none;
+}
+
+/* Softkey badges sit after the label, not on top of it. */
+.ctp-phone-app.skin-burner .agent-dock-app .agent-dock-dot {
+  position: static;
+  margin-left: 2px;
+  border-radius: 0;
+  background: var(--ink);
+  box-shadow: none;
+}
+
+.ctp-phone-app.skin-burner .agent-dock-app .agent-dock-badge {
+  position: static;
+  min-width: 0;
+  height: auto;
+  margin-left: 1px;
+  padding: 0 2px;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  line-height: 1.2;
+}
+
+.ctp-phone-app.skin-burner .agent-dock-app.active .agent-dock-badge {
+  background: var(--lcd);
+  color: var(--ink);
+}
+
+/* The call bar: an inverted line like the headings. */
+.ctp-phone-app.skin-burner .agent-call-bar {
+  background: var(--ink);
+  border: none;
+  color: var(--lcd);
+  font-size: calc(15px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-burner .agent-dropdown-menu,
+.ctp-phone-app.skin-burner .agent-emoji-picker,
+.ctp-phone-app.skin-burner .agent-line-picker {
+  background: var(--lcd);
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 rgba(27, 36, 18, 0.5);
+}
+
+.ctp-phone-app.skin-burner .agent-card-action,
+.ctp-phone-app.skin-burner .agent-wide-btn,
+.ctp-phone-app.skin-burner .agent-call-mini,
+.ctp-phone-app.skin-burner .agent-token-apply,
+.ctp-phone-app.skin-burner .agent-quick-reply {
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+}
+
+.ctp-phone-app.skin-burner .agent-money,
+.ctp-phone-app.skin-burner .agent-job,
+.ctp-phone-app.skin-burner .agent-location {
+  border: 1px dashed currentColor;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+}
+
+.ctp-phone-app.skin-burner .agent-money-actions .pay,
+.ctp-phone-app.skin-burner .agent-call-mini.accept {
+  background: var(--ink);
+  color: var(--lcd);
+}
+
+.ctp-phone-app.skin-burner .agent-call-btn {
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.ctp-phone-app.skin-burner .agent-call-screen,
+.ctp-phone-app.skin-burner .agent-gm-call {
+  background: none;
+  box-shadow: none;
+}
+
+.ctp-phone-app.skin-burner .agent-acting-as .agent-dropdown-btn {
+  background: var(--lcd);
+  color: var(--ink);
+}
+
+.ctp-phone-app.skin-burner .agent-lock-time {
+  color: var(--ink);
+  font-family: var(--agent-font);
+  font-size: calc(64px * var(--agent-font-scale, 1));
+  text-shadow: none;
+}
+
+.ctp-phone-app.skin-burner .agent-lock-note,
+.ctp-phone-app.skin-burner .agent-sim,
+.ctp-phone-app.skin-burner .agent-emoji-catalog,
+.ctp-phone-app.skin-burner .agent-control-section {
+  background: none;
+  border: 1px solid var(--ink);
+}
+
+.ctp-phone-app.skin-burner .agent-lock-unlock i,
+.ctp-phone-app.skin-burner .agent-set-viewed,
+.ctp-phone-app.skin-burner .agent-control-heading {
+  color: var(--ink);
+}
+
+/* The resize grip is the phone's bottom edge. */
+.ctp-phone-app.skin-burner .window-resizable-handle {
+  border-top: 1px solid #111;
+  background:
+    repeating-linear-gradient(90deg, #6a7078 0 2px, transparent 2px 5px) center / 36px 4px no-repeat,
+    #1b1d20;
+}
+
+.ctp-phone-app.skin-burner .window-resizable-handle i {
+  color: #9aa1a8;
+}
+
+/* Call logs and notices: in ink, not the faint grey-green. */
+.ctp-phone-app.skin-burner .agent-system,
+.ctp-phone-app.skin-burner .agent-date-sep,
+.ctp-phone-app.skin-burner .agent-money-status,
+.ctp-phone-app.skin-burner .agent-job-status {
+  border-color: var(--ink);
+  color: var(--ink);
+  font-size: calc(15px * var(--agent-font-scale, 1));
+  opacity: 1;
+}
+
+/* Attachment buttons in the message bar: ink like everything else (money was bright green). */
+.ctp-phone-app.skin-burner .agent-compose .agent-attach,
+.ctp-phone-app.skin-burner .agent-compose .agent-money-btn {
+  color: var(--ink);
+  text-shadow: none;
+}
+
+/* Declined or cancelled requests stay legible: struck through instead of faded. */
+.ctp-phone-app.skin-burner .agent-money.declined,
+.ctp-phone-app.skin-burner .agent-money.cancelled,
+.ctp-phone-app.skin-burner .agent-job.declined {
+  color: var(--ink);
+  opacity: 1;
+}
+
+.ctp-phone-app.skin-burner .agent-money.declined .agent-money-label,
+.ctp-phone-app.skin-burner .agent-money.cancelled .agent-money-label {
+  text-decoration: line-through;
+}
+
+/* The Home button: the centre softkey of the keypad. */
+.ctp-phone-app.skin-burner .agent-home-bar {
+  border-top: 1px solid var(--ink);
+}
+
+.ctp-phone-app.skin-burner .agent-home-button {
+  width: 44px;
+  height: 18px;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--lcd);
+  color: var(--ink);
+  font-size: 0;
+}
+
+.ctp-phone-app.skin-burner .agent-home-button::after {
+  content: "MENU";
+  font-family: "Silkscreen", monospace;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app.skin-burner .agent-home-button i {
+  display: none;
+}

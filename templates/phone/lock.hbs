@@ -1,0 +1,25 @@
+{{!-- The lock screen (ui/phone/pages/lock.js). Tapping anywhere but a notification unlocks. --}}
+<div class="agent-lock" data-action="unlock">
+  <div class="agent-lock-clock">
+    <div class="agent-lock-time">{{lock.time}}</div>
+    {{#if lock.date}}<div class="agent-lock-date">{{lock.date}}</div>{{/if}}
+  </div>
+  <ol class="agent-lock-list">
+    {{#each lock.notifications}}
+      <li class="agent-lock-note" data-action="lock-open" data-kind="{{kind}}" data-thread-id="{{threadId}}" data-actor-id="{{actorId}}"
+          data-contact="{{contact}}" data-hidden="{{hidden}}" data-group-id="{{groupId}}" data-service-id="{{serviceId}}">
+        {{#if isGroup}}<span class="agent-avatar"><i class="fas fa-users"></i></span>{{else}}{{> agent-avatar}}{{/if}}
+        <div class="agent-row-main">
+          <div class="agent-row-top">
+            <span class="agent-row-name">{{name}}</span>
+            <span class="agent-row-time">{{time}}</span>
+          </div>
+          <div class="agent-row-preview">{{preview}}</div>
+        </div>
+        <span class="agent-unread">{{unread}}</span>
+      </li>
+    {{/each}}
+    {{#if lock.more}}<li class="agent-lock-more">+{{lock.more}} more</li>{{/if}}
+  </ol>
+  <div class="agent-lock-unlock"><i class="fas fa-fingerprint"></i><span>Tap to unlock</span></div>
+</div>

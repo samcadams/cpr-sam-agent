@@ -1,0 +1,9 @@
+<form>
+  <div class="form-group">
+    <label>Job</label>
+    <select name="job" autofocus>
+      {{#each jobs}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}} ({{status}}{{#if hidden}}, hidden{{/if}})</option>{{/each}}
+    </select>
+  </div>
+  <p class="notes">The players see its name, first line and picture, even while it's hidden. Accepting it makes it visible and In Progress.</p>
+</form>

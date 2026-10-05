@@ -1,0 +1,7 @@
+{{!-- GM Phone: the token selected on the canvas, offered as a switch. Context: tokenPrompt(). --}}
+<div class="agent-token-prompt"{{#if color}} style="--persona: {{color}}"{{/if}}>
+  {{> agent-avatar}}
+  <span class="agent-token-name"><small>Selected</small>{{name}}</span>
+  <a class="agent-token-apply" data-action="token-apply">{{label}}</a>
+  <a class="agent-icon-btn" data-action="token-dismiss" title="Not now"><i class="fas fa-xmark"></i></a>
+</div>

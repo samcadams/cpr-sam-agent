@@ -1,0 +1,14 @@
+{{!--
+  GM Phone: who the GM is speaking as right now.
+  Context: { verb, name, color?, target?, note?, picker? (a dropdown: "speak as" in groups) }.
+--}}
+<div class="agent-acting-as"{{#if color}} style="--persona: {{color}}"{{/if}}>
+  <span class="agent-acting-verb">{{verb}}</span>
+  {{#if picker}}
+    {{> agent-dropdown picker}}
+  {{else}}
+    <span class="agent-acting-name">{{#if color}}<i class="agent-persona-dot"></i>{{/if}}{{#if name}}{{name}}{{else}}—{{/if}}</span>
+  {{/if}}
+  {{#if target}}<span class="agent-acting-target"><i class="fas fa-arrow-right"></i> {{target}}</span>{{/if}}
+  {{#if note}}<span class="agent-acting-note">{{note}}</span>{{/if}}
+</div>

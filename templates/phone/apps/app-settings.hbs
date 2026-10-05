@@ -1,0 +1,18 @@
+{{!-- An app's settings on the GM Phone (ui/phone/pages/appSettings.js). --}}
+<div class="agent-inbox-bar">
+  <span class="agent-inbox-name"><i class="{{appSettings.icon}}"></i> {{appSettings.name}} settings</span>
+  <a class="agent-icon-btn active" data-action="app-settings" data-app="{{appSettings.app}}" title="Done"><i class="fas fa-check"></i></a>
+</div>
+<div class="agent-info">
+  {{#each appSettings.toggles}}
+    <label class="agent-radio{{#if disabled}} disabled{{/if}}{{#if sub}} agent-sub-option{{/if}}">
+      <input type="checkbox" {{#if permission}}data-permission="{{key}}"{{else}}data-feature="{{key}}"{{/if}} {{#if on}}checked{{/if}} {{#if disabled}}disabled{{/if}}> {{label}}
+    </label>
+    <p class="agent-info-note{{#if sub}} agent-sub-option{{/if}}">{{note}}</p>
+  {{/each}}
+  {{#if appSettings.hasQuickReplies}}
+    <label class="agent-info-label">Quick replies (this GM Phone)</label>
+    <textarea name="quickReplies" rows="5" placeholder="One per line, e.g.&#10;OMW&#10;Can't talk&#10;Need backup">{{appSettings.quickReplies}}</textarea>
+    <p class="agent-info-note">One per line (up to 12). Tap one in a conversation to send it.</p>
+  {{/if}}
+</div>

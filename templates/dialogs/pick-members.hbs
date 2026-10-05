@@ -1,0 +1,20 @@
+{{#*inline "choice"}}
+  <label class="ctp-pick">
+    <input type="checkbox" name="{{field}}" value="{{value}}">
+    {{#if img}}<img src="{{img}}">{{/if}}<span>{{name}}</span>
+  </label>
+{{/inline}}
+<form class="ctp-pick-form">
+  {{#if withName}}
+    <div class="form-group"><label>Group name</label><input type="text" name="groupName" placeholder="Optional"></div>
+  {{/if}}
+  {{#if isGM}}
+    <h4>Characters</h4>
+    {{#each pcs}}{{> choice field="pcs"}}{{else}}<p class="notes">None</p>{{/each}}
+    <h4>NPCs</h4>
+    {{#each npcs}}{{> choice field="npcs"}}{{else}}<p class="notes">None</p>{{/each}}
+    <div class="form-group"><label>Other NPCs</label><input type="text" name="otherNpcs" placeholder="Comma separated"></div>
+  {{else}}
+    {{#each contacts}}{{> choice field="contacts"}}{{else}}<p class="notes">No contacts to add.</p>{{/each}}
+  {{/if}}
+</form>

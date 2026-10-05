@@ -1,0 +1,14 @@
+{{!-- The dock (AgentPhone.dockData): the apps its owner pinned, then the Apps button for the rest. --}}
+<nav class="agent-dock">
+  {{#each dock.items}}
+    <a class="agent-dock-app app-{{id}}{{#if active}} active{{/if}}" data-action="app" data-app="{{id}}" title="{{name}}">
+      <i class="{{icon}}"></i><span>{{name}}</span>
+      {{#if badge}}<b class="agent-dock-badge">{{badge}}</b>{{/if}}
+      {{#if dot}}<b class="agent-dock-dot"></b>{{/if}}
+    </a>
+  {{/each}}
+  <a class="agent-dock-app app-home{{#if dock.home}} active{{/if}}" data-action="app" data-app="home" title="{{appearance.names.home}}">
+    <i class="{{appearance.icons.apps}}"></i><span>{{appearance.names.home}}</span>
+    {{#if dock.apps}}<b class="agent-dock-badge">{{dock.apps}}</b>{{/if}}
+  </a>
+</nav>

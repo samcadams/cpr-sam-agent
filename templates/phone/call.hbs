@@ -1,0 +1,21 @@
+<div class="agent-call-screen">
+  <div class="agent-call-name">{{call.title}}</div>
+  <div class="agent-call-status" {{#if call.startedAt}}data-started-at="{{call.startedAt}}"{{/if}}>{{call.timer}}</div>
+  <ol class="agent-call-people">
+    {{#each call.participants}}
+      <li class="state-{{state}}">
+        {{> agent-avatar}}
+        <span class="agent-call-person">{{name}}</span>
+        <span class="agent-call-state">{{label}}</span>
+      </li>
+    {{/each}}
+  </ol>
+  <div class="agent-call-actions">
+    <a class="agent-call-btn small" data-action="call-hide" title="Messages"><i class="fas fa-comment-dots"></i></a>
+    <a class="agent-call-btn decline" data-action="call-hangup" data-call-id="{{call.id}}" title="Hang up">
+      <i class="fas fa-phone-slash"></i>
+    </a>
+    <a class="agent-call-btn small" data-action="call-add" title="Add to call"><i class="fas fa-user-plus"></i></a>
+  </div>
+  <a class="agent-call-minimize" data-action="call-minimize" title="Minimise: keep the call in a small card"><i class="fas fa-down-left-and-up-right-to-center"></i> Minimise</a>
+</div>

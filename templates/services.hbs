@@ -1,0 +1,47 @@
+<div class="ctp-services-body">
+  <p class="notes">
+    Service contacts (e.g. <em>Trauma Team</em>) appear in every chosen character's Contacts. You answer them from the GM Phone:
+    reply to requests and texts, answer their calls, and bill them (request eurobucks) at any time.
+  </p>
+
+  <ol class="ctp-services-list">
+    {{#each services}}
+      <li class="ctp-service" data-index="{{index}}">
+        <div class="ctp-service-head">
+          <img class="ctp-service-img" src="{{img}}" title="Change image">
+          <input type="text" class="ctp-service-name" value="{{name}}" placeholder="Service name">
+          <a class="ctp-service-delete" title="Delete service"><i class="fas fa-trash"></i></a>
+        </div>
+        <div class="form-group">
+          <label>Request buttons</label>
+          <input type="text" class="ctp-service-actions" value="{{actionText}}" placeholder="e.g. Request Pickup, Cancel">
+          <p class="hint">One-tap messages the player sends (comma separated). Each shows up as a request on the GM Phone.</p>
+        </div>
+        <div class="form-group">
+          <label>Phone lines</label>
+          <input type="text" class="ctp-service-call" value="{{callLabel}}" placeholder="e.g. Emergency Line, Dispatch">
+          <p class="hint">Numbers the player can ring (comma separated), picked from the service's call button. Leave blank for no calls.</p>
+        </div>
+        <div class="form-group">
+          <label>Allow PCs to text</label>
+          <input type="checkbox" class="ctp-service-chat" {{#if chat}}checked{{/if}}>
+          <p class="hint">Players get a text box and can message this service freely.</p>
+        </div>
+        <div class="ctp-service-access">
+          <label><input type="checkbox" class="ctp-service-everyone" {{#if everyone}}checked{{/if}}> Every character</label>
+          {{#unless everyone}}
+            <div class="ctp-service-characters">
+              {{#each characters}}
+                <label><input type="checkbox" class="ctp-service-character" value="{{id}}" {{#if checked}}checked{{/if}}> {{name}}</label>
+              {{/each}}
+            </div>
+          {{/unless}}
+        </div>
+      </li>
+    {{else}}
+      <li class="ctp-empty">No services yet.</li>
+    {{/each}}
+  </ol>
+
+  <button type="button" class="ctp-service-add"><i class="fas fa-plus"></i> Add Service</button>
+</div>

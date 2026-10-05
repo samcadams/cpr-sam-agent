@@ -1,0 +1,132 @@
+{{!-- Trauma Team (ui/phone/pages/trauma.js). --}}
+{{> agent-app-bar trauma.bar}}
+<div class="agent-info agent-app agent-trauma">
+  {{#if trauma.gm}}
+    {{#if trauma.open.length}}
+      <label class="agent-info-label">Calls</label>
+      <ol class="agent-app-list">
+        {{#each trauma.open}}
+          <li class="agent-app-item agent-tt-call status-{{status}}">
+            <i class="fas fa-truck-medical agent-app-item-icon"></i>
+            <div class="agent-app-item-main">
+              <div class="agent-app-item-top"><b>{{name}}</b><span class="agent-row-time">{{time}}</span></div>
+              <small>{{#if auto}}Biomonitor{{else}}Panic button{{/if}} · {{hpLabel}}{{#if wound}} · {{wound}}{{/if}} · {{#if covered}}{{tierName}}{{else if lapsed}}LAPSED{{else}}No coverage{{/if}}</small>
+              <div>{{statusLabel}}{{#if countdown}} <span {{#if etaAt}}data-eta="{{etaAt}}"{{/if}}>{{countdown}}</span>{{/if}}</div>
+              {{#if isPending}}
+                <div class="agent-money-actions agent-tt-dispatch-row">
+                  <span class="agent-tt-dispatch-in">Dispatch in</span>
+                  <input type="number" name="eta" data-dispatch-id="{{id}}" value="{{../trauma.eta}}" min="0" title="ETA">
+                  <a class="pay" data-action="tt-dispatch" data-dispatch-id="{{id}}" data-status="enroute" data-unit="minutes" title="Counts down in real minutes">Minutes</a>
+                  {{#if ../trauma.inCombat}}<a class="pay" data-action="tt-dispatch" data-dispatch-id="{{id}}" data-status="enroute" data-unit="rounds" title="Counts down as the combat's rounds go by">Rounds</a>{{/if}}
+                </div>
+              {{/if}}
+              {{#if isEnroute}}
+                <div class="agent-money-actions"><a class="pay" data-action="tt-dispatch" data-dispatch-id="{{id}}" data-status="arrived">Arrived</a></div>
+              {{/if}}
+              <div class="agent-money-actions">
+                <a class="decline" data-action="tt-dispatch" data-dispatch-id="{{id}}" data-status="closed">Close</a>
+                {{#if tokenId}}<a data-action="tt-show" data-scene-id="{{sceneId}}" data-token-id="{{tokenId}}"><i class="fas fa-location-crosshairs"></i> Show</a>{{/if}}
+              </div>
+            </div>
+          </li>
+        {{/each}}
+      </ol>
+    {{/if}}
+
+    <label class="agent-info-label">Characters</label>
+    <ol class="agent-members">
+      {{#each trauma.characters}}
+        <li>
+          <span class="agent-member-name">{{name}}<small>{{coverage}}{{#if due}} · next bill {{due}}{{/if}}{{#if biolink}} · biomonitor linked{{/if}}{{#if exec}} · Exec rank: {{exec}}{{/if}}</small></span>
+          <a class="agent-icon-btn" data-action="tt-grant" data-actor-id="{{id}}" title="Give a plan (never billed, e.g. corporate)"><i class="fas fa-gift"></i></a>
+          {{#if has}}<a class="agent-icon-btn" data-action="tt-revoke" data-actor-id="{{id}}" title="End their coverage"><i class="fas fa-ban"></i></a>{{/if}}
+        </li>
+      {{/each}}
+    </ol>
+    <button type="button" class="agent-wide-btn" data-action="tt-bill"><i class="fas fa-calendar-day"></i> It's the 1st: bill everyone</button>
+    <p class="agent-info-note">Paid plans also bill themselves on world time, each on its own schedule.</p>
+
+    <label class="agent-info-label">Plans</label>
+    <ol class="agent-app-list">
+      {{#each trauma.tiers}}
+        <li class="agent-app-item compact">
+          <div class="agent-app-item-main"><b>{{name}}</b> {{priceLabel}}<small>{{#if execRank}}Exec rank {{execRank}}+ · {{/if}}{{#if subscribers}}{{subscribers}} on it · {{/if}}{{note}}</small></div>
+          <a class="agent-icon-btn" data-action="tt-tier-edit" data-tier="{{id}}" title="Edit"><i class="fas fa-pen"></i></a>
+          <a class="agent-icon-btn" data-action="tt-tier-remove" data-tier="{{id}}" title="Remove"><i class="fas fa-trash"></i></a>
+        </li>
+      {{/each}}
+    </ol>
+    <button type="button" class="agent-wide-btn" data-action="tt-tier-add"><i class="fas fa-plus"></i> Add a plan</button>
+    <a class="agent-card-more" data-action="tt-tier-reset">Back to the default plans</a>
+
+    <label class="agent-info-label">Rules</label>
+    <div class="agent-setting-row"><span>Biomonitor calls</span>{{> agent-dropdown trauma.trigger}}</div>
+    <p class="agent-info-note">A character with a plan and a linked Biomonitor calls Trauma Team on their own when this happens.</p>
+    <label class="agent-radio"><input type="checkbox" data-tt-setting="execAuto" {{#if trauma.execAuto}}checked{{/if}}> Execs get corporate coverage</label>
+    <p class="agent-info-note">{{#if trauma.execRanks}}{{trauma.execRanks}} (Teamwork, from their Exec role on the sheet).{{else}}No plan has an Exec rank yet: set one on a plan.{{/if}}</p>
+    <label class="agent-radio"><input type="checkbox" data-tt-setting="solicit" {{#if trauma.solicit}}checked{{/if}}> Sell coverage to the bleeding</label>
+    <p class="agent-info-note">Characters without a plan get an offer for the cheapest one when they're Seriously Wounded.</p>
+    <label class="agent-radio agent-sub-option"><input type="checkbox" data-tt-setting="allowNoAds" {{#if trauma.allowNoAds}}checked{{/if}}> Players can turn the offers off</label>
+    <div class="agent-setting-row"><span>Default ETA</span><input type="number" data-tt-setting="eta" value="{{trauma.eta}}" min="0"> <small>minutes or rounds</small></div>
+    <p class="agent-info-note">During a combat, "Dispatch (rounds)" counts the ETA down in combat rounds instead of real minutes.</p>
+
+    {{#if trauma.closed.length}}
+      <label class="agent-info-label">Recent calls</label>
+      <ol class="agent-app-list">
+        {{#each trauma.closed}}<li class="agent-app-item compact"><div class="agent-app-item-main">{{name}} · {{time}}<small>{{reason}}</small></div></li>{{/each}}
+      </ol>
+    {{/if}}
+  {{else}}
+    <div class="agent-tt-card{{#if trauma.plan.lapsed}} lapsed{{/if}}">
+      <div class="agent-tt-logo"><i class="fas fa-plus"></i> TRAUMA TEAM</div>
+      {{#if trauma.plan}}
+        <div class="agent-tt-tier">{{trauma.plan.name}}</div>
+        <div class="agent-tt-id">{{trauma.plan.memberId}}</div>
+        <small>{{#if trauma.plan.lapsed}}LAPSED: pay to reactivate{{else if trauma.plan.sponsor}}Paid by {{trauma.plan.sponsor}}{{else}}{{trauma.plan.price}} · next payment {{trauma.plan.due}}{{/if}}</small>
+      {{else}}
+        <div class="agent-tt-tier">No coverage</div>
+      {{/if}}
+    </div>
+
+    {{#if trauma.dispatch}}
+      <div class="agent-tt-dispatch status-{{trauma.dispatch.status}}">
+        <b>{{trauma.dispatch.statusLabel}}</b>
+        {{#if trauma.dispatch.countdown}}<span class="agent-tt-eta" {{#if trauma.dispatch.etaAt}}data-eta="{{trauma.dispatch.etaAt}}"{{/if}}>{{trauma.dispatch.countdown}}</span>{{/if}}
+      </div>
+    {{else}}
+      <a class="agent-tt-panic" data-action="tt-call"><i class="fas fa-truck-medical"></i><span>Call Trauma Team</span></a>
+    {{/if}}
+    {{#if trauma.line}}<button type="button" class="agent-wide-btn" data-action="tt-line" data-service-id="{{trauma.line}}"><i class="{{@root.appearance.icons.messages}}"></i> Trauma Team line</button>{{/if}}
+
+    {{#if trauma.vitals}}
+      <div class="agent-vitals-tile state-{{trauma.vitals.state}}">
+        <span><i class="fas fa-heart-pulse"></i> HP <b>{{trauma.vitals.hp}}/{{trauma.vitals.max}}</b></span>
+        {{#if trauma.vitals.body}}<span>BODY <b>{{trauma.vitals.body}}</b></span>{{/if}}
+        <span class="agent-vitals-state">{{trauma.vitals.stateLabel}}</span>
+      </div>
+    {{/if}}
+
+    <label class="agent-info-label">Plans</label>
+    <ol class="agent-app-list">
+      {{#each trauma.tiers}}
+        <li class="agent-app-item compact">
+          <div class="agent-app-item-main"><b>{{name}}</b> {{priceLabel}}<small>{{note}}</small></div>
+          {{#if current}}<span class="agent-app-chip active">Yours</span>{{else}}<a class="agent-app-chip" data-action="tt-subscribe" data-tier="{{id}}">Subscribe</a>{{/if}}
+        </li>
+      {{/each}}
+    </ol>
+    {{#if trauma.canCancel}}<a class="agent-card-more" data-action="tt-cancel">Cancel my coverage</a>{{/if}}
+
+    <label class="agent-info-label">Biomonitor</label>
+    {{#if trauma.biomonitor}}
+      <label class="agent-radio"><input type="checkbox" data-tt-player="biolink" {{#if trauma.biolink}}checked{{/if}}> Link my Biomonitor</label>
+      <p class="agent-info-note">Linked, your Agent calls Trauma Team itself: {{trauma.trigger}}.</p>
+    {{else}}
+      <p class="agent-info-note">No Biomonitor: you'll have to press the button yourself.</p>
+    {{/if}}
+    {{#if trauma.noAds}}
+      <label class="agent-radio"><input type="checkbox" data-tt-player="noAds" {{#if trauma.noAds.on}}checked{{/if}}> Don't send me Trauma Team sales offers</label>
+      <p class="agent-info-note">Trauma Team may offer coverage to anyone without it who gets badly hurt. This turns those offers off.</p>
+    {{/if}}
+  {{/if}}
+</div>

@@ -1,0 +1,656 @@
+/* Conversations: messages, receipts, notes, services, locations, photos, reactions, eurobucks, compose. */
+
+.ctp-phone-app .agent-thread-title {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The other side of a direct conversation: tap for the contact card. */
+.ctp-phone-app .agent-thread-who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+}
+
+.ctp-phone-app .agent-thread-who:hover .agent-thread-sub {
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-thread-sub i {
+  font-size: calc(8px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-notes-icon {
+  color: var(--agent-yellow);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-thread-name {
+  color: var(--agent-cyan);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-thread-sub {
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ctp-phone-app .agent-date-sep {
+  align-self: center;
+  margin: 6px 0 2px;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app .agent-msg {
+  max-width: 80%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.ctp-phone-app .agent-msg.theirs {
+  align-self: flex-start;
+}
+
+.ctp-phone-app .agent-msg.mine {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.ctp-phone-app .agent-bubble {
+  padding: 6px 10px;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  background: linear-gradient(135deg, rgba(var(--agent-cyan-rgb), 0.14), rgba(var(--agent-cyan-rgb), 0.05));
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.45);
+  border-radius: 2px 12px 12px 12px;
+}
+
+/* Keep the line breaks people type (only in the text: the bubble's own markup is indented). */
+.ctp-phone-app .agent-bubble-text {
+  white-space: pre-wrap;
+}
+
+.ctp-phone-app .agent-msg.mine .agent-bubble {
+  background: linear-gradient(225deg, rgba(var(--agent-magenta-rgb), 0.16), rgba(var(--agent-magenta-rgb), 0.05));
+  border-color: rgba(var(--agent-magenta-rgb), 0.5);
+  border-radius: 12px 2px 12px 12px;
+}
+
+/* GM Phone, groups with several NPCs: each of the GM's own messages in its NPC's colour. */
+.ctp-phone-app .agent-msg.mine.persona .agent-bubble {
+  border-color: var(--persona);
+  box-shadow: inset -3px 0 0 var(--persona);
+}
+
+.ctp-phone-app .agent-meta {
+  margin-top: 2px;
+  color: var(--agent-muted);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app .agent-compose {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--agent-panel);
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-compose textarea {
+  flex: 1;
+  resize: none;
+  background: var(--agent-bg);
+  color: var(--agent-text);
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-family: var(--agent-font);
+  font-size: calc(13px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-compose textarea:focus {
+  box-shadow: 0 0 6px rgba(var(--agent-cyan-rgb), 0.5);
+  outline: none;
+}
+
+.ctp-phone-app .agent-compose button {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  line-height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--agent-magenta);
+  background: transparent;
+  color: var(--agent-magenta);
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-compose button:hover:not(:disabled) {
+  background: rgba(var(--agent-magenta-rgb), 0.15);
+  box-shadow: 0 0 6px rgba(var(--agent-magenta-rgb), 0.6);
+}
+
+.ctp-phone-app .agent-compose :disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ctp-phone-app .agent-viewed {
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-system {
+  align-self: center;
+  margin: 4px 0;
+  padding: 2px 10px;
+  border: 1px dashed rgba(107, 132, 148, 0.5);
+  border-radius: 10px;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-msg-sender {
+  color: var(--persona, var(--agent-cyan));
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.ctp-phone-app .agent-blocked-icon {
+  color: var(--agent-magenta);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-icon-btn.active {
+  color: var(--agent-magenta);
+  text-shadow: 0 0 6px var(--agent-magenta);
+}
+
+.ctp-phone-app .agent-unreachable {
+  flex: none;
+  padding: 6px 10px;
+  background: rgba(var(--agent-magenta-rgb), 0.12);
+  border-top: 1px solid rgba(var(--agent-magenta-rgb), 0.4);
+  color: var(--agent-magenta);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+
+
+.ctp-phone-app .agent-hidden-icon {
+  color: var(--agent-yellow);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-service-tag {
+  padding: 0 4px;
+  border: 1px solid var(--agent-yellow);
+  border-radius: 3px;
+  color: var(--agent-yellow);
+  font-size: calc(8px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  vertical-align: middle;
+}
+
+.ctp-phone-app .agent-action-bubble {
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-service-actions {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--agent-panel);
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-service-actions button {
+  flex: 1 1 40%;
+  background: transparent;
+  border: 1px solid var(--agent-yellow);
+  border-radius: 8px;
+  color: var(--agent-yellow);
+  font-family: var(--agent-font);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-service-actions button:hover:not(:disabled) {
+  background: rgba(var(--agent-yellow-rgb), 0.12);
+  box-shadow: 0 0 6px rgba(var(--agent-yellow-rgb), 0.5);
+}
+
+.ctp-phone-app .agent-service-actions button:disabled {
+  opacity: 0.4;
+}
+
+/* A service's call button, and the list of its phone lines when it has several. */
+.ctp-phone-app .agent-line-call {
+  position: relative;
+}
+
+.ctp-phone-app .agent-line-picker {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  padding: 4px;
+  background: var(--agent-panel);
+  border: 1px solid var(--agent-good);
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+}
+
+.ctp-phone-app .agent-line-picker[hidden] {
+  display: none;
+}
+
+.ctp-phone-app .agent-line-picker a {
+  padding: 5px 8px;
+  border-radius: 4px;
+  color: var(--agent-good);
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-line-picker a:hover {
+  background: rgba(57, 255, 136, 0.12);
+}
+
+.ctp-phone-app .agent-location {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  align-items: center;
+  margin: 2px 0;
+  padding: 6px 8px;
+  border: 1px solid rgba(var(--agent-yellow-rgb), 0.5);
+  border-radius: 8px;
+  background: rgba(var(--agent-yellow-rgb), 0.08);
+  color: var(--agent-yellow);
+  white-space: normal;
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-location:hover {
+  box-shadow: 0 0 6px rgba(var(--agent-yellow-rgb), 0.5);
+}
+
+.ctp-phone-app .agent-location i {
+  grid-row: span 2;
+  font-size: calc(18px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-location-label {
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-location-scene {
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-location + .agent-bubble-text {
+  margin-top: 4px;
+}
+
+.ctp-phone-app .agent-pending-location {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(var(--agent-yellow-rgb), 0.08);
+  border-top: 1px solid rgba(var(--agent-yellow-rgb), 0.3);
+  color: var(--agent-yellow);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-pending-location a {
+  margin-left: auto;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-compose .agent-attach {
+  align-self: center;
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-photo {
+  display: block;
+  max-width: 100%;
+  max-height: 180px;
+  margin: 2px 0;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  border-radius: 6px;
+  object-fit: cover;
+  cursor: zoom-in;
+}
+
+.ctp-phone-app .agent-pending-photo img {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.ctp-phone-app .agent-quick {
+  flex: none;
+  display: flex;
+  gap: 6px;
+  padding: 6px 10px 0;
+  overflow-x: auto;
+  background: var(--agent-panel);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-quick-reply {
+  flex: none;
+  padding: 2px 10px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.5);
+  border-radius: 12px;
+  color: var(--agent-cyan);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-quick-reply:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.12);
+}
+
+.ctp-phone-app .agent-react-btn {
+  position: absolute;
+  top: 2px;
+  right: -20px;
+  color: var(--agent-muted);
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.ctp-phone-app .agent-msg.mine .agent-react-btn {
+  right: auto;
+  left: -20px;
+}
+
+.ctp-phone-app .agent-msg:hover .agent-react-btn {
+  opacity: 1;
+}
+
+.ctp-phone-app .agent-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.ctp-phone-app .agent-reaction {
+  padding: 0 5px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.35);
+  border-radius: 10px;
+  background: var(--agent-panel);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  line-height: 18px;
+}
+
+.ctp-phone-app .agent-reaction.mine {
+  border-color: var(--agent-magenta);
+  box-shadow: 0 0 4px rgba(var(--agent-magenta-rgb), 0.5);
+}
+
+.ctp-phone-app .agent-emoji-picker {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  padding: 6px;
+  background: var(--agent-panel);
+  border: 1px solid var(--agent-cyan);
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+}
+
+.ctp-phone-app .agent-emoji-picker a {
+  font-size: calc(18px * var(--agent-font-scale, 1));
+  line-height: 28px;
+  text-align: center;
+  border-radius: 6px;
+}
+
+.ctp-phone-app .agent-emoji-picker a:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.15);
+}
+
+.ctp-phone-app .agent-emoji-picker[hidden] {
+  display: none;
+}
+
+.ctp-phone-app .agent-avatar-edit {
+  position: relative;
+  flex: none;
+}
+
+.ctp-phone-app .agent-avatar-edit i {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--agent-panel);
+  color: var(--agent-yellow);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  opacity: 0;
+}
+
+.ctp-phone-app .agent-avatar-edit:hover i {
+  opacity: 1;
+}
+
+.ctp-phone-app .agent-money {
+  min-width: 170px;
+  padding: 6px 8px;
+  border: 1px solid rgba(57, 255, 136, 0.5);
+  border-radius: 8px;
+  background: rgba(57, 255, 136, 0.08);
+  color: #7dffb2;
+  white-space: normal;
+}
+
+.ctp-phone-app .agent-money.pending {
+  border-color: rgba(var(--agent-yellow-rgb), 0.6);
+  background: rgba(var(--agent-yellow-rgb), 0.08);
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-money.declined,
+.ctp-phone-app .agent-money.cancelled {
+  border-color: rgba(var(--agent-magenta-rgb), 0.4);
+  background: transparent;
+  color: var(--agent-muted);
+  text-decoration: line-through;
+}
+
+/* The note sent with a payment, inside the card above its buttons. */
+.ctp-phone-app .agent-money-note {
+  margin-top: 4px;
+  white-space: pre-wrap;
+  font-style: italic;
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-money-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ctp-phone-app .agent-money-label {
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app .agent-money-status {
+  margin-left: auto;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.ctp-phone-app .agent-money-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.ctp-phone-app .agent-money-actions a {
+  flex: 1;
+  padding: 2px 0;
+  border-radius: 6px;
+  text-align: center;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-money-actions .pay {
+  background: #1faa59;
+  color: #fff;
+}
+
+.ctp-phone-app .agent-money-actions .decline {
+  border: 1px solid var(--agent-magenta);
+  color: var(--agent-magenta);
+}
+
+.ctp-phone-app .agent-compose .agent-money-btn {
+  color: var(--agent-good);
+}
+
+.ctp-phone-app .agent-money.held {
+  border-color: rgba(57, 255, 136, 0.8);
+  box-shadow: 0 0 6px rgba(57, 255, 136, 0.35);
+}
+
+/* A job offered in a message (reuses the money card's Accept/Decline buttons). */
+.ctp-phone-app .agent-job {
+  min-width: 170px;
+  padding: 6px 8px;
+  border: 1px solid rgba(var(--agent-yellow-rgb), 0.6);
+  border-radius: 8px;
+  background: rgba(var(--agent-yellow-rgb), 0.08);
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-job.declined {
+  opacity: 0.6;
+}
+
+.ctp-phone-app .agent-job-img {
+  display: block;
+  width: 100%;
+  max-height: 90px;
+  margin-bottom: 4px;
+  object-fit: cover;
+  border: none;
+  border-radius: 4px;
+}
+
+.ctp-phone-app .agent-job-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ctp-phone-app .agent-job-name {
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-job-status {
+  margin-left: auto;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-job-summary {
+  margin-top: 4px;
+  color: var(--agent-text);
+  white-space: pre-wrap;
+}
+
+.ctp-phone-app .agent-job-open {
+  display: block;
+  margin-top: 6px;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  color: var(--agent-cyan);
+}
+
+/* GM: under the player's newest message, until the contact has "seen" it. */
+.ctp-phone-app .agent-set-viewed {
+  align-self: flex-end;
+  margin-top: 2px;
+  padding: 1px 6px;
+  border: 1px dashed rgba(var(--agent-cyan-rgb), 0.5);
+  color: var(--agent-cyan);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-msg.theirs .agent-set-viewed {
+  align-self: flex-start;
+}
+
+.ctp-phone-app .agent-set-viewed:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.12);
+}
