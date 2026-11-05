@@ -16,6 +16,7 @@ import { initials } from "../../scripts/util/text.js";
 import { actions as writerActions, methods as writerMethods } from "./writer-page.js";
 import { actions as draftsActions, methods as draftsMethods } from "./drafts-page.js";
 import { hasProfile } from "./writer.js";
+import { RELEASE } from "../../scripts/release.js";
 
 /*
  * Phone page: The Garden and The Garden Dating (see apps/garden/model.js). Two feeds, Feed and News;
@@ -27,8 +28,7 @@ import { hasProfile } from "./writer.js";
  */
 
 const TABS = { feed: "Feed", news: "News", dating: "Dating" };
-// Drafts, Writer and the Accounts feather feed the garden-writer skill on Sam's machine: release builds leave them out (tools/bundle.mjs --release).
-const RELEASE = globalThis.CPR_SAM_AGENT_RELEASE === true;
+// Drafts, Writer and the Accounts feather feed the garden-writer skill on Sam's machine: release builds leave them out.
 const WRITER_TABS = RELEASE ? {} : { drafts: "Drafts", writer: "Writer" };
 const GM_TABS = { ...TABS, accounts: "Accounts", queue: "Queue", ...WRITER_TABS, control: "Control" };
 

@@ -48,6 +48,7 @@
  *                       those worlds too (older `off` apps were on there before, and stay on)
  *   turnedOn?           was an `off` app and is on by default now: a world that saved it off back then gets
  *                       it switched on once (model/features.js settleAppsOff)
+ *   devOnly?            not in release builds (`npm run release`, scripts/release.js): left out of the manifest there
  *   data?               the key the page's data goes under, and its method `<data>Data` (default: the id)
  *   refreshOn?          change flags (store._changed) that redraw it; every app redraws on `apps`
  *   tick?               a host method run on the host's clock: { method, realTimeOnly? }
@@ -69,9 +70,10 @@
  */
 
 import { APP_DEFS } from "../../apps/index.js";
+import { RELEASE } from "../release.js";
 
-/** Every app, by id, without its id and order: { [id]: App }. In home-screen order. */
-export const APP_MANIFEST = Object.fromEntries(APP_DEFS.map(({ id, order, ...app }) => [id, app]));
+/** Every app, by id, without its id and order: { [id]: App }. In home-screen order. Release builds leave `devOnly` apps out. */
+export const APP_MANIFEST = Object.fromEntries(APP_DEFS.filter(app => !(RELEASE && app.devOnly)).map(({ id, order, ...app }) => [id, app]));
 
 /** Every app's id, in order. */
 export const APP_IDS = Object.keys(APP_MANIFEST);

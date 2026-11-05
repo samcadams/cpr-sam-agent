@@ -10,6 +10,7 @@ export default {
   blurb: "Build a fighter, challenge another Agent. Losers lose their Agent.",
   off: true,
   newApp: true,
+  devOnly: true,
   ledger: { gladiator: "Digital Gladiator" },
   tables: {
     // Builds, keyed by character (apps/gladiator/model.js): players see their own.
