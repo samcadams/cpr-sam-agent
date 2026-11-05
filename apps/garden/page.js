@@ -27,7 +27,10 @@ import { hasProfile } from "./writer.js";
  */
 
 const TABS = { feed: "Feed", news: "News", dating: "Dating" };
-const GM_TABS = { ...TABS, accounts: "Accounts", queue: "Queue", drafts: "Drafts", writer: "Writer", control: "Control" };
+// Drafts and Writer feed the garden-writer skill on Sam's machine: release builds leave them out (tools/bundle.mjs --release).
+const RELEASE = globalThis.CPR_SAM_AGENT_RELEASE === true;
+const WRITER_TABS = RELEASE ? {} : { drafts: "Drafts", writer: "Writer" };
+const GM_TABS = { ...TABS, accounts: "Accounts", queue: "Queue", ...WRITER_TABS, control: "Control" };
 
 /** How often a player's phone tells the host its character opened the Garden (garden-seen), per character. */
 const SEEN_EVERY_MS = 5 * 60_000;
@@ -40,7 +43,7 @@ function gardenTabs(gm) {
   if (mergeNews) delete tabs.news;
   if (!dating) delete tabs.dating;
   // Batches from the writer waiting for the GM (drafts-page.js).
-  const waiting = gm ? Object.keys(store.garden.drafts?.batches ?? {}).length : 0;
+  const waiting = gm && !RELEASE ? Object.keys(store.garden.drafts?.batches ?? {}).length : 0;
   if (waiting) tabs.drafts = `Drafts (${waiting})`;
   return tabs;
 }

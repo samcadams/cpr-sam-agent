@@ -14,7 +14,7 @@
  * `--if-stale` build only when `--check` would fail
  * `--enable`  build, then point module.json at the bundle (needs a world relaunch to take effect)
  * `--disable` point module.json back at scripts/main.js and the separate stylesheets (relaunch too)
- * `--release` build as usual but with no sourcemaps (what `npm run release` ships)
+ * `--release` build as usual but with no sourcemaps and globalThis.CPR_SAM_AGENT_RELEASE = true (what `npm run release` ships)
  *
  * While it's enabled, a source edit shows up after a rebuild. fpw does that by itself before `fpw reload`
  * (and the other commands that load a page), and `tools/wip commit` after each commit. In a browser of your
@@ -70,7 +70,8 @@ const common = { bundle: true, keepNames: true, sourcemap: process.argv.includes
 
 async function options() {
   return [
-    { ...common, entryPoints: [path.join(ROOT, "scripts/main.js")], format: "esm", outfile: OUT_JS },
+    { ...common, entryPoints: [path.join(ROOT, "scripts/main.js")], format: "esm", outfile: OUT_JS,
+      define: process.argv.includes("--release") ? { "globalThis.CPR_SAM_AGENT_RELEASE": "true" } : {} },
     {
       ...common,
       stdin: { contents: await cssEntry(), resolveDir: ROOT, sourcefile: "styles.css", loader: "css" },
