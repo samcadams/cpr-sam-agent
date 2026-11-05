@@ -5,7 +5,7 @@ import { feature, noSignalSince } from "../../scripts/model/features.js";
 import { formatMoney, hasWallet, MAX_AMOUNT } from "../../scripts/model/money.js";
 import { MODULE_ID } from "../../scripts/config.js";
 import {
-  addonEffect, ADDONS, hasAddon, isDue, isInstalled, nextPaidThrough, owned, POOL, poolConfig, poolOn, priceLabel, rowsOf, storeAction, subsBilledBy, subscriptionsOf
+  addonEffect, ADDONS, hasAddon, inStore, isDue, isInstalled, nextPaidThrough, owned, POOL, poolConfig, poolOn, priceLabel, rowsOf, storeAction, subsBilledBy, subscriptionsOf
 } from "./model.js";
 import { isDirect } from "../../scripts/model/threads.js";
 import { clean } from "../../scripts/util/text.js";
@@ -94,8 +94,8 @@ export const methods = {
     if (!actor || !entry || app === POOL || !feature(`app_${app}`)) return;
     const row = rowsOf(this.apps.installs, actorId)[app];
     if (row?.revoked) return this._alertNow(actorId, { kind: "warning", from: FROM, app: POOL, text: `${appName(app)} can't be installed on this Agent: ${row.revoked}.` });
-    // Only what the store offers, or what they had before.
-    if (entry.offer !== "store" && !owned(row, entry)) return;
+    // Only what the store sells, or what they had before.
+    if (!inStore(app, entry) && !owned(row, entry)) return;
     const action = storeAction(this.apps.installs, actorId, app, cfg);
     if (action === "open" || action === "renew") return;
     let paid = row?.paid ?? 0;
@@ -148,7 +148,7 @@ export const methods = {
     const billed = subsBilledBy();
     if (!billed && !(await this._poolCharge(actor, price, `${appName(app)}, renewed`, app))) return;
     const id = this._alert(actorId, { kind: "money", from: FROM, app: POOL, text: `${appName(app)} renewed.${billed ? ` It's on your ${billed} bill.` : ""}` });
-    this._poolRow(actorId, app, r => (r.sub = { ...r.sub, status: "active", paidThrough: billed ? r.sub.paidThrough : nextPaidThrough(r.sub) }), [id]);
+    this._poolRow(actorId, app, r => (r.sub = { ...r.sub, status: "active", paidThrough: billed ? null : nextPaidThrough(r.sub) }), [id]);
   },
 
   /** GM: put an app on a character's Agent, free (it also lifts a revoke, and ends a subscription: it's theirs now). */
@@ -213,6 +213,8 @@ export const methods = {
     this._poolRow(actorId, app, r => {
       const sub = { ...r.sub };
       if (["active", "lapsed", "cancelled"].includes(status)) sub.status = status;
+      // Active again while another module bills: that module's bill, not an old month (see _tickPool).
+      if (sub.status === "active" && r.sub.status !== "active" && subsBilledBy()) sub.paidThrough = null;
       if (sponsor !== undefined) sub.sponsor = clean(sponsor, 40) || null;
       if (sub.status === "cancelled") r.removed = true;
       r.sub = sub;
@@ -242,6 +244,21 @@ export const methods = {
     if (paid && total && hasWallet(actor)) this._ledger(actorId, -total, `Subscriptions: ${lines}`, "pool", FROM);
     const text = paid ? `Monthly subscriptions: ${lines}. Total ${formatMoney(total)}.` : `Declined: subscriptions of ${formatMoney(total)} (${lines}). They've lapsed until you renew.`;
     this._pushApps([this._alert(actorId, { kind: "money", from: FROM, app: POOL, text })]);
+  },
+
+  /** The clock (host/clock.js): billing handed back by another module, the Agent bills from a month from now. */
+  _tickPool() {
+    if (subsBilledBy()) return;
+    let changed = false;
+    for (const [actorId, rows] of Object.entries(this.apps.installs)) {
+      const handed = Object.entries(rows).filter(([, r]) => r.sub?.status === "active" && !r.sub.sponsor && !r.removed && !r.revoked && r.sub.paidThrough == null);
+      if (!handed.length) continue;
+      const next = { ...rows };
+      for (const [app, r] of handed) next[app] = { ...r, sub: { ...r.sub, paidThrough: nextPaidThrough(null) } };
+      this.apps.installs[actorId] = next;
+      changed = true;
+    }
+    if (changed) this._pushApps();
   },
 
   /**

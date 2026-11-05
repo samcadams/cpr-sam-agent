@@ -212,12 +212,18 @@ export function storeAction(installs, actorId, id, cfg = poolConfig()) {
   return "get";
 }
 
+/** Apps that only work with another module (HusTool's hustles are CPR HQ's downtime): sold only while it's active. */
+export const NEEDS_MODULE = { hustool: "cpr-hq" };
+
+/** Is it for sale in the store (offered there, and any module it needs is active)? */
+export const inStore = (id, entry) => entry.offer === "store" && (!NEEDS_MODULE[id] || !!game.modules.get(NEEDS_MODULE[id])?.active);
+
 /**
- * Apps the store lists for a character: switched on, and offered in the store, installed, or theirs from
+ * Apps the store lists for a character: switched on, and for sale in the store, installed, or theirs from
  * before (an uninstalled Fixer-only or GM-given app, so it can be reinstalled).
  */
 export function storeApps(installs, actorId, cfg = poolConfig(), on = id => feature(`app_${id}`)) {
-  const listed = id => cfg.apps[id].offer === "store" || isInstalled(installs, actorId, id, cfg) || owned(rowsOf(installs, actorId)[id], cfg.apps[id]);
+  const listed = id => inStore(id, cfg.apps[id]) || isInstalled(installs, actorId, id, cfg) || owned(rowsOf(installs, actorId)[id], cfg.apps[id]);
   return APP_IDS.filter(id => id !== POOL && on(id) && listed(id));
 }
 

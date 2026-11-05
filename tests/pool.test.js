@@ -6,7 +6,7 @@ import { store } from "../scripts/store.js";
 import { appsOn, emptyApps, phoneApps } from "../scripts/model/apps.js";
 import { emptyGarden } from "../apps/garden/model.js";
 import {
-  cleanListing, DEFAULT_LISTINGS, installedSet, isInstalled, isLapsed, poolConfig, priceLabel, setSubsBilledBy, storeAction, storeApps, subscriptionState, subscriptionsOf
+  cleanListing, DEFAULT_LISTINGS, installedSet, isDue, isInstalled, isLapsed, poolConfig, priceLabel, setSubsBilledBy, storeAction, storeApps, subscriptionState, subscriptionsOf
 } from "../apps/pool/model.js";
 import { MONTH } from "../apps/trauma/model.js";
 
@@ -209,6 +209,74 @@ test("handed off (CPR HQ): subscribing charges nothing; the state says what goes
   store._applyApps(store.apps);
   assert.ok(hooks.some(h => h.hook === "cpr-sam-agent.subscriptionsChanged" && h.args[0].items[0]?.status === "lapsed"));
   assert.ok(!hooks.some(h => h.hook === "cpr-sam-agent.traumaChanged"), "Trauma Team's hook doesn't fire for an app subscription");
+});
+
+test("HusTool is sold only with CPR HQ; one they have stays listed, and the GM still gives it", async () => {
+  await set("features", { app_pool: true, app_hustool: true });
+  game.modules.clear();
+  assert.ok(!storeApps(store.apps.installs, "pcA").includes("hustool"), "not without CPR HQ");
+  from(alice, "pool-get", { actorId: "pcA", app: "hustool" });
+  await settle();
+  assert.ok(!has("pcA", "hustool") && wealth("pcA") === 500, "nothing bought");
+
+  game.modules.set("cpr-hq", { active: true });
+  assert.ok(storeApps(store.apps.installs, "pcA").includes("hustool"));
+  from(alice, "pool-get", { actorId: "pcA", app: "hustool" });
+  await settle();
+  assert.ok(has("pcA", "hustool"));
+
+  // CPR HQ off: theirs stays listed, and reinstalls once uninstalled.
+  game.modules.set("cpr-hq", { active: false });
+  assert.ok(storeApps(store.apps.installs, "pcA").includes("hustool"), "installed");
+  from(alice, "pool-remove", { actorId: "pcA", app: "hustool" });
+  await settle();
+  assert.ok(storeApps(store.apps.installs, "pcA").includes("hustool"), "owned");
+  from(alice, "pool-get", { actorId: "pcA", app: "hustool" });
+  await settle();
+  assert.ok(has("pcA", "hustool") && wealth("pcA") === 480, "reinstalled free");
+
+  addActor({ id: "pcB", name: "Judy", owners: ["alice"], wealth: 500 });
+  from(gm, "pool-grant", { actorId: "pcB", app: "hustool" });
+  await settle();
+  assert.ok(has("pcB", "hustool"), "the GM's grant");
+  game.modules.clear();
+});
+
+test("handed back: subs billed by CPR HQ have no month; the Agent's tick bills them from a month from now", async () => {
+  setSubsBilledBy("CPR HQ");
+  await set("features", { app_pool: true, app_cabb: true, app_ncart: true, app_map: true });
+  await set("pool", { seeded: 1, apps: { cabb: { price: 50, model: "monthly" }, ncart: { price: 10, model: "monthly" }, map: { price: 5, model: "monthly" } } });
+  for (const app of ["cabb", "ncart", "map"]) from(alice, "pool-get", { actorId: "pcA", app });
+  await settle();
+  const sub = app => store.apps.installs.pcA[app].sub;
+  assert.equal(sub("cabb").paidThrough, null, "subscribe");
+
+  // Lapsed and renewed (or made active by the GM) under CPR HQ: still no month of its own.
+  store.apps.installs.pcA.cabb.sub.paidThrough = 123;
+  from(gm, "pool-sub", { actorId: "pcA", app: "cabb", status: "lapsed" });
+  await settle();
+  from(alice, "pool-renew", { actorId: "pcA", app: "cabb" });
+  await settle();
+  assert.deepEqual([sub("cabb").status, sub("cabb").paidThrough, wealth("pcA")], ["active", null, 500], "renew");
+  store.apps.installs.pcA.ncart.sub.paidThrough = 123;
+  from(gm, "pool-sub", { actorId: "pcA", app: "ncart", status: "lapsed" });
+  from(gm, "pool-sub", { actorId: "pcA", app: "ncart", status: "active" });
+  await settle();
+  assert.equal(sub("ncart").paidThrough, null, "the GM's re-activation");
+
+  // A sponsored one and a cancelled one are left alone.
+  from(gm, "pool-sub", { actorId: "pcA", app: "ncart", sponsor: "Rogue" });
+  from(alice, "pool-cancel", { actorId: "pcA", app: "map" });
+  await settle();
+
+  game.time.worldTime = 1000;
+  store._tickPool();
+  assert.equal(sub("cabb").paidThrough, null, "not while CPR HQ bills");
+  setSubsBilledBy(null);
+  store._tickPool();
+  assert.equal(sub("cabb").paidThrough, 1000 + MONTH);
+  assert.ok(!isDue(subscriptionsOf(store.apps.installs, "pcA").find(s => s.app === "cabb")), "not due");
+  assert.deepEqual([sub("ncart").paidThrough, sub("map").paidThrough], [null, null], "sponsored, cancelled: untouched");
 });
 
 test("the GM revokes with a reason and a refund, and gives an app back", async () => {

@@ -11,6 +11,7 @@ export default {
   citinet: true,
   off: true,
   newApp: true,
+  tick: { method: "_tickPool" },
   refreshOn: ["pool"],
   ledger: { pool: "App Store" },
   tables: { installs: { owner: "key" } },
