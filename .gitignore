@@ -19,3 +19,6 @@ images/map/*
 !images/map/icons/
 data/map/config.json
 data/map/pins.json
+
+# Foundry Setup's package lock: no Update / Update All for this dev folder
+/cpr-sam-agent.lock

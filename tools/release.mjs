@@ -34,8 +34,8 @@ export function isShipped(rel) {
 }
 
 /**
- * The manifest with its release URLs, derived from `version`. Only the release copy gets them: with a manifest
- * URL in the dev folder, Foundry's "update all" could overwrite the dev checkout.
+ * The manifest with its release URLs, derived from `version` (the dev module.json carries the same ones). A Foundry
+ * update deletes the module folder, .git included, so dev folders are locked in Setup (`<id>.lock`, gitignored).
  */
 export function releaseManifest(manifest) {
   return { ...manifest, url: REPO, bugs: `${REPO}/issues`, manifest: `${REPO}/releases/latest/download/module.json`,
