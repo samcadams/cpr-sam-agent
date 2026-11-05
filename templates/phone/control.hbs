@@ -28,49 +28,70 @@
         <label class="agent-radio"{{#if title}} title="{{title}}"{{/if}}><input type="checkbox" data-feature="{{key}}" {{#if on}}checked{{/if}}> <i class="{{icon}}"></i> {{label}}</label>
       {{/each}}
     </div>
-    <p class="agent-info-note">Off: the app leaves everyone's phone. Each app's own options are behind the gear in its header.</p>
-    <p class="agent-info-note">Communications is {{appearance.names.contacts}}, {{appearance.names.messages}} and calls together. Off: phones open on the Apps page, calls in progress end, and nothing can be texted or called. Conversations and contacts are kept for when it's back on.</p>
+    <p class="agent-info-note">Each app's own options are behind the gear in its header.</p>
+    <p class="agent-info-note">Communications is {{appearance.names.contacts}}, {{appearance.names.messages}} and calls together.</p>
   </details>
 
   <details class="agent-section" data-section="gmPhone" {{#if control.open.gmPhone}}open{{/if}}>
     <summary>This GM Phone</summary>
     {{> agent-look-settings control.phone}}
+    <h3 class="agent-info-label">Pop-ups</h3>
+    <div class="agent-setting-row">
+      <span>Close after <span class="agent-range-value">{{#if control.popups.seconds}}{{control.popups.seconds}}s{{else}}Usual{{/if}}</span></span>
+      <input type="range" data-gm-popup="seconds" min="0" max="60" step="1" value="{{control.popups.seconds}}" aria-label="GM pop-ups close after (seconds)">
+    </div>
+    <label class="agent-radio agent-sub-option{{#unless control.popups.seconds}} disabled{{/unless}}"><input type="checkbox" data-gm-popup="answers" {{#if control.popups.answers}}checked{{/if}} {{#unless control.popups.seconds}}disabled{{/unless}}> Also ones that ask for an answer</label>
+    <p class="agent-info-note">A bar along the bottom fills up until a pop-up closes; the pointer on it holds it open. Ringing calls stay. 0 keeps the usual timing.</p>
   </details>
 
   <details class="agent-section" data-section="everyPhone" {{#if control.open.everyPhone}}open{{/if}}>
     <summary>Every phone</summary>
     {{#each control.features}}
-      <label class="agent-radio"><input type="checkbox" data-feature="{{key}}" {{#if on}}checked{{/if}}> {{label}}</label>
-      <p class="agent-info-note">{{note}}</p>
+      <label class="agent-radio{{#if sub}} agent-sub-option{{/if}}{{#if disabled}} disabled{{/if}}"><input type="checkbox" data-feature="{{key}}" {{#if on}}checked{{/if}} {{#if disabled}}disabled{{/if}}> {{label}}</label>
+      {{#if note}}<p class="agent-info-note">{{note}}</p>{{/if}}
     {{/each}}
-    <label class="agent-radio"><input type="checkbox" data-feature="blood" {{#if control.blood.on}}checked{{/if}}> Blood on badly hurt characters' screens</label>
-    <p class="agent-info-note">Below half HP; heavier below 1 HP. Only the player holding the phone sees it.</p>
+    <label class="agent-radio"><input type="checkbox" data-feature="blood" {{#if control.blood.on}}checked{{/if}}> Blood overlay when hurt</label>
     <div class="agent-setting-row"><span>Preview here</span>{{> agent-dropdown control.blood.preview}}</div>
+
+    <h3 class="agent-info-label">Default sounds</h3>
+    {{#each control.defaultSounds}}
+      <div class="agent-setting-row agent-sound-row">
+        <span>{{label}}</span>
+        {{> agent-dropdown picker}}
+        <a class="agent-icon-btn" data-action="default-sound-preview" data-kind="{{kind}}" title="Play"><i class="fas fa-play"></i></a>
+        <a class="agent-icon-btn" data-action="default-sound-file" data-kind="{{kind}}" title="Use a file of your own"><i class="fas fa-file-audio"></i></a>
+      </div>
+    {{/each}}
+
+    <h3 class="agent-info-label">Sounds in the world</h3>
+    <label class="agent-radio"><input type="checkbox" data-world-setting="textToneAtToken" {{#if control.worldSounds.textTone}}checked{{/if}}> Text tone in the world</label>
+    <label class="agent-radio"><input type="checkbox" data-world-setting="ringAtToken" {{#if control.worldSounds.ring}}checked{{/if}}> Ring in the world</label>
+    <div class="agent-setting-row">
+      <span>Sound radius <span class="agent-range-value">{{control.worldSounds.radius}} {{control.worldSounds.units}}</span></span>
+      <input type="range" data-world-setting="ringRadius" min="1" max="60" step="1" value="{{control.worldSounds.radius}}">
+    </div>
 
     <div class="agent-control-field">
       <span class="agent-control-field-head">Reaction emoji
         <a class="agent-icon-btn{{#if control.catalog}} active{{/if}}" data-action="emoji-catalog" title="Pick emoji"><i class="far fa-face-smile"></i> Pick</a>
       </span>
-      <textarea name="emoji" rows="3" placeholder="Separated by spaces">{{control.emoji}}</textarea>
+      <textarea name="emoji" rows="3" aria-label="Reaction emoji" placeholder="Separated by spaces">{{control.emoji}}</textarea>
     </div>
     {{#if control.catalog}}{{> agent-emoji-catalog control.catalog}}{{/if}}
-    <p class="agent-info-note">Every phone's reaction keyboard, unless its player made their own.</p>
 
     <div class="agent-clock">
-      <label class="agent-info-label">Clock</label>
+      <h3 class="agent-info-label">Clock</h3>
       <div class="agent-setting-row"><span>Time from</span>{{> agent-dropdown control.clock.source}}</div>
       {{#if control.clock.noCalendar}}<p class="agent-info-note">Simple Calendar isn't active: using system time.</p>{{/if}}
       {{#if control.clock.system}}
         <label class="agent-radio"><input type="checkbox" name="clockOtherDate" {{#if control.clock.system.otherDate}}checked{{/if}}> On another date</label>
         {{#if control.clock.system.otherDate}}
           <div class="agent-setting-row"><span>Date</span><input type="date" name="clockSystemDate" value="{{control.clock.system.date}}"></div>
-          <p class="agent-info-note">The real time of day, on this date. It moves on a day at midnight.</p>
         {{/if}}
       {{/if}}
       {{#if control.clock.custom}}
         <div class="agent-setting-row"><span>Date</span><input type="date" name="clockDate" value="{{control.clock.custom.date}}"></div>
         <div class="agent-setting-row"><span>Time</span><input type="time" name="clockTime" value="{{control.clock.custom.time}}"></div>
-        <p class="agent-info-note">Every phone shows this, and it runs on from here. Change either to set it again.</p>
       {{/if}}
       <label class="agent-radio"><input type="checkbox" name="clockDayPrefix" {{#if control.clock.dayPrefix}}checked{{/if}}> "Day" before the date's number</label>
       <p class="agent-info-note">Now: {{control.clock.now.time}}{{#if control.clock.now.date}} · {{control.clock.now.date}}{{/if}}. Automatic: Simple Calendar, else SmallTime's world time, else system time.</p>
@@ -95,13 +116,13 @@
     <label class="agent-control-field">Hidden caller ID
       <input type="text" name="unknownLabel" value="{{control.unknownLabel}}" placeholder="Unknown Number">
     </label>
-    <label class="agent-info-label">App names</label>
+    <h3 class="agent-info-label">App names</h3>
     {{#each control.names}}
       <label class="agent-control-field">{{name}}{{#if isDefault}} <small>(default)</small>{{/if}}
         <input type="text" data-app-name="{{key}}" value="{{value}}" placeholder="{{placeholder}}">
       </label>
     {{/each}}
-    <label class="agent-control-field">BrainGen ads <small>(one per line)</small>
+    <label class="agent-control-field">Sponsored Cybereye ads <small>(one per line)</small>
       <textarea name="brainGenAds" rows="5">{{control.ads}}</textarea>
     </label>
   </details>

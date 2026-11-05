@@ -1,0 +1,1 @@
+- Messages: texts shared to chat no longer push the chat sidebar out of place (the tabs disappearing, a big empty gap under the message box).

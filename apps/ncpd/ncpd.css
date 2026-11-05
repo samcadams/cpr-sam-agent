@@ -1,0 +1,235 @@
+/*
+ * NCPD Crime Database (police blue): the app's page (apps/ncpd/page.js, apps/ncpd/ncpd.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over; the record card keeps NCPD's blue.
+ */
+
+/* Its home-screen tile: police blue, and the content folder's full-colour icon while it keeps its default icon (as Trauma Team's, app-pages.css). */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-ncpd { --app-rgb: 70, 130, 230; }
+body.agent-art-ncpd .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-ncpd .agent-home-icon:has(> i.fa-building-shield),
+body.agent-art-ncpd .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-ncpd > i.fa-building-shield { --app-picture: var(--agent-art-ncpd); }
+body.agent-art-ncpd .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-ncpd .agent-home-icon:has(> i.fa-building-shield) {
+  border-color: transparent;
+  background: var(--app-picture) center / cover no-repeat;
+}
+body.agent-art-ncpd .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-ncpd .agent-home-icon > i.fa-building-shield { visibility: hidden; }
+body.agent-art-ncpd .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-ncpd > i.fa-building-shield {
+  display: inline-block;
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 0.3em;
+  background: var(--app-picture) center / cover no-repeat;
+}
+body.agent-art-ncpd .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-ncpd > i.fa-building-shield::before { content: none; }
+
+.ctp-phone-app .agent-ncpd { --ncpd-rgb: 70, 130, 230; }
+
+/*
+ * Bigger type than the phone's defaults, for legibility: about 2px up on every size, the
+ * same steps between them, and still scaled by the Agent's font size setting.
+ */
+.ctp-phone-app .agent-ncpd { font-size: calc(15px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-ncpd .agent-app-item-main,
+.ctp-phone-app .agent-ncpd input,
+.ctp-phone-app .agent-ncpd textarea,
+.ctp-phone-app .agent-ncpd summary,
+.ctp-phone-app .agent-ncpd .agent-wide-btn,
+.ctp-phone-app .agent-ncpd .agent-money-actions a,
+.ctp-phone-app .agent-ncpd .agent-radio { font-size: calc(14px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-ncpd small,
+.ctp-phone-app .agent-ncpd .agent-row-time,
+.ctp-phone-app .agent-ncpd .agent-info-note,
+.ctp-phone-app .agent-ncpd .agent-info-label { font-size: calc(13px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-ncpd .agent-ncpd-result legend { font-size: calc(15px * var(--agent-font-scale, 1)); }
+
+.ctp-phone-app .agent-ncpd-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  align-items: baseline;
+  margin: 2px 0 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(var(--ncpd-rgb));
+  background: rgba(var(--ncpd-rgb), 0.12);
+  box-shadow: inset 0 0 0 1px rgba(var(--ncpd-rgb), 0.4);
+}
+.ctp-phone-app .agent-ncpd-banner small { font-weight: normal; text-transform: none; letter-spacing: 0; color: var(--agent-muted); }
+
+.ctp-phone-app .agent-ncpd-hello { padding: 6px 2px; color: var(--agent-muted); }
+
+.ctp-phone-app .agent-ncpd-shot { display: flex; gap: 8px; align-items: flex-start; margin: 4px 0; }
+.ctp-phone-app .agent-ncpd-shot > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ctp-phone-app .agent-ncpd-photo {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(var(--ncpd-rgb), 0.15);
+  /* A surveillance still. */
+  filter: grayscale(0.6) contrast(1.1);
+}
+.ctp-phone-app .agent-ncpd-photo.big { display: block; width: 100%; height: auto; max-height: 160px; object-fit: contain; margin: 4px 0; }
+.ctp-phone-app .agent-ncpd-caption { font-style: italic; }
+
+.ctp-phone-app .agent-ncpd-processing { color: var(--agent-muted); font-style: italic; }
+.ctp-phone-app .agent-ncpd-processing span { animation: ctp-ncpd-dot 1.4s infinite; }
+.ctp-phone-app .agent-ncpd-processing span:nth-child(2) { animation-delay: 0.2s; }
+.ctp-phone-app .agent-ncpd-processing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes ctp-ncpd-dot {
+  0%, 60%, 100% { opacity: 0.2; }
+  30% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .ctp-phone-app .agent-ncpd-processing span { animation: none; } }
+.reduce-motion .ctp-phone-app .agent-ncpd-processing span, .ctp-phone-app.reduce-motion .agent-ncpd-processing span { animation: none; }
+
+.ctp-phone-app .agent-ncpd-ok { color: var(--agent-green, #4caf50); }
+.ctp-phone-app .agent-ncpd-bad { color: var(--agent-red, #e53935); }
+.ctp-phone-app .agent-ncpd-flag { opacity: 0.6; }
+.ctp-phone-app .agent-ncpd-flag.on { opacity: 1; color: var(--agent-red, #e53935); }
+.ctp-phone-app .agent-ncpd-due { color: var(--agent-red, #e53935); font-weight: bold; }
+
+/* A delivered record's row: tap to open the file. */
+.ctp-phone-app .agent-ncpd-record {
+  display: block;
+  margin-top: 6px;
+  color: inherit;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border-left: 4px solid rgb(var(--ncpd-rgb));
+  background: rgba(var(--ncpd-rgb), 0.08);
+}
+.ctp-phone-app .agent-ncpd-record:hover { background: rgba(var(--ncpd-rgb), 0.16); }
+.ctp-phone-app .agent-ncpd-record.wanted { border-left-color: var(--agent-red, #e53935); }
+.ctp-phone-app .agent-ncpd-record-open { margin-top: 4px; text-align: right; font-size: calc(13px * var(--agent-font-scale, 1)); color: rgb(var(--ncpd-rgb)); }
+.ctp-phone-app .agent-ncpd-record-head {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(var(--ncpd-rgb));
+}
+.ctp-phone-app .agent-ncpd-wanted {
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: 3px;
+  font-weight: bold;
+  color: #fff;
+  background: var(--agent-red, #e53935);
+}
+.ctp-phone-app .agent-ncpd-record-name { margin: 2px 0; font-size: calc(18px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-ncpd-record-name small, .ctp-phone-app .agent-ncpd-record-meta { color: var(--agent-muted); }
+.ctp-phone-app .agent-ncpd-record-label {
+  margin: 6px 0 2px;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--agent-muted);
+}
+.ctp-phone-app .agent-ncpd-cautions { display: flex; flex-wrap: wrap; gap: 3px; margin: 4px 0; }
+.ctp-phone-app .agent-ncpd-chip {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  background: rgba(var(--ncpd-rgb), 0.15);
+}
+.ctp-phone-app .agent-ncpd-chip input { margin: 0; }
+
+/* Snap: who's in sight. */
+.ctp-phone-app .agent-ncpd-tokens { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; margin-bottom: 6px; }
+.ctp-phone-app .agent-ncpd-token {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(var(--ncpd-rgb), 0.3);
+  text-align: center;
+  cursor: pointer;
+}
+.ctp-phone-app .agent-ncpd-token img { width: 48px; height: 48px; object-fit: contain; border: 0; }
+.ctp-phone-app .agent-ncpd-token span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(13px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-ncpd-token.picked { background: rgba(var(--ncpd-rgb), 0.25); box-shadow: inset 0 0 0 2px rgb(var(--ncpd-rgb)); }
+
+/* The GM's controls. */
+.ctp-phone-app .agent-ncpd-roll { margin: 4px 0; }
+.ctp-phone-app .agent-ncpd-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 3px 0; }
+.ctp-phone-app .agent-ncpd-row > input[type=text] { flex: 1 1 90px; min-width: 0; }
+.ctp-phone-app .agent-ncpd-row > input[type=number], .ctp-phone-app .agent-ncpd-row > input.short { flex: 0 0 56px; width: 56px; }
+.ctp-phone-app .agent-ncpd-line { padding: 3px 0; border-bottom: 1px dashed rgba(var(--ncpd-rgb), 0.25); }
+.ctp-phone-app .agent-ncpd-result { margin: 6px 0; padding: 4px 8px 8px; border: 1px solid rgba(var(--ncpd-rgb), 0.35); border-radius: 8px; }
+.ctp-phone-app .agent-ncpd-result legend { padding: 0 4px; color: rgb(var(--ncpd-rgb)); font-weight: bold; }
+.ctp-phone-app .agent-ncpd-result > input, .ctp-phone-app .agent-ncpd-result > textarea { width: 100%; margin: 2px 0; }
+.ctp-phone-app .agent-ncpd-add { display: inline-block; margin: 2px 0 4px; font-size: calc(14px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-ncpd-note { display: block; color: var(--agent-muted); }
+.ctp-phone-app .agent-ncpd-label { display: flex; flex: 1 1 90px; gap: 4px; align-items: center; min-width: 0; color: var(--agent-muted); }
+.ctp-phone-app .agent-ncpd-label input { flex: 1; min-width: 0; }
+
+.agent-ncpd-chat { border-left-color: #14285c; }
+
+/* The printed file (sheet.js), in its own window (reader.js). Fonts: styles/skins/fonts.css, as DataPool's sheet. */
+.ncpd-file {
+  --ncpd-ink: #16181d;
+  --ncpd-navy: #14285c;
+  --ncpd-rule: #9a978b;
+  --ncpd-paper: #f4f1e6;
+  --ncpd-red: #b3121d;
+  container: ncpd-file / inline-size;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 22px 26px 16px;
+  color: var(--ncpd-ink);
+  background: var(--ncpd-paper);
+  border-top: 8px solid var(--ncpd-navy);
+  box-shadow: 0 3px 16px rgba(0, 0, 0, 0.5);
+  font: 14px/1.35 "Share Tech Mono", ui-monospace, monospace;
+}
+.ncpd-file-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding-bottom: 12px; border-bottom: 2px solid var(--ncpd-navy); }
+.ncpd-file-seal { flex: none; width: 58px; height: 58px; }
+.ncpd-file-org { flex: 1 1 200px; color: var(--ncpd-navy); }
+.ncpd-file-org b { display: block; font: 600 21px/1.1 "Oswald", "Arial Narrow", sans-serif; letter-spacing: 0.04em; text-transform: uppercase; }
+.ncpd-file-org span { letter-spacing: 0.2em; font-size: 12px; text-transform: uppercase; }
+.ncpd-file dl { display: grid; grid-template-columns: max-content 1fr; gap: 3px 10px; margin: 0; }
+.ncpd-file dt { font-size: 11px; line-height: 19px; letter-spacing: 0.08em; text-transform: uppercase; color: #5b5a54; }
+.ncpd-file dd { margin: 0; overflow-wrap: anywhere; }
+.ncpd-file-ref { flex: none; }
+.ncpd-file-cautions { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 10px 0 0; padding: 6px 10px; list-style: none; color: #fff; background: var(--ncpd-red); font: 500 13px/1.3 "Oswald", "Arial Narrow", sans-serif; letter-spacing: 0.06em; text-transform: uppercase; }
+.ncpd-file-cautions li { margin: 0; }
+.ncpd-file-subject { position: relative; display: grid; grid-template-columns: 150px 1fr; gap: 16px; margin-top: 14px; }
+.ncpd-file-subject figure { margin: 0; }
+.ncpd-file-subject img { display: block; width: 150px; height: 180px; object-fit: cover; border: 1px solid var(--ncpd-ink); background: #d8d5ca; }
+.ncpd-file-subject figcaption { margin: 3px 0 0; padding: 0; text-align: left; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #5b5a54; }
+.ncpd-file-subject figcaption span { display: block; text-transform: none; letter-spacing: 0; overflow-wrap: anywhere; }
+.ncpd-file-fields { align-self: start; }
+.ncpd-file-fields dd { font: 16px/1.25 "Special Elite", "Courier New", monospace; border-bottom: 1px dotted var(--ncpd-rule); }
+.ncpd-file-stamp { position: absolute; right: 8px; bottom: 6px; padding: 2px 14px; color: var(--ncpd-red); border: 4px double var(--ncpd-red); border-radius: 4px; font: 700 32px/1.1 "Oswald", "Arial Narrow", sans-serif; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.82; transform: rotate(-7deg); pointer-events: none; }
+.ncpd-file h2 { margin: 16px 0 4px; padding: 2px 8px; color: #fff; background: var(--ncpd-navy); border: 0; font: 500 13px/1.4 "Oswald", "Arial Narrow", sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+.ncpd-file table { width: 100%; margin: 0; border: 0; border-collapse: collapse; background: none; }
+.ncpd-file table thead { color: inherit; background: none; text-shadow: none; }
+.ncpd-file table tr > th { padding: 2px 8px; color: #5b5a54; background: none; border-bottom: 1px solid var(--ncpd-ink); font: inherit; font-size: 11px; letter-spacing: 0.08em; text-align: left; text-transform: uppercase; }
+.ncpd-file table tr > td { padding: 4px 8px; background: none; border-bottom: 1px solid var(--ncpd-rule); overflow-wrap: anywhere; }
+.ncpd-file tr, .ncpd-file tbody tr:nth-child(even) { background: none; }
+.ncpd-file-none { margin: 4px 8px; }
+.ncpd-file-notes { margin: 4px 8px; white-space: pre-wrap; overflow-wrap: anywhere; font-family: "Special Elite", "Courier New", monospace; }
+.ncpd-file-foot { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 8px; border-top: 2px solid var(--ncpd-navy); color: #5b5a54; }
+.ncpd-file-barcode { width: 150px; height: 22px; background: repeating-linear-gradient(90deg, var(--ncpd-ink) 0 2px, transparent 2px 5px, var(--ncpd-ink) 5px 6px, transparent 6px 9px, var(--ncpd-ink) 9px 12px, transparent 12px 14px); }
+@container ncpd-file (max-width: 500px) {
+  .ncpd-file-subject { grid-template-columns: 1fr; }
+  .ncpd-file-subject img { width: 100%; height: auto; max-height: 280px; }
+  .ncpd-file-stamp { position: static; justify-self: center; }
+  .ncpd-file thead { display: none; }
+  .ncpd-file tr { display: block; padding: 4px 0; border-bottom: 1px solid var(--ncpd-rule); }
+  .ncpd-file table tr > td { display: grid; grid-template-columns: 90px 1fr; gap: 6px; padding: 1px 8px; border: 0; }
+  .ncpd-file td::before { content: attr(data-label); font-size: 11px; line-height: 19px; text-transform: uppercase; color: #5b5a54; }
+}

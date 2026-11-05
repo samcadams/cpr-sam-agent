@@ -1,0 +1,21 @@
+{
+  "_id": "cpragentRecipe05",
+  "_key": "!macros!cpragentRecipe05",
+  "name": "Ask the crew: listen for answers",
+  "type": "script",
+  "scope": "global",
+  "img": "icons/svg/eye.svg",
+  "command": "// Recipe from API.md. Run once per session on the GM's client (or put it in a world script).\n// Posts to chat when someone answers the \"Ask the crew\" alert.\nHooks.on(\"cpr-sam-agent.alertAnswered\", ({ tag, choice, actorId }) => {\n  if (tag !== \"av-reroute\") return;\n  ChatMessage.create({ content: `${game.actors.get(actorId).name} chose to ${choice.toLowerCase()}.` });\n});",
+  "author": null,
+  "folder": null,
+  "sort": 500000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "12.343",
+    "systemId": "cyberpunk-red-core",
+    "systemVersion": "0.92.4"
+  }
+}

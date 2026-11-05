@@ -1,6 +1,7 @@
 import { cleanImage, gm } from "./validate.js";
-import { canUsePhone } from "../model/agent.js";
+import { agentType, canUsePhone } from "../model/agent.js";
 import { feature } from "../model/features.js";
+import { playerCharacters } from "../model/contacts.js";
 import { canActFor, sideFor } from "../model/permissions.js";
 import { OBJECTIVE_STATES, objectiveHidden, QUEST_STATUSES, wouldLoop } from "../model/quests.js";
 import { displayName, isGroup } from "../model/threads.js";
@@ -64,12 +65,18 @@ export const methods = {
       quest.hidden = false;
       quest.status = "active";
       quest.updated = Date.now();
-      this._pushQuests({ title: "Job started", body: quest.name, questId: quest.id, status: "active" });
+      // The one who accepted doesn't need telling (their own action).
+      const self = isGroup(thread) ? thread.members.find(m => m.key === from)?.actorId : thread.actorId;
+      this._pushQuests({ title: "Job started", body: quest.name, questId: quest.id, status: "active" }, self);
     }
   },
 
   /** Send everyone their view of the quest log; `notice` pops up for players. */
-  _pushQuests(notice = null) {
+  _pushQuests(notice = null, skipActorId = null) {
+    // Every player character's Agent keeps the news for its notification center (jobs are the whole party's),
+    // while Jobs is on.
+    const told = notice && feature("jobs") ? playerCharacters().filter(a => agentType(a) && a.id !== skipActorId) : [];
+    if (told.length) this._pushApps(told.map(a => this._alert(a.id, { kind: "job", from: notice.title, text: notice.body, ref: { type: "job", questId: notice.questId } })).filter(Boolean));
     for (const user of game.users) {
       if (!user.active || user === game.user) continue;
       const quests = this.visibleQuests(user);

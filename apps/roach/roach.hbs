@@ -1,0 +1,123 @@
+{{!-- Roach Race (apps/roach/page.js). Players: the cabinet (canvas) with the day pass and Steeds under it, or the stable. --}}
+{{> agent-app-bar roach.bar}}
+{{#if roach.gm}}
+  <div class="agent-info agent-app agent-roach-gm">
+    <h3 class="agent-info-label"><i class="fas fa-gamepad"></i> Cabinet</h3>
+    <label class="agent-radio"><input type="checkbox" data-roach-flag="out" {{#if roach.cfg.out}}checked{{/if}}> Out of order (nobody plays)</label>
+    <label class="agent-radio"><input type="checkbox" data-roach-flag="freePlay" {{#if roach.cfg.freePlay}}checked{{/if}}> Free play (no pass needed)</label>
+    <div class="agent-setting-row">
+      <label>Day pass (eb)</label>
+      <input type="number" min="0" max="99999" class="agent-roach-num" data-roach-num="price" value="{{roach.cfg.price}}" aria-label="Day pass price in eddies">
+    </div>
+    <div class="agent-setting-row">
+      <label>House Record</label>
+      <input type="number" min="0" max="999999" class="agent-roach-num" data-roach-num="record" value="{{roach.cfg.record}}" aria-label="House Record (0 for none)" title="0: no House Record">
+    </div>
+    <div class="agent-setting-row">
+      <label>Prize</label>
+      <input type="text" maxlength="120" data-roach-text="prize" value="{{roach.cfg.prize}}" aria-label="House Record prize" placeholder="What beating the record wins">
+    </div>
+
+    <h3 class="agent-info-label"><i class="fas fa-ticket"></i> Riders</h3>
+    <ul class="agent-app-list agent-roach-riders">
+      {{#each roach.riders}}
+        <li class="agent-app-item">
+          <div class="agent-app-item-main">
+            <b>{{name}}</b>
+            <small>{{#if pass}}Pass today{{#if paid}} ({{paid}}){{/if}}{{else}}No pass today{{/if}}</small>
+            {{#if steeds.length}}
+              <div class="agent-roach-chips">
+                {{#each steeds}}<span class="agent-roach-chip">{{name}}{{#if riding}} <i class="fas fa-horse" title="Riding" aria-label="riding"></i>{{/if}} <a data-action="roach-take" data-actor-id="{{../actorId}}" data-steed="{{id}}" title="Take back"><i class="fas fa-xmark"></i></a></span>{{/each}}
+              </div>
+            {{/if}}
+            {{#if record}}<small>{{record}}</small>{{/if}}
+            {{#if pending}}
+              <div class="agent-btn-row">
+                <button type="button" data-action="roach-record" data-actor-id="{{actorId}}" data-award="1"><i class="fas fa-trophy"></i> Award prize</button>
+                <button type="button" data-action="roach-record" data-actor-id="{{actorId}}" data-award="0">No prize</button>
+              </div>
+            {{/if}}
+            {{#if gift}}{{> agent-dropdown gift}}{{/if}}
+          </div>
+          {{#if pass}}
+            {{#if paid}}<a class="agent-icon-btn" data-action="roach-refund" data-actor-id="{{actorId}}" title="Take the pass back and refund it"><i class="fas fa-rotate-left"></i></a>{{/if}}
+            <a class="agent-icon-btn" data-action="roach-grant" data-actor-id="{{actorId}}" data-on="0" title="Take today's pass back (no refund)"><i class="fas fa-ban"></i></a>
+          {{else}}
+            <a class="agent-icon-btn" data-action="roach-grant" data-actor-id="{{actorId}}" data-on="1" title="Give a day pass, free"><i class="fas fa-ticket"></i></a>
+          {{/if}}
+        </li>
+      {{else}}
+        <li class="agent-empty">No player characters.</li>
+      {{/each}}
+    </ul>
+
+    <h3 class="agent-info-label"><i class="fas fa-horse"></i> Steeds</h3>
+    <ul class="agent-app-list agent-roach-steeds">
+      {{#each roach.steedList}}
+        <li class="agent-app-item compact">
+          <input type="text" maxlength="40" data-roach-steed="{{id}}" data-field="name" value="{{name}}" aria-label="Steed name">
+          {{#unless fixed}}
+            <input type="number" min="0" max="99999" class="agent-roach-num" data-roach-steed="{{id}}" data-field="price" value="{{price}}" aria-label="{{name}} price in eddies" title="Price (eb)">
+            {{> agent-dropdown sale}}
+          {{else}}
+            <small>Free, always</small>
+          {{/unless}}
+        </li>
+      {{/each}}
+    </ul>
+
+    <h3 class="agent-info-label"><i class="fas fa-trophy"></i> Hall of Fame</h3>
+    <ol class="agent-app-list agent-roach-board" data-short-list="roach-board">
+      {{#each roach.board}}
+        <li class="agent-app-item compact">
+          <span class="agent-roach-rank">{{rank}}</span>
+          <div class="agent-app-item-main"><b>{{name}}</b>{{#if who}} <small>({{who}})</small>{{/if}}{{#if fake}} <small>(made up)</small>{{/if}}</div>
+          <span class="agent-roach-score">{{score}}</span>
+          <a class="agent-icon-btn" data-action="roach-remove" data-id="{{id}}" title="Remove"><i class="fas fa-xmark"></i></a>
+        </li>
+      {{else}}
+        <li class="agent-empty">No runs yet.</li>
+      {{/each}}
+    </ol>
+    <h3 class="agent-info-label">Add to the board</h3>
+    <div class="agent-setting-row">
+      <input type="text" name="roachName" maxlength="24" placeholder="Name" aria-label="Name">
+      <input type="number" name="roachScore" min="0" max="999999" value="1200" class="agent-roach-num" aria-label="Score" title="Score">
+      <a class="agent-icon-btn" data-action="roach-fake" title="Add"><i class="fas fa-plus"></i></a>
+    </div>
+    <button type="button" class="agent-wide-btn" data-action="roach-fill"><i class="fas fa-shuffle"></i> Fill with randoms</button>
+    <button type="button" class="agent-wide-btn" data-action="roach-reset"><i class="fas fa-trash"></i> Clear the board</button>
+  </div>
+{{else if roach.stable}}
+  <div class="agent-info agent-app agent-roach-stable">
+    <button type="button" class="agent-wide-btn" data-action="roach-stable"><i class="fas fa-arrow-left"></i> Back to the cabinet</button>
+    <p class="agent-roach-note">Steeds are only a look: every one rides like Roach.</p>
+    <ul class="agent-roach-cards">
+      {{#each roach.steeds}}
+        <li class="agent-roach-card{{#if riding}} riding{{/if}}">
+          <canvas data-roach-card="{{id}}" role="img" aria-label="{{name}}"></canvas>
+          <b>{{name}}</b>
+          {{#if riding}}<span class="agent-roach-tag"><i class="fas fa-horse"></i> Riding</span>
+          {{else if owned}}<button type="button" data-action="roach-steed" data-id="{{id}}">Ride</button>
+          {{else if buy}}<button type="button" data-action="roach-steed" data-id="{{id}}"><i class="fas fa-burst"></i> {{price}}</button>
+          {{else}}<span class="agent-roach-tag">Not for sale</span>{{/if}}
+        </li>
+      {{/each}}
+    </ul>
+  </div>
+{{else}}
+  <div class="agent-roach">
+    <div class="agent-roach-screen">
+      {{!-- The canvas describes itself (aria-label), and the run's moments are read out (see _roachSay). --}}
+      <canvas class="agent-roach-canvas" role="img" aria-label="Roach Race"></canvas>
+      <p class="agent-sr-only" aria-live="polite" data-roach-say></p>
+    </div>
+    <div class="agent-roach-bar">
+      {{#if roach.out}}<span class="agent-roach-pass off"><i class="fas fa-triangle-exclamation"></i> Out of order</span>
+      {{else if roach.free}}<span class="agent-roach-pass on"><i class="fas fa-star"></i> Free play</span>
+      {{else if roach.pass}}<span class="agent-roach-pass on"><i class="fas fa-ticket"></i> Day pass: until midnight</span>
+      {{else}}<button type="button" data-action="roach-pass"><i class="fas fa-ticket"></i> Day pass · {{roach.price}}</button>{{/if}}
+      <button type="button" data-action="roach-stable" title="Steeds: {{roach.steed}}"><i class="fas fa-horse"></i> Steeds</button>
+    </div>
+  </div>
+{{/if}}

@@ -1,0 +1,155 @@
+{{!-- Great River, Ziggurat's drone-delivery store (apps/market/page.js). Players: Shop / Cart / Orders. The GM: Orders (the queue, drones in the air) / Shop / History / Setup. --}}
+{{> agent-app-bar market.bar}}
+<div class="agent-info agent-app agent-market{{#if market.gm}} agent-market-gm{{/if}}">
+  {{#with market.store}}
+    <div class="agent-gr-banner">
+      <span class="agent-gr-logo" aria-hidden="true"><svg viewBox="0 0 40 16"><path d="M1 5 Q6 1 11 5 T21 5 T31 5 T39 5"/><path d="M1 11 Q6 7 11 11 T21 11 T31 11 T39 11"/></svg></span>
+      <span class="agent-gr-name">GREAT RIVER<small>A Ziggurat pilot program</small></span>
+      <span class="agent-gr-terms">
+        {{#if drone}}<span><i class="fas fa-helicopter"></i> Drone drop-off ≤ {{eta}} min</span>{{else}}<span><i class="fas fa-bolt"></i> Instant delivery</span>{{/if}}
+        {{#if capped}}<span><i class="fas fa-tag"></i> Everyday goods to {{cap}}</span>{{else if fee}}<span><i class="fas fa-box"></i> Delivery {{fee}}</span>{{/if}}
+      </span>
+    </div>
+  {{/with}}
+  <div class="agent-tabs agent-market-tabs">
+    {{#each market.tabs}}
+      <a class="agent-tab{{#if active}} active{{/if}}" data-action="market-tab" data-tab="{{id}}">{{label}}{{#if count}} <span class="agent-tab-count">{{count}}</span>{{/if}}</a>
+    {{/each}}
+  </div>
+
+{{#if market.gm}}
+  {{#if market.tab.queue}}
+    {{#each market.queue}}
+      {{> agent-market-order this gm=true}}
+    {{else}}
+      <p class="agent-empty">No orders waiting.</p>
+    {{/each}}
+    {{#if market.shipping.length}}
+      <h3 class="agent-info-label"><i class="fas fa-helicopter"></i> Drones in the air</h3>
+      {{#each market.shipping}}{{> agent-market-order this gm=true}}{{/each}}
+    {{/if}}
+  {{/if}}
+
+  {{#if market.tab.shop}}{{> agent-market-shop market}}{{/if}}
+
+  {{#if market.tab.history}}
+    <div class="agent-short-list" data-short-list="market-history">
+      {{#each market.history}}
+        {{> agent-market-order this gm=true}}
+      {{else}}
+        <p class="agent-empty">No orders yet.</p>
+      {{/each}}
+    </div>
+  {{/if}}
+
+  {{#if market.tab.setup}}
+    {{#with market.setup}}
+      <h3 class="agent-info-label">Store</h3>
+      <div class="agent-setting-row"><span>Pricing</span>{{> agent-dropdown pricingPick}}</div>
+      {{#if feeMode}}
+        <div class="agent-setting-row"><span>Delivery fee per order (eb)</span><input type="number" data-market-setting="deliveryFee" value="{{deliveryFee}}" min="0" step="1"></div>
+        <div class="agent-setting-row"><span>Plus % of the items</span><input type="number" data-market-setting="deliveryPct" value="{{deliveryPct}}" min="0" max="100" step="1"></div>
+        <p class="agent-info-note">No price cap: anything in the catalogue is on sale (within your own limits below), and every order pays the delivery fee.</p>
+      {{else}}
+        <p class="agent-info-note">Black Chrome p. 156: stores only carry things of {{cap}}eb (Premium) or less; bigger-ticket gear goes through Fixers and Night Markets (CBK). Delivery is included.</p>
+      {{/if}}
+      <div class="agent-setting-row"><span>Delivery</span>{{> agent-dropdown deliveryPick}}</div>
+      {{#if droneMode}}
+        <div class="agent-setting-row"><span>Drone takes at least (min)</span><input type="number" data-market-setting="etaMin" value="{{etaMin}}" min="1" max="240" step="1"></div>
+        <div class="agent-setting-row"><span>…and at most (min)</span><input type="number" data-market-setting="etaMax" value="{{etaMax}}" min="1" max="240" step="1"></div>
+        <p class="agent-info-note">Approved orders fly for a random time in that range, then land in the character's gear once that much world time <b>or</b> real time has passed. Orders → Deliver now lands one at once.</p>
+      {{/if}}
+
+      <h3 class="agent-info-label">Prices</h3>
+      <div class="agent-setting-row"><span>Lowest price (eb)</span><input type="number" data-market-setting="minPrice" value="{{minPrice}}" min="0" step="1"></div>
+      <div class="agent-setting-row"><span>Highest price (eb, 0 = no limit)</span><input type="number" data-market-setting="maxPrice" value="{{maxPrice}}" min="0" step="1"></div>
+      <div class="agent-setting-row"><span>Markup (%, 100 = list price)</span><input type="number" data-market-setting="markup" value="{{markup}}" min="1" step="1"></div>
+      <label class="agent-radio"><input type="checkbox" data-market-setting="ignoreBlankPrice" {{#if ignoreBlankPrice}}checked{{/if}}> Ignore blank price</label>
+      <p class="agent-info-note">Blank price = no price or 0. Ignored: not for sale. Otherwise: "price on request", outside the limits, and you set the price when you approve. The limits apply after markup.</p>
+
+      <h3 class="agent-info-label">Orders</h3>
+      <div class="agent-setting-row"><span>Orders waiting per character (0 = no limit)</span><input type="number" data-market-setting="maxPending" value="{{maxPending}}" min="0" step="1"></div>
+      <label class="agent-radio"><input type="checkbox" data-market-setting="allowOverBudget" {{#if allowOverBudget}}checked{{/if}}> Players may order more than they have</label>
+
+      <h3 class="agent-info-label">Today's picks</h3>
+      <div class="agent-setting-row"><span>Featured items a day (0 = none)</span><input type="number" data-market-setting="featured" value="{{featured}}" min="0" max="12" step="1"></div>
+      <div class="agent-setting-row"><span>Hot Deals a day (0 = none)</span><input type="number" data-market-setting="deals" value="{{deals}}" min="0" max="12" step="1"></div>
+      <div class="agent-setting-row"><span>Biggest Hot Deal discount (%)</span><input type="number" data-market-setting="dealOff" value="{{dealOff}}" min="10" max="90" step="5"></div>
+      <p class="agent-info-note">New picks every in-world day (the phones' date), from what players can see. Hot Deals are 10% off up to the biggest discount. The Shop tab can draw them again.</p>
+
+      <h3 class="agent-info-label">Item types</h3>
+      <div class="agent-app-chips">
+        {{#each types}}<a class="agent-app-chip{{#if on}} active{{/if}}" data-action="market-type" data-type="{{type}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}">{{#if on}}<i class="fas fa-check"></i> {{/if}}{{label}}</a>{{/each}}
+      </div>
+
+      <h3 class="agent-info-label">World items</h3>
+      <label class="agent-radio"><input type="checkbox" data-market-setting="worldItems" {{#if worldItems}}checked{{/if}}> Sell world items (Items sidebar)</label>
+      {{#if worldItems}}<div class="agent-setting-row"><span>From</span>{{> agent-dropdown folderPick}}</div>{{/if}}
+
+      <h3 class="agent-info-label">Compendiums <a class="agent-icon-btn" data-action="market-packs-all" title="{{#if allPacks}}None{{else}}All{{/if}}"><i class="fas {{#if allPacks}}fa-square-minus{{else}}fa-square-check{{/if}}"></i></a></h3>
+      <p class="agent-info-note">Players only see compendiums they have Observer on (<i class="fas fa-eye-slash"></i>: they can't).</p>
+      <ul class="agent-market-packs">
+        {{#each packs}}
+          <li><label class="agent-radio"><input type="checkbox" data-action="market-pack" data-pack="{{collection}}" {{#if on}}checked{{/if}}> {{label}}{{#if hidden}} <i class="fas fa-eye-slash" title="Players can't see this compendium"></i>{{/if}}</label></li>
+        {{/each}}
+      </ul>
+      <button type="button" class="agent-wide-btn" data-action="market-reset"><i class="fas fa-rotate-left"></i> Back to defaults</button>
+    {{/with}}
+  {{/if}}
+
+{{else}}
+  {{#if market.balance}}
+    <div class="agent-market-balance">
+      <span><i class="fas fa-burst"></i> {{market.balance}}</span>
+      {{#if market.committed}}<small>{{market.committed}} on orders waiting · {{market.available}} to spend</small>{{/if}}
+    </div>
+  {{/if}}
+
+  {{#if market.tab.shop}}{{> agent-market-shop market}}{{/if}}
+
+  {{#if market.tab.cart}}
+    {{#if market.cart.length}}
+      <ol class="agent-app-list agent-market-list">
+        {{#each market.cart}}
+          <li class="agent-app-item compact">
+            <img class="agent-avatar" src="{{img}}" alt="">
+            <div class="agent-app-item-main"><b>{{name}}</b><small>{{#if wasLabel}}<s>{{wasLabel}}</s> {{/if}}{{priceLabel}}{{#if off}} <span class="agent-market-off">−{{off}}%</span>{{/if}}</small></div>
+            <span class="agent-market-qty">
+              <a class="agent-icon-btn" data-action="market-qty" data-uuid="{{uuid}}" data-step="-1" title="One fewer"><i class="fas fa-minus"></i></a>
+              <input type="number" name="marketQty" data-uuid="{{uuid}}" value="{{qty}}" min="1" max="{{max}}" step="1" aria-label="How many {{name}}">
+              <a class="agent-icon-btn{{#if atMax}} disabled{{/if}}" data-action="market-qty" data-uuid="{{uuid}}" data-step="1" title="One more"><i class="fas fa-plus"></i></a>
+            </span>
+            <span class="agent-market-price">{{lineTotal}}</span>
+            <a class="agent-icon-btn" data-action="market-drop" data-uuid="{{uuid}}" title="Remove {{name}}"><i class="fas fa-xmark"></i></a>
+          </li>
+        {{/each}}
+      </ol>
+      {{#if market.fee}}
+        <div class="agent-market-subtotal"><span>Items</span><span>{{market.items}}</span></div>
+        <div class="agent-market-subtotal"><span><i class="fas fa-helicopter"></i> Delivery</span><span>{{market.fee}}</span></div>
+      {{/if}}
+      <div class="agent-market-total"><span>Total</span><b>{{market.total}}{{#if market.onRequest}} + price on request{{/if}}</b></div>
+      {{#if market.problem}}<p class="agent-market-note warn"><i class="fas fa-triangle-exclamation"></i> {{market.problem}}</p>{{/if}}
+      <textarea name="marketCartNote" rows="2" placeholder="A note for the seller (optional)" aria-label="A note for the seller">{{market.note}}</textarea>
+      <div class="agent-btn-row">
+        <button type="button" class="agent-wide-btn" data-action="market-clear"><i class="fas fa-trash"></i> Empty</button>
+        <button type="button" class="agent-wide-btn agent-market-order-btn" data-action="market-order" {{#unless market.canOrder}}disabled{{/unless}}><i class="fas fa-paper-plane"></i> Order</button>
+      </div>
+      <p class="agent-info-note">You are only charged if your order is able to be fulfilled.{{#if market.store.drone}} A Transporter drone drops it off within {{market.store.eta}} minutes of approval. Great River delivers to parts of the city only.{{/if}}</p>
+    {{else}}
+      <p class="agent-empty">Your cart is empty.</p>
+    {{/if}}
+  {{/if}}
+
+  {{#if market.tab.orders}}
+    <div class="agent-short-list" data-short-list="market-orders">
+      {{#each market.orders}}
+        {{> agent-market-order this}}
+      {{else}}
+        <p class="agent-empty">No orders yet.</p>
+      {{/each}}
+    </div>
+  {{/if}}
+{{/if}}
+  <p class="agent-gr-fine">What you get may not look or work exactly like the listing.</p>
+</div>

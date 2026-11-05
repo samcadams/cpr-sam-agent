@@ -1,5 +1,5 @@
-{{!-- An app page's header. Context: appBar() (ui/phone/pages/home.js), plus optional right-side buttons. Called as a block, the block replaces the owner. --}}
+{{!-- An app page's header. Context: appBar() (ui/phone/pages/home.js; `tag`: a small line under the title), plus optional right-side buttons. Called as a block, the block replaces the owner. --}}
 <div class="agent-inbox-bar agent-app-bar app-{{id}}">
-  <span class="agent-inbox-name"><i class="{{icon}}"></i> {{name}}</span>
+  <span class="agent-inbox-name"><i class="{{icon}}"></i> {{name}}{{#if tag}}<small class="agent-app-bar-tag">{{tag}}</small>{{/if}}</span>
   {{#if @partial-block}}{{> @partial-block}}{{else if owner}}<span class="agent-inbox-owner">{{owner}}</span>{{/if}}
 </div>

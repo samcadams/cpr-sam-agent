@@ -1,0 +1,101 @@
+/*
+ * Rocklin Augmentics Neuron, the Internal Agent's HUD (All About Agents, p. 9): "Projects video directly
+ * via the user's optic nerve". No panels at all: text in the field of view, a soft vignette at the edges.
+ * Builds on the HUD base (styles/skins/hud.css; the window also carries skin-hud, see SKINS.base).
+ */
+
+.ctp-phone-app.skin-neuron {
+  --bracket: transparent;
+}
+
+.ctp-phone-app.skin-neuron::before {
+  display: none;
+}
+
+/* A soft vignette at the edge of sight instead of a frame. */
+.ctp-phone-app.skin-neuron .window-content {
+  background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, calc(var(--hud-alpha, 0.8) * 0.55)) 100%);
+}
+
+.ctp-phone-app.skin-neuron .window-header {
+  opacity: 0.75;
+}
+
+.ctp-phone-app.skin-neuron .window-header:hover {
+  opacity: 1;
+}
+
+/*
+ * No panels: text sits straight in the view, kept legible by a shadow. The HUD opacity slider adds a
+ * dark veil behind it, up to nearly solid.
+ */
+.ctp-phone-app.skin-neuron .agent-statusbar,
+.ctp-phone-app.skin-neuron .agent-inbox-bar,
+.ctp-phone-app.skin-neuron .agent-thread-bar,
+.ctp-phone-app.skin-neuron .agent-gm-pickers,
+.ctp-phone-app.skin-neuron .agent-search,
+.ctp-phone-app.skin-neuron .agent-inbox,
+.ctp-phone-app.skin-neuron .agent-messages,
+.ctp-phone-app.skin-neuron .agent-compose,
+.ctp-phone-app.skin-neuron .agent-info,
+.ctp-phone-app.skin-neuron .agent-gm-calls,
+.ctp-phone-app.skin-neuron .agent-call-screen,
+.ctp-phone-app.skin-neuron .agent-token-prompt,
+.ctp-phone-app.skin-neuron .agent-dock {
+  border-color: transparent;
+  background: rgba(0, 0, 0, calc(var(--hud-alpha, 0.8) * 0.35));
+  backdrop-filter: blur(calc(var(--hud-alpha, 0.8) * 3px));
+}
+
+.ctp-phone-app.skin-neuron .window-content {
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, calc(var(--hud-alpha, 0.8) * 0.55)) 100%),
+    rgba(0, 0, 0, calc(var(--hud-alpha, 0.8) * 0.45));
+}
+
+.ctp-phone-app.skin-neuron .agent-phone {
+  text-shadow: 0 0 2px #000, 0 0 6px rgba(0, 0, 0, calc(var(--hud-alpha, 0.8) + 0.2)), 0 0 10px rgba(var(--agent-cyan-rgb), 0.35);
+}
+
+.ctp-phone-app.skin-neuron .agent-phone::after {
+  display: none;
+}
+
+/* The status line hugs the top edge, the dock the bottom. */
+.ctp-phone-app.skin-neuron .agent-statusbar {
+  opacity: 0.75;
+}
+
+.ctp-phone-app.skin-neuron .agent-bubble,
+.ctp-phone-app.skin-neuron .agent-msg.mine .agent-bubble {
+  background: none;
+  padding: 2px 4px;
+}
+
+.ctp-phone-app.skin-neuron .agent-msg.mine .agent-bubble {
+  text-align: right;
+}
+
+.ctp-phone-app.skin-neuron .agent-row {
+  border-bottom-color: transparent;
+}
+
+.ctp-phone-app.skin-neuron .agent-avatar {
+  background: transparent;
+  box-shadow: none;
+}
+
+.ctp-phone-app.skin-neuron input,
+.ctp-phone-app.skin-neuron textarea,
+.ctp-phone-app.skin-neuron .agent-dropdown-btn {
+  border-color: rgba(var(--agent-cyan-rgb), 0.25);
+  background: rgba(0, 0, 0, calc(var(--hud-alpha, 0.8) * 0.4));
+}
+
+.ctp-phone-app.skin-neuron .window-resizable-handle {
+  opacity: 0.4;
+}
+
+.ctp-phone-app.skin-neuron .window-resizable-handle:hover {
+  opacity: 1;
+}

@@ -12,7 +12,7 @@
   --agent-bg: var(--lcd);
   --agent-panel: var(--lcd-dark);
   --agent-text: var(--ink);
-  --agent-muted: #4f5d3a;
+  --agent-muted: #384229;
   --agent-cyan-rgb: 27, 36, 18;
   --agent-magenta-rgb: 27, 36, 18;
   --agent-yellow-rgb: 55, 68, 28;
@@ -344,6 +344,11 @@
   font-family: "Silkscreen", monospace;
   font-size: calc(10px * var(--agent-font-scale, 1));
   letter-spacing: 0;
+}
+
+/* Large text: the softkeys keep only their icons (the names are their tooltips, and what screen readers say). */
+.ctp-phone-app.skin-burner.text-large .agent-dock-app span {
+  display: none;
 }
 
 .ctp-phone-app.skin-burner .agent-dock-app.active {

@@ -1,0 +1,2 @@
+- NC Market is now Great River, Ziggurat's drone-delivery store from Black Chrome: river-blue look, approved orders fly in by Transporter drone within the hour (world or real time, whichever comes first; the GM can deliver at once or switch to instant).
+- Great River pricing: the canon store sells only things of 100eb (Premium) or less, or the GM picks "no cap" with a delivery fee (flat + %). Prices show their category ("Everyday").

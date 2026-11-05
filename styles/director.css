@@ -1,0 +1,1860 @@
+/*
+ * The GM Director (scripts/ui/director/), in the Neon Agent skin's language (styles/skins/neon.css):
+ * the phone's palette, Rajdhani, cyan hairlines over a faint 18px grid, chamfered corners, "// " card
+ * headers, hexagonal portraits, the persona's colour where the GM acts as someone, and a numbered rail.
+ * Every control gets its colours here, so Foundry's own (light buttons, dark text) never show through.
+ */
+
+.ctp-director {
+  --agent-bg: #0b0f14;
+  --agent-panel: #121922;
+  --agent-cyan-rgb: 0, 240, 255;
+  --agent-magenta-rgb: 255, 42, 109;
+  --agent-yellow-rgb: 245, 230, 99;
+  --agent-cyan: rgb(var(--agent-cyan-rgb));
+  --agent-magenta: rgb(var(--agent-magenta-rgb));
+  --agent-yellow: rgb(var(--agent-yellow-rgb));
+  --agent-text: #e6f7ff;
+  --agent-muted: #6b8494;
+  --agent-good: #39ff88;
+  --agent-font: "Rajdhani", "Arial Narrow", sans-serif;
+  --dir-raised: #1a2430;
+  --dir-line: rgba(var(--agent-cyan-rgb), 0.28);
+  --dir-hair: rgba(var(--agent-cyan-rgb), 0.12);
+  --dir-bad: #ff4d5e;
+  --cut: 8px;
+  --chamfer: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
+  --chamfer-sm: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 0 100%);
+  --hex: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  font-family: var(--agent-font);
+}
+
+.ctp-director .window-header {
+  background: var(--agent-bg);
+  border-bottom: 1px solid var(--dir-line);
+  color: var(--agent-cyan);
+  font-family: var(--agent-font);
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.ctp-director .window-content {
+  overflow: hidden;
+  padding: 0;
+  background:
+    linear-gradient(rgba(var(--agent-cyan-rgb), 0.05) 1px, transparent 1px) 0 0 / 18px 18px,
+    linear-gradient(90deg, rgba(var(--agent-cyan-rgb), 0.05) 1px, transparent 1px) 0 0 / 18px 18px,
+    var(--agent-bg);
+  color: var(--agent-text);
+}
+
+.ctp-director .director {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--agent-text);
+}
+
+.ctp-director .director h2,
+.ctp-director .director h3,
+.ctp-director .director h4 {
+  margin: 0;
+  border: none;
+  font-family: var(--agent-font);
+  color: var(--agent-text);
+}
+
+.ctp-director .director ol,
+.ctp-director .director ul.director-problems {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------------- Controls: explicit colours everywhere ---------------- */
+
+.ctp-director .director button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: auto;
+  height: auto;
+  min-height: 26px;
+  margin: 0;
+  padding: 2px 10px;
+  font-family: var(--agent-font);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.5px;
+  color: var(--agent-text);
+  background: var(--dir-raised);
+  border: 1px solid var(--dir-line);
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: var(--chamfer-sm);
+  cursor: pointer;
+}
+
+.ctp-director .director button:hover:not(:disabled),
+.ctp-director .director button:focus-visible {
+  color: var(--agent-cyan);
+  border-color: var(--agent-cyan);
+  background: rgba(var(--agent-cyan-rgb), 0.12);
+  outline: none;
+  box-shadow: none;
+}
+
+.ctp-director .director button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ctp-director .director button.primary {
+  color: var(--agent-bg);
+  background: var(--agent-cyan);
+  border-color: var(--agent-cyan);
+}
+
+.ctp-director .director button.primary:hover:not(:disabled) {
+  color: var(--agent-bg);
+  background: #7ff8ff;
+}
+
+.ctp-director .director button.danger:hover:not(:disabled) {
+  color: var(--dir-bad);
+  border-color: var(--dir-bad);
+  background: rgba(255, 77, 94, 0.12);
+}
+
+.ctp-director .director button.on {
+  color: var(--agent-yellow);
+  border-color: rgba(var(--agent-yellow-rgb), 0.6);
+}
+
+/* Text-like buttons (names, handles, rows). */
+.ctp-director .director button.director-plain {
+  min-height: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  clip-path: none;
+  text-align: left;
+  font-weight: inherit;
+}
+
+.ctp-director .director button.director-plain:hover {
+  background: none;
+}
+
+.ctp-director .director input:not([type="checkbox"], [type="radio"], [type="range"]),
+.ctp-director .director select,
+.ctp-director .director textarea {
+  height: auto;
+  min-height: 26px;
+  padding: 3px 8px;
+  font-family: var(--agent-font);
+  font-size: 14px;
+  color: var(--agent-text);
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--dir-line);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ctp-director .director input::placeholder,
+.ctp-director .director textarea::placeholder {
+  color: var(--agent-muted);
+}
+
+.ctp-director .director input:focus,
+.ctp-director .director select:focus,
+.ctp-director .director textarea:focus {
+  border-color: var(--agent-cyan);
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(var(--agent-cyan-rgb), 0.35);
+}
+
+.ctp-director .director select option,
+.ctp-director .director select optgroup {
+  color: var(--agent-text);
+  background: var(--agent-panel);
+}
+
+.ctp-director .director input[type="checkbox"] {
+  accent-color: var(--agent-cyan);
+}
+
+.ctp-director .director label > span {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.ctp-director .director-empty {
+  padding: 8px 12px;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director-pick {
+  margin: auto;
+  text-align: center;
+}
+
+.ctp-director .director-tag {
+  display: inline-block;
+  padding: 0 5px;
+  font-size: 11px;
+  font-style: normal;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--agent-cyan);
+  border: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-tag.warn {
+  color: var(--dir-bad);
+  border-color: var(--dir-bad);
+}
+
+.ctp-director .director-time,
+.ctp-director .director-ago,
+.ctp-director .director-meta,
+.ctp-director .director-sub,
+.ctp-director .director-handle {
+  font-size: 12px;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director-time {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.ctp-director .director-unread {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--agent-bg);
+  background: var(--agent-magenta);
+}
+
+.ctp-director .director-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  font-size: 12px;
+  color: var(--agent-text);
+  background: rgba(var(--agent-cyan-rgb), 0.08);
+  border: 1px solid var(--dir-line);
+}
+
+.ctp-director .director .director-chip button {
+  min-height: 0;
+  padding: 0 3px;
+  background: none;
+  border: none;
+  clip-path: none;
+}
+
+.ctp-director .director-note {
+  margin: 8px 0;
+  font-size: 12px;
+  color: var(--agent-muted);
+}
+
+/* Hexagonal portraits; initials on the persona's colour. */
+.ctp-director .director-avatar {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  border: none;
+  clip-path: var(--hex);
+}
+
+.ctp-director .director-avatar.initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--agent-bg);
+  background: var(--persona, var(--agent-cyan));
+}
+
+.ctp-director .director-photo {
+  display: block;
+  max-width: 260px;
+  max-height: 200px;
+  margin: 4px 0;
+  border: 1px solid var(--dir-line);
+  cursor: zoom-in;
+}
+
+/* ---------------- Frame: tabs, call strip ---------------- */
+
+.ctp-director .director-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-nav button {
+  padding: 3px 14px;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: transparent;
+}
+
+.ctp-director .director-nav button.active {
+  color: var(--agent-cyan);
+  border-color: var(--agent-cyan);
+  background: rgba(var(--agent-cyan-rgb), 0.15);
+  box-shadow: inset 0 -2px 0 var(--agent-cyan);
+}
+
+.ctp-director .director-nav .director-detach {
+  margin-left: auto;
+}
+
+.ctp-director .director-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.ctp-director .director-calls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ctp-director .director-calls:not(:empty) {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-call {
+  flex: 1 1 320px;
+  padding: 6px 10px;
+  background: var(--agent-panel);
+  border: 1px solid var(--dir-line);
+  clip-path: var(--chamfer);
+}
+
+.ctp-director .director-call.ringing {
+  border-color: var(--agent-good);
+  animation: director-ring 1s ease-in-out infinite alternate;
+}
+
+@keyframes director-ring {
+  to { background: rgba(57, 255, 136, 0.12); }
+}
+
+body.reduce-motion .ctp-director .director-call.ringing {
+  animation: none;
+}
+
+.ctp-director .director-call header {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ctp-director .director-call-timer {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--agent-cyan);
+}
+
+.ctp-director .director-call-people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.ctp-director .director-call-people em {
+  color: var(--agent-muted);
+}
+
+.ctp-director .director-call-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ctp-director .director .director-call .accept {
+  color: var(--agent-bg);
+  background: var(--agent-good);
+  border-color: var(--agent-good);
+}
+
+.ctp-director .director .director-call .decline,
+.ctp-director .director .director-call .end {
+  color: var(--dir-bad);
+  border-color: var(--dir-bad);
+}
+
+/* ---------------- Dashboard ---------------- */
+
+.ctp-director .director-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 10px;
+  height: 100%;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.ctp-director .director-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 240px;
+  padding: 1px;
+  background: rgba(var(--agent-cyan-rgb), 0.35);
+  clip-path: var(--chamfer);
+}
+
+.ctp-director .director-card > * {
+  background: var(--agent-panel);
+}
+
+.ctp-director .director-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--agent-cyan);
+  border-bottom: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-card h2::before {
+  content: "// ";
+  color: var(--agent-magenta);
+}
+
+.ctp-director .director-card h2 button {
+  margin-left: auto;
+}
+
+.ctp-director .director-fill {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.ctp-director .director-approvals li {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--dir-hair);
+}
+
+.ctp-director .director-approvals p {
+  margin: 2px 0;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director-source {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--agent-magenta);
+}
+
+.ctp-director .director-row-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.ctp-director .director-switches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 2px 8px;
+  margin: 8px 10px;
+  padding: 6px 8px;
+  border: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-switches legend {
+  padding: 0 4px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--agent-cyan);
+}
+
+.ctp-director .director-switches label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* The Agent Monitor inside the Agents card: no opacity slider (the card is solid), room for its font. */
+.ctp-director .director-monitor {
+  height: 100%;
+  --agent-font: "Rajdhani", "Arial Narrow", sans-serif;
+}
+
+.ctp-director .director-monitor .agent-monitor {
+  font-size: 13px;
+  line-height: 1.35;
+  text-shadow: none;
+}
+
+.ctp-director .director-monitor .agent-monitor-opacity {
+  display: none;
+}
+
+.ctp-director .director-monitor .agent-monitor-img {
+  clip-path: var(--hex);
+  border-radius: 0;
+}
+
+.ctp-director .director-monitor a {
+  color: var(--agent-cyan);
+}
+
+/* ---------------- Comms ---------------- */
+
+.ctp-director .director-comms {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+}
+
+.ctp-director .director-side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: rgba(0, 0, 0, 0.3);
+  border-right: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-pickers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.ctp-director .director-pickers label {
+  display: flex;
+  flex: 1 1 140px;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ctp-director .director-sims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ctp-director .director .director-sim {
+  min-height: 22px;
+  padding: 0 8px;
+  font-size: 12px;
+  background: transparent;
+  border-color: rgba(var(--agent-cyan-rgb), 0.2);
+}
+
+.ctp-director .director .director-sim.active {
+  color: var(--persona, var(--agent-cyan));
+  border-color: var(--persona, var(--agent-cyan));
+  background: color-mix(in srgb, var(--persona, var(--agent-cyan)) 14%, transparent);
+}
+
+.ctp-director .director-sim-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--persona, var(--agent-cyan));
+  clip-path: var(--hex);
+}
+
+.ctp-director .director-token-offer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px dashed rgba(var(--agent-yellow-rgb), 0.5);
+}
+
+.ctp-director .director-tools {
+  display: flex;
+  padding: 6px 8px;
+}
+
+.ctp-director .director-tools input {
+  flex: 1;
+}
+
+.ctp-director .director-threads {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.ctp-director .director-threads li {
+  position: relative;
+  display: flex;
+  border-bottom: 1px solid var(--dir-hair);
+}
+
+.ctp-director .director-threads li.active {
+  background: rgba(var(--agent-cyan-rgb), 0.1);
+  box-shadow: inset 2px 0 0 var(--agent-cyan);
+}
+
+.ctp-director .director-threads li.unread strong {
+  color: var(--agent-cyan);
+}
+
+.ctp-director .director .director-row {
+  flex: 1;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  text-align: left;
+  font-weight: 500;
+  background: none;
+  border: none;
+  clip-path: none;
+}
+
+.ctp-director .director-row-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.ctp-director .director-row-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.ctp-director .director-owner {
+  font-size: 11px;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director-preview {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director .director-pin {
+  align-self: center;
+  padding: 2px 6px;
+  color: var(--agent-muted);
+  background: none;
+  border: none;
+  clip-path: none;
+  opacity: 0;
+}
+
+.ctp-director .director-threads li:hover .director-pin,
+.ctp-director .director .director-pin.on,
+.ctp-director .director .director-pin:focus-visible {
+  opacity: 1;
+}
+
+.ctp-director .director .director-pin.on {
+  color: var(--agent-yellow);
+}
+
+.ctp-director .director-convo {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.ctp-director .director-convo-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-convo-head h2 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.ctp-director .director-convo-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-director .director-convo-head > .director-toolbar {
+  margin-left: auto;
+}
+
+/* Who the GM speaks as: the persona's colour, hazard-striped like the Neon skin. */
+.ctp-director .director-acting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 13px;
+  color: var(--persona, var(--agent-magenta));
+  background:
+    repeating-linear-gradient(-45deg, color-mix(in srgb, var(--persona, var(--agent-magenta)) 12%, transparent) 0 8px, transparent 8px 16px);
+  border-bottom: 1px solid color-mix(in srgb, var(--persona, var(--agent-magenta)) 50%, transparent);
+}
+
+.ctp-director .director-acting strong {
+  color: var(--persona, var(--agent-magenta));
+}
+
+.ctp-director .director-acting em {
+  color: var(--agent-muted);
+}
+
+.ctp-director .director-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 12px;
+}
+
+.ctp-director .director-date {
+  margin: 10px 0 4px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director-msg {
+  position: relative;
+  width: fit-content;
+  max-width: 70%;
+  margin: 4px 0;
+  padding: 6px 10px;
+  background: var(--dir-raised);
+  border-left: 2px solid var(--dir-line);
+  clip-path: var(--chamfer-sm);
+}
+
+.ctp-director .director-msg.mine {
+  margin-left: auto;
+  background: color-mix(in srgb, var(--persona, var(--agent-magenta)) 18%, var(--agent-panel));
+  border-left: none;
+  border-right: 2px solid var(--persona, var(--agent-magenta));
+}
+
+.ctp-director .director-msg.system {
+  max-width: none;
+  margin: 4px auto;
+  background: none;
+  border: none;
+  text-align: center;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director-who {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--persona, var(--agent-cyan));
+}
+
+.ctp-director .director-text,
+.ctp-director .director-post-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ctp-director .director-meta {
+  display: block;
+  margin-top: 2px;
+}
+
+.ctp-director .director-card-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.ctp-director .director .director-link {
+  color: var(--agent-cyan);
+  background: none;
+  border: none;
+  clip-path: none;
+  padding: 0;
+}
+
+.ctp-director .director-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 3px;
+}
+
+.ctp-director .director .director-reactions button {
+  min-height: 0;
+  padding: 0 5px;
+  clip-path: none;
+}
+
+.ctp-director .director .director-chip.mine {
+  border-color: var(--agent-cyan);
+}
+
+.ctp-director .director-react summary {
+  display: inline;
+  cursor: pointer;
+  color: var(--agent-muted);
+  list-style: none;
+}
+
+.ctp-director .director-react[open] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.ctp-director .director-set-viewed {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ctp-director .director-reply-slot {
+  border-top: 1px solid var(--dir-line);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.ctp-director .director-attached {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 8px 0;
+}
+
+.ctp-director .director-reply {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+}
+
+.ctp-director .director-attach {
+  display: flex;
+  gap: 2px;
+}
+
+.ctp-director .director-reply textarea {
+  flex: 1;
+  height: 3.5em;
+  resize: none;
+}
+
+.ctp-director .director-reply input[type="text"] {
+  flex: 1;
+}
+
+.ctp-director .director-reply label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ctp-director .director-group-info {
+  padding: 10px 12px;
+  overflow-y: auto;
+}
+
+.ctp-director .director-group-info form {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.ctp-director .director-members li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--dir-hair);
+}
+
+/* ---------------- Garden ---------------- */
+
+.ctp-director .director-garden {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+}
+
+.ctp-director .director-garden.has-detail {
+  grid-template-columns: 150px minmax(0, 1.2fr) minmax(320px, 1fr);
+}
+
+.ctp-director .director-garden:not(.has-detail) .director-garden-detail {
+  display: none;
+}
+
+/* The numbered rail, as the Neon skin's side app bar. */
+.ctp-director .director-garden-rail,
+.ctp-director .director-railed-rail {
+  padding: 8px 6px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.35);
+  border-right: 1px solid var(--dir-line);
+}
+
+.ctp-director .director .director-rail button {
+  width: 100%;
+  margin-bottom: 3px;
+  padding: 5px 8px;
+  justify-content: flex-start;
+  text-align: left;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: transparent;
+  border-color: transparent;
+  clip-path: none;
+}
+
+.ctp-director .director .director-rail button.active {
+  color: var(--agent-cyan);
+  background: rgba(var(--agent-cyan-rgb), 0.15);
+  border-color: transparent;
+  box-shadow: inset 2px 0 0 var(--agent-cyan);
+}
+
+.ctp-director .director-rail-n {
+  font-size: 11px;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director-rail .active .director-rail-n {
+  color: var(--agent-magenta);
+}
+
+.ctp-director .director-garden-main,
+.ctp-director .director-garden-detail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.ctp-director .director-garden-detail {
+  background: rgba(0, 0, 0, 0.25);
+  border-left: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-detail {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.ctp-director .director-detail-body,
+.ctp-director .director-page {
+  flex: 1;
+  min-height: 0;
+  padding: 8px 12px;
+  overflow-y: auto;
+}
+
+.ctp-director .director-garden-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-garden-compose textarea {
+  resize: vertical;
+}
+
+.ctp-director .director-garden-compose > .director-toolbar button[type="submit"] {
+  margin-left: auto;
+}
+
+.ctp-director .director-delay {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director .director-delay input {
+  width: 60px;
+}
+
+.ctp-director .director-garden-main > .director-posts {
+  flex: 1;
+  min-height: 0;
+  padding: 0 12px;
+  overflow-y: auto;
+}
+
+.ctp-director .director-post {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--dir-hair);
+}
+
+.ctp-director .director-post.rep {
+  box-shadow: inset 2px 0 0 var(--agent-yellow);
+  padding-left: 6px;
+}
+
+.ctp-director .director-post > button {
+  align-self: flex-start;
+}
+
+.ctp-director .director-page > .director-toolbar:first-child {
+  margin-bottom: 8px;
+}
+
+.ctp-director .director-post-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-director .director-post-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ctp-director .director-post-text {
+  margin: 2px 0;
+  cursor: pointer;
+}
+
+.ctp-director .director-post-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director .director-post-counts button {
+  min-height: 0;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--agent-muted);
+  background: none;
+  border: none;
+  clip-path: none;
+}
+
+.ctp-director .director-verified,
+.ctp-director .director-rep {
+  color: var(--agent-good);
+}
+
+.ctp-director .director-rep {
+  font-size: 12px;
+  color: var(--agent-yellow);
+}
+
+.ctp-director .director-boost {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.ctp-director .director-bio {
+  margin: 0 0 8px;
+  color: var(--agent-text);
+}
+
+/* Section headers inside a page: "// " in the accent, as the cards. */
+.ctp-director .director-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--agent-cyan);
+}
+
+.ctp-director .director .director-label {
+  color: var(--agent-cyan);
+}
+
+.ctp-director .director-label::before {
+  content: "// ";
+  color: var(--agent-magenta);
+}
+
+.ctp-director .director-label .director-toolbar {
+  margin-left: auto;
+}
+
+.ctp-director .director-replies li,
+.ctp-director .director-list > li {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--dir-hair);
+}
+
+.ctp-director .director-reply-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ctp-director .director-reply-row > div {
+  flex-basis: 100%;
+}
+
+.ctp-director .director-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ctp-director .director-item.faded {
+  opacity: 0.5;
+}
+
+.ctp-director .director-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-director .director-item-main small {
+  display: block;
+  font-size: 12px;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director .director-item .director-toolbar button {
+  min-height: 24px;
+  padding: 0 7px;
+}
+
+.ctp-director .director .director-check,
+.ctp-director .director .director-check:hover:not(:disabled) {
+  color: var(--agent-cyan);
+  background: none;
+  border: none;
+  clip-path: none;
+  font-size: 16px;
+}
+
+.ctp-director .director .director-stage {
+  color: var(--agent-yellow);
+  border-color: rgba(var(--agent-yellow-rgb), 0.5);
+}
+
+.ctp-director .director-check-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.ctp-director .director-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 0 24px;
+}
+
+.ctp-director .director-batch {
+  margin-bottom: 14px;
+  padding: 4px 12px 10px;
+  background: var(--agent-panel);
+  border: 1px solid var(--dir-line);
+  clip-path: var(--chamfer);
+}
+
+.ctp-director .director-batch.broken {
+  border-color: var(--dir-bad);
+}
+
+.ctp-director .director-day {
+  margin: 10px 0 2px;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--agent-yellow);
+}
+
+.ctp-director .director-problems li {
+  font-size: 12px;
+  color: var(--agent-yellow);
+}
+
+.ctp-director .director-problems.errors li,
+.ctp-director .director-problem {
+  color: var(--dir-bad);
+}
+
+.ctp-director .director-writer-note {
+  margin: 4px 0;
+  padding: 4px 8px;
+  font-size: 13px;
+  border-left: 2px solid var(--agent-cyan);
+  background: rgba(var(--agent-cyan-rgb), 0.06);
+}
+
+.ctp-director .director-writer-note.mine {
+  border-left-color: var(--agent-magenta);
+}
+
+.ctp-director .director-mix {
+  display: flex;
+  margin: 6px 0;
+  font-size: 11px;
+  border: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-mix span {
+  padding: 1px 6px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--agent-bg);
+}
+
+.ctp-director .director-mix .ring-city { background: var(--agent-cyan); }
+.ctp-director .director-mix .ring-close { background: var(--agent-yellow); }
+.ctp-director .director-mix .ring-about { background: var(--agent-magenta); }
+.ctp-director .director-mix .ring-none { background: var(--agent-muted); }
+
+/* ---------------- Detached: the child window is the frame. ---------------- */
+
+body.ctp-director-window {
+  display: block;
+  overflow: hidden;
+  background: #0b0f14;
+}
+
+.ctp-director.detached {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  margin: 0;
+  border-radius: 0;
+}
+
+.ctp-director.detached > .window-header {
+  display: none;
+}
+
+/* Its floating button, beside the GM Phone's (ui/buttons.js). */
+
+#ctp-director-button {
+  --agent-cyan-rgb: 255, 42, 109;
+}
+
+/* ---------------- Railed tabs (Economy, World) ---------------- */
+
+.ctp-director .director-railed {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+}
+
+.ctp-director .director-railed-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.ctp-director .director-railed-head {
+  padding: 8px 12px 0;
+  border-bottom: 1px solid var(--dir-line);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.ctp-director .director-railed-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ctp-director .director .director-railed-title h2 {
+  font-size: 20px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--agent-cyan);
+}
+
+.ctp-director .director-subtabs {
+  display: flex;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.ctp-director .director .director-subtabs button {
+  padding: 4px 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: transparent;
+  border-color: transparent;
+  clip-path: none;
+}
+
+.ctp-director .director .director-subtabs button.active {
+  color: var(--agent-cyan);
+  box-shadow: inset 0 -2px 0 var(--agent-cyan);
+}
+
+.ctp-director .director-count {
+  margin-left: 4px;
+  padding: 0 5px;
+  font-size: 11px;
+  color: var(--agent-bg);
+  background: var(--agent-magenta);
+}
+
+.ctp-director .director-order {
+  margin-bottom: 10px;
+  padding: 6px 12px 8px;
+  background: var(--agent-panel);
+  border: 1px solid var(--dir-line);
+  clip-path: var(--chamfer);
+}
+
+.ctp-director .director-order.pending {
+  border-color: rgba(var(--agent-yellow-rgb), 0.6);
+}
+
+.ctp-director .director-order header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ctp-director .director-order-total {
+  margin-left: auto;
+  color: var(--agent-yellow);
+}
+
+.ctp-director .director-order-lines li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--dir-hair);
+}
+
+.ctp-director .director .director-order-lines input[type="number"] {
+  width: 90px;
+}
+
+.ctp-director .director .director-order-lines input.unpriced {
+  border-color: var(--agent-yellow);
+}
+
+.ctp-director .director .director-order > input[type="text"] {
+  width: 100%;
+  margin: 6px 0 4px;
+}
+
+.ctp-director .director-drone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  color: var(--agent-cyan);
+}
+
+.ctp-director .director-drone-track {
+  flex: 1;
+  height: 4px;
+  background: var(--dir-hair);
+}
+
+.ctp-director .director-drone-track > span {
+  display: block;
+  height: 100%;
+  background: var(--agent-cyan);
+  animation: director-drone linear forwards;
+}
+
+@keyframes director-drone {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.ctp-director .director-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0;
+}
+
+.ctp-director .director-price {
+  min-width: 90px;
+  text-align: right;
+  color: var(--agent-yellow);
+}
+
+.ctp-director .director-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.ctp-director .director .director-setting input[type="number"] {
+  width: 90px;
+}
+
+.ctp-director .director-page > .director-pickers input[type="search"] {
+  flex: 1;
+  min-width: 200px;
+}
+
+.ctp-director .director-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 0 12px;
+}
+
+.ctp-director .director-order.live {
+  border-color: var(--agent-good);
+}
+
+.ctp-director .director-letter {
+  padding: 0 6px;
+  color: var(--agent-bg);
+  background: var(--agent-yellow);
+}
+
+.ctp-director .director-cbk-compose {
+  margin: 6px 0;
+  padding: 6px 8px;
+  border-left: 2px solid var(--agent-magenta);
+}
+
+.ctp-director .director .director-cbk-compose input[type="text"] {
+  width: 100%;
+}
+
+.ctp-director .director-cbk-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 16px;
+}
+
+.ctp-director .director-cbk-fields textarea {
+  flex: 1;
+}
+
+.ctp-director .director-cbk-listings {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 0 24px;
+}
+
+.ctp-director .director .director-cbk-listings input[type="search"] {
+  width: 100%;
+}
+
+.ctp-director .director-table {
+  width: 100%;
+  margin: 0;
+  border: none;
+  background: none;
+  border-collapse: collapse;
+}
+
+.ctp-director .director-table th {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--agent-muted);
+  background: none;
+}
+
+.ctp-director .director-table tr {
+  background: none;
+  border-bottom: 1px solid var(--dir-hair);
+}
+
+.ctp-director .director-table tr.faded {
+  opacity: 0.5;
+}
+
+.ctp-director .director-table td small {
+  display: block;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director .director-table input[type="text"] {
+  width: 70px;
+}
+
+.ctp-director .director .director-table input[type="number"] {
+  width: 80px;
+}
+
+.ctp-director .director-bangme {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.2fr) minmax(0, 1.4fr) minmax(280px, 1fr);
+  gap: 0 20px;
+}
+
+.ctp-director .director-item.active {
+  box-shadow: inset 2px 0 0 var(--agent-cyan);
+  background: rgba(var(--agent-cyan-rgb), 0.08);
+}
+
+.ctp-director .director-price.credit {
+  color: var(--agent-good);
+}
+
+/* ---------------- World ---------------- */
+
+.ctp-director .director-wx-today {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.ctp-director .director-wx-big {
+  font-size: 48px;
+  color: var(--agent-cyan);
+}
+
+.ctp-director .director .director-wx-today h3 {
+  font-size: 22px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ctp-director .director-wx-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.ctp-director .director .director-wx-tile {
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 4px;
+}
+
+.ctp-director .director .director-wx-tile.active {
+  color: var(--agent-cyan);
+  border-color: var(--agent-cyan);
+}
+
+.ctp-director .director .director-wx-tile.strange i {
+  color: var(--agent-magenta);
+}
+
+.ctp-director .director-wx-tile i {
+  font-size: 20px;
+}
+
+.ctp-director .director-wx-flags {
+  min-height: 12px;
+  font-size: 10px;
+  color: var(--agent-muted);
+}
+
+.ctp-director .director-wx-rules {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  font-size: 13px;
+}
+
+.ctp-director .director-jobs,
+.ctp-director .director-ncpd {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 1.2fr);
+  gap: 0 20px;
+}
+
+.ctp-director .director-ncpd {
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+}
+
+.ctp-director .director-ncpd-card {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 1.6fr);
+  gap: 0 16px;
+}
+
+.ctp-director .director-ncpd-photo {
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border: 1px solid var(--dir-line);
+}
+
+.ctp-director .director-ncpd-line {
+  display: flex;
+  gap: 4px;
+  margin: 3px 0;
+}
+
+.ctp-director .director .director-ncpd-line input {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-director .director .director-ncpd-line input.short {
+  flex: 0 0 64px;
+}
+
+.ctp-director .director-ncpd textarea {
+  width: 100%;
+}
+
+/* ---------------- Apps ---------------- */
+
+.ctp-director .director-sub-option {
+  padding-left: 22px;
+}
+
+.ctp-director .director-wide-field {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.ctp-director .director-wide-field textarea {
+  width: 100%;
+}
+
+.ctp-director .director-look .director-setting {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+}
+
+.ctp-director .director-rl-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.ctp-director .director-rl-card {
+  width: 120px;
+  height: 80px;
+  flex: none;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.ctp-director .director-rl-card.big {
+  width: 100%;
+  height: 200px;
+}
+
+.ctp-director .director .director-ncpd-line input[name="redlineName"],
+.ctp-director .director input[name="redlineName"] {
+  width: 100%;
+}
+
+.ctp-director .director-rarity {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rarity);
+}
+
+.ctp-director .director-gacha-name {
+  flex: 1;
+}
+
+.ctp-director .director-badges {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
+}
+
+.ctp-director .director .director-badge {
+  position: relative;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 4px;
+  font-size: 12px;
+  opacity: 0.55;
+}
+
+.ctp-director .director .director-badge.earned {
+  opacity: 1;
+  border-color: var(--agent-yellow);
+}
+
+.ctp-director .director .director-badge.active {
+  border-color: var(--agent-cyan);
+}
+
+.ctp-director .director-badge img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border: none;
+}
+
+.ctp-director .director-badge > i {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+.ctp-director .director-achieve-detail {
+  padding: 12px;
+  text-align: center;
+}
+
+.ctp-director .director-achieve-detail img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border: none;
+}
+
+/* ---------------- The Agent strip (every tab) ---------------- */
+
+.ctp-director .director .director-strip {
+  display: flex;
+  flex: none;
+  gap: 4px;
+  padding: 4px 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--dir-line);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.ctp-director .director .director-strip:empty {
+  display: none;
+}
+
+.ctp-director .director-strip-pc {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  max-width: 230px;
+  padding: 2px 8px 2px 2px;
+  border: 1px solid var(--dir-hair);
+  clip-path: var(--chamfer-sm);
+}
+
+.ctp-director .director-strip-pc .director-avatar {
+  width: 26px;
+  height: 26px;
+}
+
+.ctp-director .director-strip-pc > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.ctp-director .director-strip-pc b {
+  font-size: 12px;
+}
+
+.ctp-director .director-strip-pc small {
+  overflow: hidden;
+  font-size: 11px;
+  color: var(--agent-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ctp-director .director-strip-pc.app {
+  border-color: var(--agent-cyan);
+  background: rgba(var(--agent-cyan-rgb), 0.08);
+}
+
+.ctp-director .director-strip-pc.app small {
+  color: var(--agent-cyan);
+}
+
+.ctp-director .director-strip-pc.locked small {
+  color: var(--agent-yellow);
+}
+
+.ctp-director .director-strip-pc.offline {
+  opacity: 0.45;
+}
+
+.ctp-director .director-heat i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 2px;
+  background: var(--dir-hair);
+}
+
+.ctp-director .director-heat i.on {
+  background: var(--agent-magenta);
+}
+
+.ctp-director .director [data-query] textarea {
+  width: 100%;
+}

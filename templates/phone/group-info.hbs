@@ -3,7 +3,7 @@
   <div class="agent-thread-title"><div class="agent-thread-name">Group info</div></div>
 </div>
 <div class="agent-info">
-  <label class="agent-info-label">Name</label>
+  <h3 class="agent-info-label">Name</h3>
   <div class="agent-info-row">
     <input type="text" name="groupName" value="{{info.name}}" {{#unless info.canEdit}}disabled{{/unless}}>
     {{#if info.canEdit}}
@@ -11,7 +11,7 @@
     {{/if}}
   </div>
 
-  <label class="agent-info-label">Members</label>
+  <h3 class="agent-info-label">Members</h3>
   <ol class="agent-members">
     {{#each info.members}}
       <li{{#if canCard}} class="agent-member-link" data-action="member-card" data-name="{{name}}" title="Contact card"{{/if}}>

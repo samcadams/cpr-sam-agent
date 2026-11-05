@@ -1,0 +1,69 @@
+/*
+ * The Agent: the app's page (apps/agent/page.js, apps/agent/agent.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-alert.open {
+  border-left: 3px solid var(--agent-magenta);
+  padding-left: 6px;
+  background: rgba(var(--agent-magenta-rgb), 0.06);
+}
+
+.ctp-phone-app .agent-alert.kind-warning .agent-app-item-icon,
+.ctp-phone-app .agent-alert.kind-biometric .agent-app-item-icon,
+.ctp-phone-app .agent-alert.kind-trauma .agent-app-item-icon {
+  color: #ff5a5f;
+}
+
+.ctp-phone-app .agent-alert-answer {
+  margin-top: 2px;
+  color: var(--agent-muted);
+  font-style: italic;
+}
+
+.ctp-phone-app .agent-alert-open {
+  display: inline-block;
+  margin-top: 3px;
+  color: var(--agent-cyan);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-alert-open:hover,
+.ctp-phone-app .agent-alert-open:focus-visible {
+  text-decoration: underline;
+}
+
+.ctp-phone-app .agent-alert-open i {
+  font-size: 0.8em;
+}
+
+.ctp-phone-app .agent-app-item-x {
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  opacity: 0.5;
+}
+
+.ctp-phone-app .agent-vitals-tile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 4px 0 6px;
+  padding: 8px;
+  border: 1px solid rgba(77, 255, 136, 0.5);
+  background: rgba(16, 24, 32, 0.92); /* solid enough for the green to read on light skins */
+  color: #4dff88;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-vitals-tile.state-serious { border-color: #ffc24d; color: #ffc24d; }
+
+.ctp-phone-app .agent-vitals-tile.state-mortal { border-color: #ff4d5e; color: #ff4d5e; }
+
+.ctp-phone-app .agent-vitals-state {
+  margin-left: auto;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app .agent-vitals-injury {
+  flex-basis: 100%;
+}

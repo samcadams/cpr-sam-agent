@@ -1,0 +1,240 @@
+{{!-- BREACH (apps/breach/page.js). Players: nearby Breach Points, the roll, the grid. The GM: breaches going on, Breach Points, results. --}}
+<div class="agent-breach-app">
+{{> agent-app-bar breach.bar}}
+{{#if breach.gm}}
+  <div class="agent-info agent-app agent-breach-gm bp-cols">
+    <div>
+    <h3 class="agent-info-label"><i class="fas fa-satellite-dish"></i> Going on</h3>
+    <ol class="agent-app-list">
+      {{#each breach.live}}
+        <li class="agent-app-item status-{{status}}">
+          <i class="fas fa-microchip agent-app-item-icon"></i>
+          <div class="agent-app-item-main">
+            <div class="agent-app-item-top"><b>{{who}}</b><span class="agent-row-time">{{name}} · DV {{dv}}</span></div>
+            <small>
+              {{#if asked}}Asks to breach.{{else if approved}}Waiting for their Backdoor roll.{{else}}Rolled {{roll}} · {{progress}} · {{uploaded}}/{{of}} uploaded{{#if paused}} · <b>PAUSED</b>{{/if}}{{/if}}
+            </small>
+            <div class="agent-money-actions">
+              {{#if asked}}
+                <a class="pay" data-action="breach-approve" data-run-id="{{id}}"><i class="fas fa-check"></i> Allow</a>
+                <a class="decline" data-action="breach-deny" data-run-id="{{id}}"><i class="fas fa-xmark"></i> Refuse</a>
+              {{else}}
+                {{#if running}}<a data-action="breach-pause" data-run-id="{{id}}"><i class="fas fa-{{#if paused}}play{{else}}pause{{/if}}"></i> {{#if paused}}Resume{{else}}Pause{{/if}}</a>{{/if}}
+                {{#if (or ready running)}}
+                  <a data-action="breach-time" data-run-id="{{id}}" data-seconds="10" title="Give them 10 more seconds"><i class="fas fa-plus"></i> 10 s</a>
+                  <a data-action="breach-time" data-run-id="{{id}}" data-seconds="-10" title="Trace spike: 10 seconds less"><i class="fas fa-bolt"></i> Trace spike</a>
+                {{/if}}
+                <a class="decline" data-action="breach-end" data-run-id="{{id}}"><i class="fas fa-plug-circle-xmark"></i> Cut off</a>
+              {{/if}}
+            </div>
+          </div>
+        </li>
+      {{else}}
+        <li class="agent-empty">No breaches going on.</li>
+      {{/each}}
+    </ol>
+
+    {{#if breach.recent.length}}
+      <h3 class="agent-info-label"><i class="fas fa-clock-rotate-left"></i> Recent</h3>
+      <ol class="agent-app-list" data-short-list="breach-recent">
+        {{#each breach.recent}}
+          <li class="agent-app-item"><div class="agent-app-item-main"><div class="agent-app-item-top"><b>{{who}}</b><span class="agent-row-time">{{time}}</span></div><small>{{name}}: {{line}}</small></div></li>
+        {{/each}}
+      </ol>
+    {{/if}}
+    <p class="agent-info-note">Results come to you as whispered chat cards. Nothing applies itself: you resolve each uploaded daemon by hand.</p>
+    </div>
+    <div>
+    {{#if breach.editor}}
+      {{#with breach.editor}}
+        <h3 class="agent-info-label"><i class="fas fa-pen"></i> {{#if isNew}}New Breach Point{{else}}Edit {{name}}{{/if}}</h3>
+        <div class="agent-breach-editor">
+          <input type="text" data-br-field="name" value="{{name}}" maxlength="60" placeholder="Name (what the player sees)" aria-label="Breach Point name">
+          <div class="agent-setting-row"><span>DV (Backdoor)</span><input type="number" data-br-field="dv" value="{{dv}}" min="0" max="40" aria-label="DV"></div>
+          <div class="agent-setting-row"><span>Grid</span>{{> agent-dropdown sizes}}</div>
+          <h4>Daemons <small class="agent-hint">the first is the main one: it always fits the smallest buffer</small></h4>
+          {{#each daemonRows}}
+            <div class="agent-breach-daemon-edit">
+              <div class="agent-setting-row">
+                <input type="text" data-br-daemon="{{id}}" data-br-key="name" value="{{name}}" maxlength="40" aria-label="Daemon name">
+                {{> agent-dropdown lens}}
+                {{#unless first}}<a data-action="breach-daemon-up" data-daemon-id="{{id}}" title="Move up"><i class="fas fa-arrow-up"></i></a>{{/unless}}
+                {{#unless only}}<a data-action="breach-daemon-remove" data-daemon-id="{{id}}" title="Remove this daemon"><i class="fas fa-trash"></i></a>{{/unless}}
+              </div>
+              <textarea data-br-daemon="{{id}}" data-br-key="effect" rows="2" maxlength="600" placeholder="What it does at the table (only you see this)" aria-label="What {{name}} does">{{effect}}</textarea>
+            </div>
+          {{/each}}
+          {{#if canAdd}}<div class="agent-setting-row"><span></span>{{> agent-dropdown presets}}</div>{{/if}}
+          <h4>Who and where</h4>
+          <label class="agent-radio"><input type="checkbox" data-br-field="everyone" {{#if everyone}}checked{{/if}}> Every character can see it</label>
+          {{#unless everyone}}
+            <div class="agent-breach-who">
+              {{#each characters}}<label class="agent-radio"><input type="checkbox" data-br-field="actor" value="{{id}}" {{#if on}}checked{{/if}}> {{name}}</label>{{/each}}
+            </div>
+          {{/unless}}
+          <div class="agent-setting-row"><span>Where</span>{{> agent-dropdown anchors}}</div>
+          {{#if hasAnchor}}{{#if rangeHint}}<div class="agent-setting-row"><span>Range</span><input type="number" data-br-field="range" value="{{range}}" min="1" max="1000" placeholder="20" aria-label="Range in metres"> <small class="agent-hint">{{rangeHint}}</small></div>{{/if}}{{/if}}
+          <label class="agent-radio"><input type="checkbox" data-br-field="single" {{#if single}}checked{{/if}}> Single use (closes once something is uploaded)</label>
+          <div class="agent-money-actions">
+            <a class="pay" data-action="breach-draft-save"><i class="fas fa-floppy-disk"></i> Save</a>
+            <a class="decline" data-action="breach-draft-cancel">Cancel</a>
+          </div>
+        </div>
+      {{/with}}
+    {{else}}
+      <h3 class="agent-info-label"><i class="fas fa-door-closed"></i> Breach Points</h3>
+      <ol class="agent-app-list" data-short-list="breach-points">
+        {{#each breach.points}}
+          <li class="agent-app-item{{#if used}} used{{/if}}">
+            <i class="fas fa-network-wired agent-app-item-icon"></i>
+            <div class="agent-app-item-main">
+              <div class="agent-app-item-top"><b>{{name}}</b><span class="agent-row-time">DV {{dv}} · {{size}}×{{size}}{{#if single}} · single use{{/if}}{{#if used}} · USED{{/if}}</span></div>
+              <small>{{daemons}}</small>
+              <small class="agent-hint">{{who}} · {{where}}</small>
+              <div class="agent-money-actions">
+                {{> agent-dropdown send}}
+                <a data-action="breach-edit" data-point-id="{{id}}"><i class="fas fa-pen"></i> Edit</a>
+                {{#if used}}<a data-action="breach-reopen" data-point-id="{{id}}"><i class="fas fa-rotate"></i> Reopen</a>{{/if}}
+                <a class="decline" data-action="breach-point-delete" data-point-id="{{id}}"><i class="fas fa-trash"></i></a>
+              </div>
+            </div>
+          </li>
+        {{else}}
+          <li class="agent-empty">No Breach Points yet.</li>
+        {{/each}}
+      </ol>
+      <button type="button" class="agent-wide-btn" data-action="breach-new"><i class="fas fa-plus"></i> New Breach Point</button>
+    {{/if}}
+
+    </div>
+  </div>
+{{else if (eq breach.screen "grid")}}
+  {{#with breach.grid}}
+    <div class="bp-screen agent-breach-grid-screen{{#if over}} over{{/if}}{{#if paused}} paused{{/if}}" data-size="{{size}}" data-line="{{axis}}">
+      <header class="bp-top">
+        <div class="bp-timer">
+          <span class="bp-timer-label">BREACH TIME REMAINING</span>
+          <span class="bp-timer-box" aria-label="Breach time left" data-br-clock>{{clock}}</span>
+          <div class="bp-timebar" data-br-bar style="--left: {{pct}}%"><i></i></div>
+        </div>
+        <div class="bp-target">
+          <b>{{name}}</b>
+          <small>{{#if roll}}BACKDOOR {{roll}} / DV {{dv}}{{else}}TRAINING · NOTHING AT STAKE{{/if}}</small>
+        </div>
+      </header>
+      <div class="bp-body">
+        <section class="bp-panel bp-matrix-panel" aria-label="Code matrix">
+          <h4 class="bp-head"><span class="bp-num">1</span> CODE MATRIX</h4>
+          <p class="bp-line" aria-live="polite">
+            {{#if live}}<i class="fas fa-crosshairs"></i> PICK FROM {{lineText}}{{#unless started}} · the clock starts on your first pick{{/unless}}
+            {{else if paused}}<i class="fas fa-pause"></i> THE GM PAUSED THE BREACH
+            {{else if expired}}<i class="fas fa-hourglass-end"></i> TIME'S UP…
+            {{else if over}}<i class="fas fa-plug-circle-xmark"></i> DISCONNECTED{{/if}}
+          </p>
+          <div class="agent-breach-matrix bp-matrix" role="grid" aria-label="Code matrix, {{size}} by {{size}}" style="--size: {{size}}">
+            {{#each rows}}
+              <div class="agent-breach-row" role="row">
+                {{#each cells}}
+                  <button type="button" role="gridcell" class="agent-breach-cell{{#if used}} used{{/if}}{{#if onLine}} on-line{{/if}}{{#if open}} open{{/if}}"
+                    data-action="breach-pick" data-cell="{{cell}}" {{#unless open}}disabled{{/unless}}
+                    aria-label="{{#if used}}Used{{else}}{{code}}{{/if}}{{#if onLine}}, on the line{{/if}}">{{#if used}}[ ]{{else}}{{code}}{{/if}}</button>
+                {{/each}}
+              </div>
+            {{/each}}
+          </div>
+        </section>
+        <div class="bp-side">
+          {{#if over}}
+            <section class="bp-result {{#if uploaded}}good{{else}}bad{{/if}}" role="status">
+              <b>{{#if uploaded}}DAEMONS UPLOADED{{else}}BREACH FAILED{{/if}}</b>
+              <small>{{why}} · {{uploaded}} of {{daemons.length}} uploaded{{#unless practice}} · the GM has the results{{/unless}}</small>
+              {{#if practice}}
+                <div class="bp-actions"><button type="button" class="bp-btn" data-action="breach-practice"><i class="fas fa-rotate"></i> Another grid</button><button type="button" class="bp-btn ghost" data-action="breach-practice-close">Done</button></div>
+              {{else}}
+                <div class="bp-actions"><button type="button" class="bp-btn" data-action="breach-dismiss" data-run-id="{{id}}">OK</button></div>
+              {{/if}}
+            </section>
+          {{/if}}
+          <section class="bp-panel bp-buffer-panel" aria-label="Buffer">
+            <h4 class="bp-head"><span class="bp-num">2</span> BUFFER</h4>
+            <div class="agent-breach-buffer bp-buffer">
+              {{#each buffer}}<span class="agent-breach-slot{{#if filled}} filled{{/if}}">{{code}}</span>{{/each}}
+            </div>
+          </section>
+          <section class="bp-panel bp-daemons-panel" aria-label="Daemons">
+            <h4 class="bp-head"><span class="bp-num">3</span> SEQUENCE REQUIRED TO UPLOAD</h4>
+            <ol class="agent-breach-daemons bp-daemons">
+              {{#each daemons}}
+                <li class="agent-breach-daemon state-{{state}}">
+                  <span class="agent-breach-codes">{{#each codes}}<span class="{{#if lit}}lit{{/if}}">{{code}}</span>{{/each}}</span>
+                  <span class="agent-breach-dname">{{name}}</span>
+                  {{#if done}}<span class="bp-tag">UPLOADED</span>{{else if failed}}<span class="bp-tag">FAILED</span>{{/if}}
+                  {{#if label}}<small class="agent-sr-label{{#unless (eq state "open")}} agent-sr-only{{/unless}}">{{label}}</small>{{/if}}
+                </li>
+              {{/each}}
+            </ol>
+          </section>
+          {{#unless over}}
+            <div class="bp-actions">
+              {{#if canQuick}}<button type="button" class="bp-btn ghost" data-action="breach-quick" data-run-id="{{id}}" title="Settle it on the roll, without the grid"><i class="fas fa-dice-d10"></i> Just roll it</button>{{/if}}
+              <button type="button" class="bp-btn bad" data-action="breach-quit" {{#unless practice}}data-run-id="{{id}}"{{/unless}}><i class="fas fa-plug-circle-xmark"></i> Jack out</button>
+            </div>
+          {{/unless}}
+        </div>
+      </div>
+      <p class="agent-sr-only" aria-live="polite" data-br-say></p>
+    </div>
+  {{/with}}
+{{else}}
+  <div class="agent-info agent-app agent-breach">
+    {{#if (eq breach.screen "asked")}}
+      <div class="agent-breach-banner"><i class="fas fa-hourglass-half"></i> <b>{{breach.run.name}}</b><small>Waiting for the way in…</small></div>
+      <button type="button" class="agent-wide-btn" data-action="breach-cancel" data-run-id="{{breach.run.id}}">Never mind</button>
+    {{else if (eq breach.screen "denied")}}
+      <div class="agent-breach-banner bad"><i class="fas fa-ban"></i> <b>{{breach.run.name}}</b><small>No way in.</small></div>
+      <button type="button" class="agent-wide-btn" data-action="breach-dismiss" data-run-id="{{breach.run.id}}">OK</button>
+    {{else if (eq breach.screen "locked")}}
+      <div class="agent-breach-banner bad"><i class="fas fa-lock"></i> <b>ACCESS DENIED</b><small>{{breach.run.name}} · rolled {{breach.run.roll}} vs DV {{breach.run.dv}}</small></div>
+      <button type="button" class="agent-wide-btn" data-action="breach-dismiss" data-run-id="{{breach.run.id}}">OK</button>
+    {{else if (eq breach.screen "approved")}}
+      <div class="agent-breach-banner"><i class="fas fa-plug"></i> <b>{{breach.run.name}}</b><small>Jacked in · DV {{breach.run.dv}}</small></div>
+      {{#if breach.can.ok}}
+        <p class="agent-info-note">Roll Backdoor with {{breach.deck}} (Interface {{breach.rank}}). Miss the DV and you're locked out; beat it and every 2 over adds a buffer slot.</p>
+        <button type="button" class="agent-wide-btn" data-action="breach-roll" data-run-id="{{breach.run.id}}" {{#if breach.rolling}}disabled{{/if}}><i class="fas fa-dice-d10"></i> Roll Backdoor</button>
+      {{else}}
+        <p class="agent-info-note">{{breach.can.why}}</p>
+      {{/if}}
+      <button type="button" class="agent-wide-btn" data-action="breach-cancel" data-run-id="{{breach.run.id}}">Jack out</button>
+    {{else}}
+      <div class="bp-cols">
+      <div>
+      <h3 class="agent-info-label"><i class="fas fa-network-wired"></i> Access points nearby</h3>
+      {{#if breach.can.ok}}
+        <ol class="agent-app-list" data-short-list="breach-nearby">
+          {{#each breach.points}}
+            <li class="agent-app-item">
+              <i class="fas fa-network-wired agent-app-item-icon"></i>
+              <div class="agent-app-item-main">
+                <div class="agent-app-item-top"><b>{{name}}</b><span class="agent-row-time">DV {{dv}}</span></div>
+                <small>{{size}}×{{size}} grid · {{daemons}} daemon{{#unless (eq daemons 1)}}s{{/unless}}</small>
+                <div class="agent-money-actions"><a class="pay" data-action="breach-ask" data-point-id="{{id}}"><i class="fas fa-plug"></i> Breach</a></div>
+              </div>
+            </li>
+          {{else}}
+            <li class="agent-empty">Nothing in range to breach.</li>
+          {{/each}}
+        </ol>
+      {{else}}
+        <p class="agent-info-note">{{breach.can.why}}</p>
+      {{/if}}
+      </div>
+      <div>
+      <h3 class="agent-info-label"><i class="fas fa-graduation-cap"></i> Practice</h3>
+        <p class="agent-info-note">A training grid, nothing at stake, no deck needed.</p>
+        <button type="button" class="agent-wide-btn" data-action="breach-practice"><i class="fas fa-play"></i> Practice grid</button>
+      </div>
+      </div>
+    {{/if}}
+  </div>
+{{/if}}
+</div>

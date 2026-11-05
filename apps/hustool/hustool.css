@@ -1,0 +1,67 @@
+/*
+ * HusTool (No/Brainer yellow): the app's page (apps/hustool/page.js, apps/hustool/hustool.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over; PAY ME keeps HusTool's yellow.
+ */
+
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-hustool { --app-rgb: 242, 208, 36; }
+
+.ctp-phone-app .agent-hustool { --hustool-rgb: 242, 208, 36; }
+
+.ctp-phone-app .agent-hustool-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  margin-bottom: 0.6em;
+}
+.ctp-phone-app .agent-hustool-banner > b { font-size: 1.3em; color: rgb(var(--hustool-rgb)); letter-spacing: 0.04em; }
+.ctp-phone-app .agent-hustool-today { margin-left: auto; }
+
+.ctp-phone-app .agent-hustool-payme {
+  display: block;
+  width: 100%;
+  margin: 0.8em 0 0.4em;
+  padding: 1.1em 0;
+  border: none;
+  border-radius: 1em;
+  background: rgb(var(--hustool-rgb));
+  color: #1a1400;
+  font-size: 1.8em;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  box-shadow: 0 0.25em 0 rgba(0, 0, 0, 0.35);
+}
+.ctp-phone-app .agent-hustool-payme:hover:not(:disabled) { filter: brightness(1.08); }
+.ctp-phone-app .agent-hustool-payme:active:not(:disabled) { transform: translateY(0.15em); box-shadow: 0 0.1em 0 rgba(0, 0, 0, 0.35); }
+.ctp-phone-app .agent-hustool-payme:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.ctp-phone-app .agent-hustool-job {
+  margin: 0.6em 0;
+  padding: 0.8em;
+  border: 1px solid rgba(var(--hustool-rgb), 0.6);
+  border-radius: 0.6em;
+  background: rgba(var(--hustool-rgb), 0.08);
+}
+.ctp-phone-app .agent-hustool-job-text { font-size: 1.15em; font-weight: 700; }
+
+.ctp-phone-app .agent-hustool-ok { color: var(--agent-good, #39ff88); }
+.ctp-phone-app .agent-hustool-bad { color: var(--agent-red, #e53935); }
+.ctp-phone-app .agent-hustool-due { color: rgb(var(--hustool-rgb)); font-weight: 700; }
+
+.ctp-phone-app .agent-hustool-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em;
+  margin: 0.2em 0;
+}
+.ctp-phone-app .agent-hustool-row input[type="text"] { flex: 1 1 8em; min-width: 0; }
+.ctp-phone-app .agent-hustool-row input[type="number"] { width: 4em; }
+
+.ctp-phone-app .agent-hustool-day {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4em;
+  margin-top: 0.5em;
+}

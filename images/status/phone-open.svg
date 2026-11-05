@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- A phone with a lit screen and signal waves: the token's player has their Agent open. -->
+  <g fill="#fff" stroke="#000" stroke-width="12" stroke-linejoin="round">
+    <rect x="146" y="56" width="200" height="400" rx="34"/>
+  </g>
+  <rect x="170" y="104" width="152" height="292" rx="8" fill="#3fd8ff" stroke="#000" stroke-width="8"/>
+  <rect x="220" y="76" width="52" height="10" rx="5" fill="#000"/>
+  <circle cx="246" cy="426" r="14" fill="#000"/>
+  <g fill="#fff" stroke="#fff" stroke-width="0">
+    <rect x="190" y="132" width="112" height="22" rx="6" fill="#003a4a"/>
+    <rect x="190" y="172" width="80" height="22" rx="6" fill="#003a4a"/>
+    <rect x="212" y="212" width="90" height="22" rx="6" fill="#003a4a"/>
+  </g>
+  <g fill="none" stroke-linecap="round">
+    <path d="M380 150a110 110 0 0 1 0 150" stroke="#000" stroke-width="40"/>
+    <path d="M380 150a110 110 0 0 1 0 150" stroke="#fff" stroke-width="22"/>
+    <path d="M420 110a170 170 0 0 1 0 230" stroke="#000" stroke-width="40"/>
+    <path d="M420 110a170 170 0 0 1 0 230" stroke="#fff" stroke-width="22"/>
+  </g>
+</svg>

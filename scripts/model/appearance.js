@@ -1,3 +1,4 @@
+import { APP_MANIFEST } from "../apps/manifest.js";
 import { MODULE_ID } from "../config.js";
 import { patchSetting } from "../util/settings.js";
 
@@ -26,17 +27,14 @@ export const EMOJI_CATALOG = {
 /** What each app is called on the dock, the home screen and its own header (Control → Labels → App names). */
 export const APP_NAMES = {
   contacts: { name: "Contacts", default: "Contacts" },
-  messages: { name: "Messages", default: "Messages" },
+  // Zchat: Ziggurat's messenger, the canon name (Black Chrome p. 148).
+  messages: { name: "Messages", default: "Zchat" },
   quests: { name: "Jobs", default: "Jobs" },
   settings: { name: "Settings (players)", default: "Settings" },
   control: { name: "Control (GM)", default: "Control" },
   home: { name: "Apps (home screen)", default: "Apps" },
-  agent: { name: "Agent", default: "Agent" },
-  garden: { name: "The Garden", default: "The Garden" },
-  alex: { name: "Ask Alex Anything", default: "Ask Alex Anything" },
-  bangme: { name: "BangMe!", default: "BangMe!" },
-  trauma: { name: "Trauma Team", default: "Trauma Team" },
-  watchbox: { name: "WatchBox", default: "WatchBox" }
+  // Every app (apps/manifest.js).
+  ...Object.fromEntries(Object.entries(APP_MANIFEST).map(([id, app]) => [id, { name: app.name, default: app.name }]))
 };
 
 export const LABELS = {
@@ -50,12 +48,8 @@ export const ICONS = {
   messages: { name: "Messages app", default: "fas fa-comments" },
   jobs: { name: "Jobs app", default: "fas fa-list-check" },
   apps: { name: "Apps (home screen)", default: "fas fa-grip" },
-  agent: { name: "Agent app", default: "fas fa-robot" },
-  garden: { name: "The Garden", default: "fas fa-seedling" },
-  alex: { name: "Ask Alex Anything", default: "fas fa-magnifying-glass" },
-  bangme: { name: "BangMe!", default: "fas fa-burst" },
-  trauma: { name: "Trauma Team", default: "fas fa-truck-medical" },
-  watchbox: { name: "WatchBox", default: "fas fa-eye" },
+  // Every app (apps/manifest.js).
+  ...Object.fromEntries(Object.entries(APP_MANIFEST).map(([id, app]) => [id, { name: app.iconLabel ?? app.name, default: app.icon }])),
   control: { name: "Control app (GM)", default: "fas fa-sliders" },
   settings: { name: "Settings app", default: "fas fa-gear" },
   call: { name: "Call", default: "fas fa-phone" },

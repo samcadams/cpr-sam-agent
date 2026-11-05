@@ -1,0 +1,3 @@
+- Trauma Team: the home-screen tile and dock icon are now Black Chrome's Trauma Team MedScan app icon (a GM-chosen icon in Control still replaces it; the Burner keeps its one-colour glyph).
+- App Store: Black Chrome's coming apps (NCPD Crime Database, 4Tify, Ziggurat City Database, Digital Gladiator) are teased under Featured with their own icons; the GM can remove them like any listing. A GM's own listing can have a picture (an image path) instead of an icon.
+- Home screen: app tiles are solid now, so the screen behind no longer shows through them.

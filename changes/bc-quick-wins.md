@@ -1,0 +1,5 @@
+- Messages is called Zchat by default now, Ziggurat's messenger from Black Chrome (the GM can still rename it in Control).
+- App Store: prices show their category, like Black Chrome's "20eb (Everyday)", and apps that need the CitiNet say "Requires CitiNet".
+- Requires CitiNet: while a character has no signal, apps that need the CitiNet (Ask Alex, The Garden, the App Store, BangMe!, the store, WatchBox, Combat Cabb, Gacha) show a "No CitiNet connection" strip; the others keep working as before.
+- A character with an installed Sponsored Cybereye gets the SPONSORED ad strip on any Agent.
+- The status bar has a battery next to the signal bars (not on Internal Agents).

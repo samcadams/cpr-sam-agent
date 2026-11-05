@@ -35,6 +35,35 @@ export function formatMoney(amount) {
   return `${prefix}${Number(amount).toLocaleString()}${suffix}`;
 }
 
+/**
+ * The rulebook's price categories (CP:R p. 336; Black Chrome writes every price as "20eb (Everyday)"): the
+ * most each one costs, cheapest first. Anything over Luxury is Super Luxury.
+ */
+export const PRICE_TIERS = [
+  ["cheap", 10], ["everyday", 20], ["costly", 50], ["premium", 100], ["expensive", 500], ["veryExpensive", 1000], ["luxury", 5000], ["superLuxury", Infinity]
+];
+
+/** A price's category key ("everyday"), or null for no price. */
+export function priceTierKey(amount) {
+  const n = Number(amount);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return PRICE_TIERS.find(([, max]) => n <= max)[0];
+}
+
+/** A price's category, in the system's words ("Everyday", "Very Expensive"), or "" for no price. */
+export function priceTier(amount) {
+  const key = priceTierKey(amount);
+  if (!key) return "";
+  const label = `CPR.global.priceCategory.${key}`;
+  return globalThis.game?.i18n?.has?.(label) ? game.i18n.localize(label) : key.replace(/[A-Z]/g, c => ` ${c}`).replace(/^./, c => c.toUpperCase());
+}
+
+/** "§20 (Everyday)": a price the way Black Chrome writes it. */
+export function formatPrice(amount) {
+  const tier = priceTier(amount);
+  return tier ? `${formatMoney(amount)} (${tier})` : formatMoney(amount);
+}
+
 /** Money line for previews and cards, from the viewer's point of view. */
 export function moneyLabel(money, mine) {
   const amount = formatMoney(money.amount);

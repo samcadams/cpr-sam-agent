@@ -1,0 +1,1 @@
+- Map: the GM sets a pin's Combat Cabb zone (Combat Zone, Hot Zone or none) from its card, the same zone Combat Cabb's GM page sets.

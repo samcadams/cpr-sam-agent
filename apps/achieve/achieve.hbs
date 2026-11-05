@@ -1,0 +1,127 @@
+{{!-- Achieve! (apps/achieve/page.js). --}}
+{{#*inline "achieveBox"}}
+  <li class="agent-app-item agent-box status-{{status}}">
+    <i class="fas {{#if sealed}}fa-box{{else}}fa-box-open{{/if}} agent-app-item-icon"></i>
+    <div class="agent-app-item-main">
+      <div class="agent-app-item-top"><b>{{name}}</b>{{#if gm}}<span class="agent-row-time">{{ownerName}}</span>{{/if}}</div>
+      <small>{{statusLabel}}{{#if opener}} by {{opener}}{{/if}}{{#if source}} · for {{source}}{{/if}}</small>
+      {{#if inside}}<div class="agent-box-inside"><i class="fas fa-gift"></i> {{inside}}</div>{{/if}}
+      {{#if note}}<small>{{note}}</small>{{/if}}
+      {{#if gm}}
+        {{#if opening}}
+          <div class="agent-money-actions">
+            <a class="pay" data-action="achieve-box-confirm" data-box-id="{{id}}"><i class="fas fa-gift"></i> Give it</a>
+            <a data-action="achieve-box-change" data-box-id="{{id}}"><i class="fas fa-pen"></i> Something else</a>
+          </div>
+        {{/if}}
+      {{else if sealed}}
+        <div class="agent-money-actions"><a class="pay" data-action="achieve-box-open" data-box-id="{{id}}"><i class="fas fa-box-open"></i> Open it</a></div>
+      {{/if}}
+    </div>
+    {{#if gm}}<a class="agent-icon-btn" data-action="achieve-box-delete" data-box-id="{{id}}" title="Remove"><i class="fas fa-trash"></i></a>{{/if}}
+  </li>
+{{/inline}}
+{{> agent-app-bar achieve.bar}}
+<div class="agent-info agent-app agent-achieve">
+  <div class="agent-achieve-head">
+    <div class="agent-achieve-logo">M.R.A.M.A.Z.E.<small>Mystery Reward Achievements</small></div>
+    {{#if achieve.list}}
+      <div class="agent-achieve-count"><span><b>{{achieve.count}}</b>/{{achieve.total}}</span>{{#if achieve.tokens}}<small>{{achieve.tokens}} to trade in</small>{{/if}}</div>
+    {{/if}}
+  </div>
+  {{#if achieve.actorPicker}}<div class="agent-setting-row"><span>Character</span>{{> agent-dropdown achieve.actorPicker}}</div>{{/if}}
+
+  <div class="agent-tabs">
+    {{#each achieve.tabs}}<a class="agent-tab{{#if active}} active{{/if}}" data-action="achieve-tab" data-tab="{{id}}">{{label}}{{#if count}} <span class="agent-tab-count">{{count}}</span>{{/if}}</a>{{/each}}
+  </div>
+
+  {{#if achieve.noActor}}
+    <p class="agent-empty">No player characters yet.</p>
+  {{else if achieve.tab.boxes}}
+    {{#if achieve.gm}}
+      <button type="button" class="agent-wide-btn" data-action="achieve-box-give" title="Rolled on the Table of Mystery"><i class="fas fa-gift"></i> Give {{achieve.actorName}} a Mystery Box</button>
+      <p class="agent-info-note">Characters also get one by trading in an achievement.</p>
+      {{#if achieve.opening.length}}
+        <h3 class="agent-info-label">Opened: give it</h3>
+        <ol class="agent-app-list">{{#each achieve.opening}}{{> achieveBox}}{{/each}}</ol>
+      {{/if}}
+      <h3 class="agent-info-label">Sealed</h3>
+      <ol class="agent-app-list" data-short-list="achieve-sealed">{{#each achieve.sealed}}{{> achieveBox}}{{else}}<li class="agent-empty">No sealed boxes.</li>{{/each}}</ol>
+      {{#if achieve.opened.length}}
+        <h3 class="agent-info-label">Opened</h3>
+        <ol class="agent-app-list" data-short-list="achieve-opened">{{#each achieve.opened}}{{> achieveBox}}{{/each}}</ol>
+      {{/if}}
+    {{else}}
+      <div class="agent-box-amaze"><i class="fas fa-box"></i><div><b>Mr. Amaze's Mystery Boxes</b><small>Trade in an achievement for one. Hand-packed, upcycled, biodegradable. Probably.</small></div></div>
+      <ol class="agent-app-list" data-short-list="achieve-boxes">{{#each achieve.boxes}}{{> achieveBox}}{{else}}<li class="agent-empty">No boxes yet.</li>{{/each}}</ol>
+    {{/if}}
+  {{else}}
+    <ol class="agent-achieve-grid">
+      {{#each achieve.list}}
+        <li class="agent-achieve-badge{{#if earned}} earned{{/if}}{{#if spent}} spent{{/if}}{{#if secret}} secret{{/if}}{{#if disabled}} disabled{{/if}}{{#if open}} open{{/if}}" data-action="achieve-open" data-id="{{id}}" title="{{name}}">
+          <img src="{{img}}" alt="">
+          {{#if secret}}<i class="fas fa-question agent-achieve-mark"></i>{{/if}}
+          {{#if spent}}<i class="fas fa-right-left agent-achieve-mark"></i>{{/if}}
+          {{#if @root.achieve.gm}}{{#if hidden}}<i class="fas fa-eye-slash agent-achieve-mark"></i>{{/if}}{{/if}}
+          <span>{{name}}</span>
+        </li>
+      {{/each}}
+    </ol>
+  {{/if}}
+
+  {{#if achieve.settings}}
+    <button type="button" class="agent-wide-btn" data-action="achieve-add"><i class="fas fa-plus"></i> Add your own achievement</button>
+    <h3 class="agent-info-label">Settings</h3>
+    <label class="agent-radio"><input type="checkbox" data-achieve-setting="chat" {{#if achieve.chat}}checked{{/if}}> Announce in chat</label>
+    <p class="agent-info-note">Each character earns an achievement once; one award can go to several. The fanfare is in Control → Every phone (players can pick their own).</p>
+    <button type="button" class="agent-wide-btn" data-action="achieve-preview"><i class="fas fa-champagne-glasses"></i> Try the celebration</button>
+  {{/if}}
+</div>
+{{!-- The open badge, over the page: click outside it, its ×, or Escape closes it. --}}
+{{#with achieve.open}}
+  <div class="agent-achieve-pop" role="dialog" aria-modal="true" aria-label="{{name}}">
+    <a class="agent-achieve-scrim" data-action="achieve-close" tabindex="-1" aria-hidden="true"></a>
+    <div class="agent-achieve-detail{{#if earned}} earned{{/if}}{{#if spent}} spent{{/if}}{{#if disabled}} disabled{{/if}}">
+      <a class="agent-icon-btn agent-achieve-close" data-action="achieve-close" title="Close"><i class="fas fa-xmark"></i></a>
+      <img src="{{img}}" alt="">
+      <b>{{name}}</b>
+      <p>{{text}}</p>
+      {{#if earned}}
+        <div class="agent-achieve-earned"><i class="fas fa-trophy"></i> Earned{{#if date}} · {{date}}{{/if}}</div>
+        {{#if note}}<em>"{{note}}"</em>{{/if}}
+        {{#if spent}}<div class="agent-achieve-spent"><i class="fas fa-right-left"></i> Traded in: {{spent}}</div>{{/if}}
+      {{else if secret}}
+      {{else}}
+        <div class="agent-achieve-locked"><i class="fas fa-lock"></i> Not yet</div>
+      {{/if}}
+      {{#if others}}<small><i class="fas fa-users"></i> Also earned by {{others}}</small>{{/if}}
+      {{#if hidden}}{{#if @root.achieve.gm}}<small><i class="fas fa-eye-slash"></i> Secret: players see "???" until it's earned.</small>{{/if}}{{/if}}
+      {{#if disabled}}<small><i class="fas fa-ban"></i> Switched off: not in this game.</small>{{/if}}
+      <div class="agent-money-actions">
+        {{#if @root.achieve.gm}}
+          {{#if earned}}
+            {{#unless spent}}<a class="pay" data-action="achieve-trade" data-id="{{id}}"><i class="fas fa-right-left"></i> Trade in</a>{{/unless}}
+            <a class="decline" data-action="achieve-revoke" data-id="{{id}}"><i class="fas fa-rotate-left"></i> Take back</a>
+          {{else}}
+            {{#unless disabled}}<a class="pay" data-action="achieve-award" data-id="{{id}}"><i class="fas fa-trophy"></i> Award</a>{{/unless}}
+          {{/if}}
+        {{else}}
+          {{#if earned}}
+            <a class="pay" data-action="achieve-show" data-id="{{id}}"><i class="fas fa-bullhorn"></i> Show off</a>
+            {{#unless spent}}<a data-action="achieve-ask" data-id="{{id}}"><i class="fas fa-right-left"></i> Trade in…</a>{{/unless}}
+          {{/if}}
+        {{/if}}
+      </div>
+      {{#if @root.achieve.gm}}
+        <div class="agent-money-actions">
+          <a data-action="achieve-hide" data-id="{{id}}"><i class="fas {{#if hidden}}fa-eye{{else}}fa-eye-slash{{/if}}"></i> {{#if hidden}}Show{{else}}Make secret{{/if}}</a>
+          <a data-action="achieve-disable" data-id="{{id}}"><i class="fas {{#if disabled}}fa-circle-check{{else}}fa-ban{{/if}}"></i> {{#if disabled}}Switch on{{else}}Switch off{{/if}}</a>
+          {{#if custom}}
+            <a data-action="achieve-edit" data-id="{{id}}"><i class="fas fa-pen"></i> Edit</a>
+            <a class="decline" data-action="achieve-remove" data-id="{{id}}"><i class="fas fa-trash"></i></a>
+          {{/if}}
+        </div>
+      {{/if}}
+    </div>
+  </div>
+{{/with}}

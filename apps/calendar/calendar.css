@@ -1,0 +1,129 @@
+/*
+ * Calendar: the app's page (apps/calendar/page.js, apps/calendar/calendar.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-cal-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.ctp-phone-app .agent-cal-head b {
+  flex: 1;
+  text-align: center;
+  color: var(--agent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app .agent-cal-grid {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin: 0 0 4px;
+  background: none;
+  border: none;
+}
+
+/* Foundry gives table headers a dark bar and shadowed text: on light skins that hid the weekdays. */
+.ctp-phone-app .agent-cal-grid thead,
+.ctp-phone-app .agent-cal-grid tr,
+.ctp-phone-app .agent-cal-grid tr:nth-child(even) {
+  background: none;
+  text-shadow: none;
+}
+
+.ctp-phone-app .agent-cal-grid th {
+  color: var(--agent-muted);
+  font-weight: normal;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  text-align: center;
+  background: none;
+}
+
+.ctp-phone-app .agent-cal-grid td {
+  height: 34px;
+  padding: 2px;
+  text-align: center;
+  vertical-align: top;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.12);
+}
+
+.ctp-phone-app .agent-cal-day {
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-cal-day:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.1);
+}
+
+.ctp-phone-app .agent-cal-day.today span:first-child {
+  color: var(--agent-yellow);
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-cal-day.selected {
+  outline: 2px solid var(--agent-cyan);
+  outline-offset: -2px;
+}
+
+.ctp-phone-app .agent-cal-marks {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  min-height: 6px;
+  margin-top: 2px;
+}
+
+.ctp-phone-app .agent-cal-marks i,
+.ctp-phone-app .agent-cal-legend i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.ctp-phone-app .agent-cal-marks i.note,
+.ctp-phone-app .agent-cal-legend i.note { background: var(--agent-cyan); }
+
+.ctp-phone-app .agent-cal-marks i.downtime,
+.ctp-phone-app .agent-cal-legend i.downtime { background: var(--agent-magenta); }
+
+.ctp-phone-app .agent-cal-legend {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  margin-bottom: 6px;
+}
+
+.ctp-phone-app .agent-cal-round {
+  margin-bottom: 6px;
+  padding: 4px 6px;
+  border-left: 3px solid var(--agent-yellow);
+  background: rgba(255, 210, 0, 0.08);
+}
+
+.ctp-phone-app .agent-cal-round a {
+  color: var(--agent-cyan);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-cal-note-body p {
+  margin: 2px 0;
+}
+
+.ctp-phone-app .agent-cal-form input[type=text],
+.ctp-phone-app .agent-cal-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 2px 0;
+}
+
+/* The Weather app's day icons (apps/weather). */
+.agent-cal-day .agent-cal-wx { display: block; font-size: .7em; opacity: .75; }
+.agent-cal-wxday { font-weight: normal; opacity: .8; }

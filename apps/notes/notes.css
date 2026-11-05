@@ -1,0 +1,45 @@
+/*
+ * Notes: the app's page (apps/notes/page.js, apps/notes/notes.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-notes-item {
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-notes-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.ctp-phone-app .agent-notes-head input {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-notes-title {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ctp-phone-app .agent-notes-text {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--agent-font);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-notes-body {
+  padding: 6px 8px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.ctp-phone-app .agent-notes-body p {
+  margin: 0 0 4px;
+  min-height: 1em;
+}

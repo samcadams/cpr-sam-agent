@@ -149,6 +149,11 @@ export const methods = {
       m.money.escrow = escrow;
     };
     update(message);
+    // A Fixer's app package (apps/pool/host.js): paying the request installs it.
+    if (message.pkg) {
+      if (action === "pay") this._poolPkgPaid(thread, message);
+      else if (action === "decline" || (action === "cancel" && money.kind === "request")) this._poolPkgClosed(thread, message);
+    }
     // PC-to-PC: keep the other player's copy in step.
     const mirror = isDirect(thread) && message.pairId ? this._mirror(thread, false) : null;
     const twin = mirror?.messages.find(m => m.pairId === message.pairId);

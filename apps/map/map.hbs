@@ -1,0 +1,136 @@
+{{!-- Map (apps/map/page.js). The map is drawn into .agent-navmap (apps/map/navMap.js) and the filter panel into .agent-mapf (apps/map/navFilter.js) after the redraw. --}}
+{{!-- No app header: the map gets the whole screen. --}}
+{{#if map.none}}
+  <div class="agent-info agent-app agent-map-none">
+    <p class="agent-empty"><i class="fas fa-map"></i> No map yet.</p>
+    {{#if map.gm}}<p class="agent-info-note">Import it from Combat Cabb's NAV scene (GM Phone → Combat Cabb), or the scene named NAV: its picture and pins are copied, the scene isn't changed.</p>{{/if}}
+    {{#if map.gm}}<button type="button" data-action="map-set-picture" title="Pick a picture for the Map; add pins to it from the GM's Map"><i class="fas fa-image"></i> Set a picture</button>{{/if}}
+    {{#if map.importable}}<button type="button" data-action="map-import" title="Copy the NAV scene's pins into the Map's own data"><i class="fas fa-file-import"></i> Import from NAV</button>{{/if}}
+  </div>
+{{else}}
+  <div class="agent-map">
+    <div class="agent-navmap" tabindex="0" role="application" aria-roledescription="map"
+      aria-label="Map, {{map.count}} pins{{#if map.crew}}, the crew is{{#if map.crew.at}} at {{map.crew.at}}{{else}} marked{{/if}}{{/if}}. Drag or use the arrow keys to move, the wheel or plus and minus to zoom, 0 to see the whole city again."></div>
+    <section class="agent-mapf" aria-label="Filter the pins"></section>
+    <div class="agent-map-zoom">
+      {{#if map.crew}}<button type="button" data-action="map-zoom" data-dir="crew" aria-label="Find the crew" title="Find the crew{{#if map.crew.at}}: {{map.crew.at}}{{/if}}"><i class="fas fa-location-arrow"></i></button>{{/if}}
+      <button type="button" data-action="map-zoom" data-dir="in" aria-label="Zoom in" title="Zoom in"><i class="fas fa-plus"></i></button>
+      <button type="button" data-action="map-zoom" data-dir="out" aria-label="Zoom out" title="Zoom out"><i class="fas fa-minus"></i></button>
+      <button type="button" data-action="map-zoom" data-dir="fit" aria-label="Back to the whole city" title="Back to the whole city"><i class="fas fa-expand"></i></button>
+    </div>
+    {{#if map.gm}}
+      {{#unless map.crew}}
+        <button type="button" class="agent-map-crew-drop" data-action="map-crew-here" title="Put the crew's GPS spot in the middle of the map; drag it from there"><i class="fas fa-location-arrow"></i> Place the crew</button>
+      {{/unless}}
+    {{/if}}
+    {{#with map.pin}}
+      <div class="agent-map-card{{#if fresh}} fresh{{/if}}{{#if edit}} editing{{/if}}" role="region" aria-label="{{name}}" style="{{#if color}}--pin: {{color}};{{/if}}">
+        <div class="agent-map-card-top">
+          <span class="agent-map-card-dot">{{#if icon}}<img src="{{icon}}" alt="">{{else}}<i class="fas fa-location-dot"></i>{{/if}}</span>
+          <div class="agent-map-card-main">
+            <b>{{name}}</b>
+            {{#if line}}<small>{{line}}</small>{{/if}}
+            {{#if crewHere}}<small class="agent-map-card-crew"><i class="fas fa-location-arrow"></i> The crew is here</small>{{/if}}
+            {{#if gmOnly}}<small class="agent-map-card-gm"><i class="fas fa-eye-slash"></i> Players don't see this pin</small>{{/if}}
+            {{#if temp}}<small class="agent-map-card-temp"><i class="fas fa-thumbtack"></i> Temporary pin</small>{{/if}}
+          </div>
+          <a class="agent-icon-btn" data-action="map-close-pin" title="Close" aria-label="Close"><i class="fas fa-xmark"></i></a>
+        </div>
+        {{!-- A taste of its journal page (players: revealed secrets only), cut short; tap it for the whole page. --}}
+        {{#if preview}}
+          {{#if preview.loading}}<p class="agent-map-card-note"><i class="fas fa-spinner fa-spin"></i> Loading…</p>
+          {{else if preview.empty}}
+          {{else}}<div class="agent-map-preview{{#if ../map.gm}} gm{{/if}}"{{#if readable}} data-action="map-read" role="link" tabindex="0" title="Open the whole page"{{/if}}>
+            <div class="agent-map-preview-text">{{{preview.html}}}</div>
+            {{#if readable}}<span class="agent-map-preview-more"><i class="fas fa-book-open"></i> Read the whole page</span>{{/if}}
+          </div>{{/if}}
+        {{/if}}
+        <div class="agent-map-card-actions">
+          {{#if canRouteTo}}<button type="button" data-action="map-route-to" title="A route here{{#unless ../map.route.from}} from the crew{{/unless}}"><i class="fas fa-route"></i> Route here</button>{{/if}}
+          {{#unless isStart}}<button type="button" data-action="map-route-from" title="Start a route here, then pick where to"><i class="fas fa-flag"></i> Start here</button>{{/unless}}
+          {{#if cabb}}<button type="button" class="agent-map-card-cabb" data-action="map-cabb" title="Call a Combat Cabb here: opens Combat Cabb with this as where to"><i class="fas fa-taxi"></i> Request Combat Cabb</button>{{/if}}
+          {{#if readable}}<button type="button" data-action="map-read"><i class="fas fa-book-open"></i> Read</button>{{/if}}
+          {{#if ../map.gm}}
+            {{#unless crewHere}}<button type="button" data-action="map-crew-here" title="Put the crew's GPS spot on this pin (Combat Cabb picks them up here)"><i class="fas fa-location-arrow"></i> Crew here</button>{{/unless}}
+          {{/if}}
+        </div>
+        {{#with edit}}
+          {{!-- GM: who sees it, at a glance, and the one-tap share. --}}
+          <div class="agent-map-share">
+            <div class="agent-map-share-row">
+              <span title="Who sees the pin on the Map"><i class="fas fa-map-pin"></i> Pin</span>
+              {{> agent-dropdown seenDropdown}}
+            </div>
+            {{#if characters}}
+              <div class="agent-map-seen-by" role="group" aria-label="The characters who see the pin">
+                {{#each characters}}<label><input type="checkbox" name="mapPinSeenBy" value="{{id}}" {{#if checked}}checked{{/if}}><span>{{name}}</span></label>{{/each}}
+              </div>
+            {{/if}}
+            {{#if journal}}
+              <div class="agent-map-share-row">
+                <span title="{{journal.name}}"><i class="fas fa-book"></i> Journal</span>
+                {{> agent-dropdown journal.shareDropdown}}
+              </div>
+              {{#if journal.entryHidden}}<p class="agent-map-card-note warn"><i class="fas fa-circle-info"></i> Its entry is hidden: players open the page from the pin, but don't find it in their Journal. Sharing again lifts the entry to Limited.</p>{{/if}}
+              {{#unless journal.everything}}<button type="button" class="agent-map-share-all" data-action="map-share-all" title="Everyone sees the pin and can read its journal page (the page at Observer, its entry at least Limited)"><i class="fas fa-share-nodes"></i> Show it all to the players</button>{{/unless}}
+            {{/if}}
+            {{#if nobody}}<p class="agent-map-card-note warn"><i class="fas fa-eye-slash"></i> No character ticked: only the GM sees it.</p>{{/if}}
+          </div>
+          <div class="agent-map-edit">
+            <a class="agent-map-edit-head" data-action="map-edit-toggle" role="button" aria-expanded="{{#if open}}true{{else}}false{{/if}}"><i class="fas fa-pen"></i> Edit pin <i class="fas fa-caret-{{#if open}}up{{else}}down{{/if}}"></i></a>
+            {{#if open}}
+              <label class="agent-map-edit-row"><span>Name</span><input type="text" name="mapPinName" value="{{name}}" maxlength="120" autocomplete="off"></label>
+              <div class="agent-map-edit-row"><span>Category</span>{{> agent-dropdown typeDropdown}}</div>
+              <div class="agent-map-edit-row"><span>District</span>{{> agent-dropdown districtDropdown}}</div>
+              <div class="agent-map-edit-row"><span>Colour</span>{{> agent-dropdown colorDropdown}}<input type="color" name="mapPinColor" value="{{color}}" title="Any colour"></div>
+              <div class="agent-map-edit-row"><span>Icon</span>{{> agent-dropdown iconDropdown}}</div>
+              <label class="agent-map-edit-row check"><input type="checkbox" name="mapPinNamed" {{#if named}}checked{{/if}}><span>Name always shows</span></label>
+              {{#if territory}}
+                <label class="agent-map-edit-row"><span>Size</span><input type="range" name="mapTurfSize" min="40" max="2400" step="10" value="{{territory.size}}"><output>{{territory.size}}</output></label>
+                <label class="agent-map-edit-row"><span>Opacity</span><input type="range" name="mapTurfAlpha" min="10" max="100" step="5" value="{{territory.alpha}}"><output>{{territory.alpha}}%</output></label>
+              {{/if}}
+              <div class="agent-map-edit-row"><span>Journal</span>{{> agent-dropdown entryDropdown}}</div>
+              {{#if pageDropdown}}<div class="agent-map-edit-row"><span>Page</span>{{> agent-dropdown pageDropdown}}</div>{{/if}}
+              <p class="agent-map-card-note">Drag the pin to move it{{#if territory}}, its corner to size it{{/if}}. Right-click the map (or hold) to drop a pin.</p>
+            {{/if}}
+          </div>
+          <div class="agent-map-card-actions">
+            {{#if temp}}<button type="button" data-action="map-pin-keep" title="Keep it as a lasting pin"><i class="fas fa-thumbtack"></i> Keep pin</button>{{/if}}
+            <button type="button" class="agent-map-card-danger" data-action="map-pin-delete" title="Take it off the Map (its journal entry stays)"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        {{/with}}
+        {{#if zoneDropdown}}
+          <div class="agent-map-card-link"><span title="Combat Cabb's fare multiplier for rides here"><i class="fas fa-taxi"></i> Cabb zone</span>{{> agent-dropdown zoneDropdown}}</div>
+        {{/if}}
+        {{#if linkDropdown}}
+          <div class="agent-map-card-link"><span title="Activating this scene puts the crew at this pin"><i class="fas fa-link"></i> Scene</span>{{> agent-dropdown linkDropdown}}</div>
+        {{/if}}
+      </div>
+    {{/with}}
+    {{#with map.route}}
+      <div class="agent-map-routebar" role="status">
+        <i class="fas fa-route"></i>
+        {{#if pickEnd}}<span class="agent-map-routebar-ends">From {{from}}: pick a pin, then "Route here"</span>
+        {{else if pickStart}}<span class="agent-map-routebar-ends">To {{to}}: pick a start ("Start here")</span>
+        {{else}}
+          <span class="agent-map-routebar-ends">{{from}} → {{to}}</span>
+          {{#if waiting}}<span><i class="fas fa-spinner fa-spin"></i></span>
+          {{else if none}}<span>{{#if noRoads}}No roads on this map{{else}}No way through{{/if}}</span>
+          {{else}}
+            <b>{{miles}} mi</b>
+            <span title="By car"><i class="fas fa-car-side"></i> {{drive}}</span>
+            <span title="On foot"><i class="fas fa-person-walking"></i> {{walk}}</span>
+          {{/if}}
+          <a class="agent-icon-btn" data-action="map-route-swap" title="Swap start and end" aria-label="Swap start and end"><i class="fas fa-right-left"></i></a>
+        {{/if}}
+        <a class="agent-icon-btn" data-action="map-route-clear" title="Clear the route" aria-label="Clear the route"><i class="fas fa-xmark"></i></a>
+      </div>
+    {{/with}}
+    {{#if map.temps}}
+      <a class="agent-map-temp-clear" data-action="map-clear-temp" title="Take every temporary pin off the Map"><i class="fas fa-thumbtack"></i> {{map.temps}} temporary <i class="fas fa-xmark"></i></a>
+    {{/if}}
+    {{#if map.gm}}{{#if map.crew}}
+      <a class="agent-map-crew-clear" data-action="map-crew-clear" title="Take the crew's GPS spot off the map"><i class="fas fa-location-arrow"></i> Crew{{#if map.crew.at}}: {{map.crew.at}}{{/if}} <i class="fas fa-xmark"></i></a>
+    {{/if}}{{/if}}
+  </div>
+{{/if}}

@@ -1,0 +1,21 @@
+{
+  "_id": "cpragentRecipe01",
+  "_key": "!macros!cpragentRecipe01",
+  "name": "Fixer texts the selected character",
+  "type": "script",
+  "scope": "global",
+  "img": "icons/svg/sound.svg",
+  "command": "// Recipe from API.md. GM only. Select a character's token, then run.\n// Change the contact and the text to suit.\nif (!token) return ui.notifications.warn(\"Select a character's token first.\");\nconst agent = game.modules.get(\"cpr-sam-agent\").api;\nawait agent.text({ to: token, from: \"Rogue\", text: \"Saw you walk in. Back booth.\" });",
+  "author": null,
+  "folder": null,
+  "sort": 100000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "12.343",
+    "systemId": "cyberpunk-red-core",
+    "systemVersion": "0.92.4"
+  }
+}

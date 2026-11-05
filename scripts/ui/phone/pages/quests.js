@@ -40,6 +40,15 @@ export const actions = {
   "quest-delete"() {
     this._deleteQuest();
   },
+  /** A see-through window of this job, so it can stay up while the phone is away (ui/JobPopout.js). */
+  async "quest-popout"() {
+    const { JobPopout } = await import("../../JobPopout.js"); // imported late: it extends the phone
+    JobPopout.open(this.questId);
+  },
+  async "quest-show-players"() {
+    const { JobPopout } = await import("../../JobPopout.js");
+    JobPopout.showToPlayers(this.questId);
+  },
   "quest-hide"() {
     const quest = store.quests.get(this.questId);
     if (quest) store.request("quest-save", { quest: { id: quest.id, hidden: !quest.hidden } });
@@ -157,6 +166,7 @@ export const methods = {
 
     return {
       manage,
+      popout: this.mode === "job",
       id: quest.id,
       name: quest.name,
       img: quest.img,

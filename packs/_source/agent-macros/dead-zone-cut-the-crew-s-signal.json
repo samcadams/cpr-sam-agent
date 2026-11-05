@@ -1,0 +1,21 @@
+{
+  "_id": "cpragentRecipe02",
+  "_key": "!macros!cpragentRecipe02",
+  "name": "Dead zone: cut the crew's signal",
+  "type": "script",
+  "scope": "global",
+  "img": "icons/svg/cancel.svg",
+  "command": "// Recipe from API.md. GM only. Texts sent while the signal is off wait until it's back.\nconst agent = game.modules.get(\"cpr-sam-agent\").api;\nconst crew = agent.characters().map(c => c.id);\nawait agent.setSignal(crew, false);",
+  "author": null,
+  "folder": null,
+  "sort": 200000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "12.343",
+    "systemId": "cyberpunk-red-core",
+    "systemVersion": "0.92.4"
+  }
+}

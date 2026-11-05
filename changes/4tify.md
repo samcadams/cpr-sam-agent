@@ -1,0 +1,2 @@
+- 4Tify (SecSystems, 100eb), Black Chrome p. 13, in the App Store (starts off; switch it on in Control): Scan my surroundings runs for 5 minutes of world time, with a wave travelling out from your token every few seconds for everyone who can see it. The mark gives +1d6 on the next damage against the cover you scanned: Use mark posts the roll to chat and spends it. It also grades your home security. It's always an F.
+- GM Phone: everyone's marks, with the exact time left and Void ("they moved the cargo container"). A scan starting sends a card with Void too.

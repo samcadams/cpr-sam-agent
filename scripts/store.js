@@ -3,9 +3,11 @@ import { installHost } from "./host/index.js";
 import { callRole, callRoles, canView, isAuthor, isIncoming, memberActorId, readKey } from "./model/permissions.js";
 import { isPlayerCharacter } from "./model/agent.js";
 import { emptyApps } from "./model/apps.js";
-import { emptyGarden } from "./model/garden.js";
+import { emptyGarden } from "../apps/garden/model.js";
 import { playerQuests } from "./model/quests.js";
 import { isDirect, isGroup, isService, npcKey, pcKey } from "./model/threads.js";
+import { subscriptionInfo } from "../apps/trauma/model.js";
+import { subscriptionsOf, subscriptionState } from "../apps/pool/model.js";
 
 /*
  * Message & call store.
@@ -20,7 +22,7 @@ import { isDirect, isGroup, isService, npcKey, pcKey } from "./model/threads.js"
  */
 
 /** Socket messages the host sends out; every other type is a request to the host. */
-const PUSHES = new Set(["thread", "remove", "sync", "call", "call-end", "requests", "quests", "notice", "world-sound", "world-sound-stop", "apps", "garden", "gm-card"]);
+const PUSHES = new Set(["thread", "remove", "sync", "call", "call-end", "requests", "quests", "notice", "world-sound", "world-sound-stop", "apps", "garden", "gm-card", "job-popout"]);
 
 /* -------------------------------------------- */
 /*  Store                                        */
@@ -32,7 +34,7 @@ class MessageStore {
   requests = new Map();
   quests = new Map();
   apps = emptyApps(); // the apps' data (model/apps.js)
-  garden = emptyGarden(); // The Garden (model/garden.js)
+  garden = emptyGarden(); // The Garden (apps/garden/model.js)
   loaded = false;
   loadFailed = false;
   synced = false;
@@ -163,15 +165,13 @@ class MessageStore {
   /** Run a request on the host (locally if we are the host). */
   request(type, data = {}, { quiet = false } = {}) {
     const msg = { ...data, type };
-    if (this.isHost) {
-      this._handle(msg, game.user);
-      return true;
-    }
-    if (!this.online) {
+    if (this.isHost) this._handle(msg, game.user);
+    else if (this.online) this._toHost(msg);
+    else {
       if (!quiet) ui.notifications.warn("No signal — a GM needs to be online.");
       return false;
     }
-    this._toHost(msg);
+    Hooks.callAll(`${MODULE_ID}.request`, type, data); // sent: what the phone is doing (ui/activity.js)
     return true;
   }
 
@@ -224,6 +224,7 @@ class MessageStore {
         this.requests = new Map((msg.requests ?? []).map(r => [r.id, r]));
         this.quests = new Map((msg.quests ?? []).map(q => [q.id, q]));
         this.apps = { ...emptyApps(), ...(msg.apps ?? {}) };
+        this._traumaChanges(false);
         this.garden = { ...emptyGarden(), ...(msg.garden ?? {}) };
         this.synced = true;
         this._changed();
@@ -246,7 +247,14 @@ class MessageStore {
         this.garden = { ...emptyGarden(), ...msg.garden };
         return this._changed({ garden: true });
       case "gm-card":
-        return Hooks.callAll(`${MODULE_ID}.gmCard`, msg.card);
+        // A new card (it pops up), or cards cleared from the notification center.
+        for (const id of msg.clear ?? []) delete this.apps.gmCards[id];
+        if (msg.card) this.apps.gmCards[msg.card.id] = msg.card;
+        this._changed({ apps: true });
+        if (msg.clear?.length) Hooks.callAll(`${MODULE_ID}.gmCardGone`, msg.clear);
+        return msg.card ? Hooks.callAll(`${MODULE_ID}.gmCard`, msg.card) : undefined;
+      case "job-popout":
+        return Hooks.callAll(`${MODULE_ID}.jobPopout`, msg.questId);
       case "world-sound":
         return Hooks.callAll(`${MODULE_ID}.worldSound`, msg.sound);
       case "world-sound-stop":
@@ -276,7 +284,41 @@ class MessageStore {
       const alert = this.apps.alerts[id];
       if (alert) Hooks.callAll(`${MODULE_ID}.agentAlert`, alert);
     }
+    this._traumaChanges();
+    this._subsChanges();
     this._changed({ apps: true });
+  }
+
+  /**
+   * Ziggurat Pool subscriptions that changed since this client last looked: the subscriptionsChanged
+   * hook (API.md) for each character, unless `fire` is false (the first sync only sets what's been seen).
+   */
+  _subsChanges(fire = !!this._poolSubsSeen) {
+    // Its own record: Trauma Team's (_traumaChanges) is _subsSeen.
+    const seen = (this._poolSubsSeen ??= {});
+    const installs = this.apps.installs ?? {};
+    for (const actorId of new Set([...Object.keys(seen), ...Object.keys(installs)])) {
+      const now = JSON.stringify(subscriptionsOf(installs, actorId));
+      if (now === (seen[actorId] ?? "[]")) continue;
+      seen[actorId] = now;
+      if (fire) Hooks.callAll(`${MODULE_ID}.subscriptionsChanged`, { actorId, ...subscriptionState(installs, actorId) });
+    }
+  }
+
+  /**
+   * Trauma Team subscriptions that changed since this client last looked: the traumaChanged hook
+   * (API.md) for each, unless `fire` is false (the first sync only sets what's been seen).
+   */
+  _traumaChanges(fire = true) {
+    const seen = (this._subsSeen ??= {});
+    const subs = this.apps.subs ?? {};
+    for (const actorId of new Set([...Object.keys(seen), ...Object.keys(subs)])) {
+      const now = subs[actorId] ? JSON.stringify(subs[actorId]) : null;
+      if (now === (seen[actorId] ?? null)) continue;
+      if (now) seen[actorId] = now;
+      else delete seen[actorId];
+      if (fire) Hooks.callAll(`${MODULE_ID}.traumaChanged`, { actorId, ...subscriptionInfo(subs[actorId]) });
+    }
   }
 
   _applyCall(call) {

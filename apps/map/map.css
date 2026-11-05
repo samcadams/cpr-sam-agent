@@ -1,0 +1,1416 @@
+/*
+ * Map: the app's page (apps/map/page.js, apps/map/map.hbs) and its map (apps/map/navMap.js),
+ * plus the phone on its side (.agent-landscape, set while the Map is open). Built from the phone's colour
+ * variables, so every skin and palette carries over.
+ */
+
+/* -------------------------------------------- */
+/*  The phone on its side                       */
+/* -------------------------------------------- */
+
+/*
+ * The status bar runs along the long top edge (as it does already: the window is just wider), and the dock
+ * becomes a rail down the right-hand side, as a phone's buttons go when it's turned. Neon's own side rail
+ * stays on the left.
+ */
+.ctp-phone-app.agent-landscape:not(.skin-classic.dock-side) .agent-phone:has(> .agent-dock) {
+  padding-right: 58px;
+}
+
+.ctp-phone-app.agent-landscape:not(.skin-classic.dock-side) .agent-dock {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: 58px;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 8px 4px;
+  border-top: none;
+  border-left: 1px solid rgba(var(--agent-cyan-rgb), 0.3);
+}
+
+.ctp-phone-app.agent-landscape:not(.skin-classic.dock-side) .agent-dock-app {
+  flex: none;
+  padding: 6px 0;
+}
+
+.ctp-phone-app.agent-landscape:not(.skin-classic.dock-side) .agent-dock-badge {
+  left: auto;
+  right: 2px;
+}
+
+/* Home-screen navigation: the Home button on the right, halfway down. */
+.ctp-phone-app.agent-landscape .agent-phone:has(> .agent-home-bar) {
+  padding-right: 48px;
+}
+
+.ctp-phone-app.agent-landscape .agent-home-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border-top: none;
+  border-left: 1px solid rgba(var(--agent-cyan-rgb), 0.2);
+}
+
+/* -------------------------------------------- */
+/*  The page                                    */
+/* -------------------------------------------- */
+
+.ctp-phone-app .agent-map {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background: #10112a; /* the NAV map's own night blue, while its tiles load */
+}
+
+/* -------------------------------------------- */
+/*  The map (apps/map/navMap.js)                      */
+/* -------------------------------------------- */
+
+.ctp-phone-app .agent-navmap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ctp-phone-app .agent-navmap:focus-visible {
+  outline: 2px solid var(--agent-cyan);
+  outline-offset: -2px;
+}
+
+.ctp-phone-app .agent-navmap.dragging {
+  cursor: grabbing;
+}
+
+/* Everything in it is in scene px; one transform moves and scales the lot. */
+.ctp-phone-app .agent-navmap-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.ctp-phone-app .agent-navmap-tile {
+  position: absolute;
+  max-width: none;
+  border: none;
+  pointer-events: none;
+}
+
+.ctp-phone-app .agent-navmap-pins {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 100; /* over every level of tiles */
+}
+
+/* A pin: a point, its dot and name drawn around it at screen size (scaled back by --navmap-inv). */
+.ctp-phone-app .agent-navmap-pin {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.ctp-phone-app .agent-navmap-dot,
+.ctp-phone-app .agent-navmap-name {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.ctp-phone-app .agent-navmap-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  background: var(--pin, var(--agent-magenta));
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.85), 0 0 6px rgba(0, 0, 0, 0.9);
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-navmap-dot img {
+  width: 72%;
+  height: 72%;
+  max-width: none;
+  border: none;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.9));
+  pointer-events: none;
+}
+
+.ctp-phone-app .agent-navmap-dot i {
+  color: #fff;
+  font-size: 13px;
+}
+
+/* Zoomed out, the dots are smaller (hundreds of pins would bury the map), but keep their icons. */
+.ctp-phone-app .agent-navmap:not(.names) .agent-navmap-pin:not(.big, .selected) .agent-navmap-dot {
+  width: 18px;
+  height: 18px;
+  border-width: 1.5px;
+}
+
+.ctp-phone-app .agent-navmap:not(.names) .agent-navmap-pin:not(.big, .selected) .agent-navmap-dot i {
+  font-size: 9px;
+}
+
+.ctp-phone-app .agent-navmap.far .agent-navmap-pin:not(.big, .selected, .territory) .agent-navmap-dot {
+  width: 11px;
+  height: 11px;
+  border-width: 1px;
+}
+
+.ctp-phone-app .agent-navmap.far .agent-navmap-pin:not(.big, .selected, .territory) .agent-navmap-dot :is(img, i) {
+  display: none;
+}
+
+.ctp-phone-app .agent-navmap-name {
+  display: none;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-shadow: 0 0 2px #000;
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, 15px);
+  pointer-events: none;
+}
+
+.ctp-phone-app .agent-navmap.names .agent-navmap-name,
+.ctp-phone-app .agent-navmap-pin:is(.named, .selected, :hover) .agent-navmap-name {
+  display: block;
+}
+
+/* A name with no room yet (apps/map/navMap.js _cullNames); hovering or picking its pin still shows it. */
+.ctp-phone-app .agent-navmap-pin:not(.selected, :hover) .agent-navmap-name.culled {
+  visibility: hidden;
+}
+
+/* Districts: only their names, big (they're places to read, not points to go to); the name is what's tapped. */
+.ctp-phone-app .agent-navmap-pin.big .agent-navmap-dot {
+  display: none;
+}
+
+.ctp-phone-app .agent-navmap-pin.big .agent-navmap-name {
+  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.45);
+  color: color-mix(in srgb, var(--pin, var(--agent-magenta)) 30%, #fff);
+  font-size: calc(15px * var(--agent-font-scale, 1));
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: 0 0 4px #000, 0 0 2px var(--pin, var(--agent-magenta));
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* The GM: a small handle under a district's name, to move it by. */
+.ctp-phone-app .agent-navmap.editable .agent-navmap-pin.big .agent-navmap-dot {
+  display: flex;
+  width: 12px;
+  height: 12px;
+  border-width: 1.5px;
+  border-style: dashed;
+  opacity: 0.75;
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, 130%);
+}
+
+.ctp-phone-app .agent-navmap.editable .agent-navmap-pin.big .agent-navmap-dot :is(img, i) {
+  display: none;
+}
+
+/* Territories: their picture, at the map's scale (they grow as you zoom in), under the other pins. */
+.ctp-phone-app .agent-navmap-pin.territory {
+  z-index: 0;
+}
+
+.ctp-phone-app .agent-navmap-pin:not(.territory) {
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-navmap-turf {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--size, 100px);
+  height: var(--size, 100px);
+  opacity: var(--alpha, 1);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-navmap-turf img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border: none;
+  object-fit: contain;
+  filter: drop-shadow(0 0 calc(4px * var(--navmap-inv, 1)) rgba(0, 0, 0, 0.9));
+  pointer-events: none;
+}
+
+.ctp-phone-app .agent-navmap-pin.territory .agent-navmap-dot {
+  display: none;
+}
+
+.ctp-phone-app .agent-navmap-pin.territory .agent-navmap-name {
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, -50%);
+}
+
+.ctp-phone-app .agent-navmap-pin.territory.selected .agent-navmap-turf {
+  outline: calc(2px * var(--navmap-inv, 1)) dashed var(--agent-yellow);
+  outline-offset: calc(2px * var(--navmap-inv, 1));
+}
+
+/* The GM's picked territory: a handle in its middle to move it, one at its corner to size it. */
+.ctp-phone-app .agent-navmap.editable .agent-navmap-pin.territory.selected .agent-navmap-dot {
+  display: flex;
+  width: 16px;
+  height: 16px;
+  cursor: move;
+}
+
+.ctp-phone-app .agent-navmap-resize {
+  display: none;
+  position: absolute;
+  left: calc(var(--size, 100px) / 2);
+  top: calc(var(--size, 100px) / 2);
+  width: 14px;
+  height: 14px;
+  border: 2px solid #000;
+  background: var(--agent-yellow);
+  transform-origin: 0 0;
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, -50%);
+  cursor: nwse-resize;
+}
+
+.ctp-phone-app .agent-navmap-pin.territory.selected .agent-navmap-resize {
+  display: block;
+}
+
+/* GM: pins no player sees. */
+.ctp-phone-app .agent-navmap-pin.gm-only:not(.territory) .agent-navmap-dot {
+  border-style: dashed;
+  opacity: 0.6;
+}
+
+.ctp-phone-app .agent-navmap-pin.gm-only .agent-navmap-turf {
+  opacity: calc(var(--alpha, 1) * 0.55);
+}
+
+/* Temporary pins (dropped by the GM on the Map). */
+.ctp-phone-app .agent-navmap-pin.temp .agent-navmap-dot {
+  border-color: var(--agent-cyan);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.8), 0 0 10px var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-navmap-pin:hover,
+.ctp-phone-app .agent-navmap-pin.selected {
+  z-index: 2;
+}
+
+.ctp-phone-app .agent-navmap-pin.territory:is(:hover, .selected) {
+  z-index: 0;
+}
+
+.ctp-phone-app .agent-navmap-pin.selected:not(.big) .agent-navmap-dot {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--agent-yellow);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.6), 0 0 12px var(--agent-yellow);
+  opacity: 1;
+}
+
+.ctp-phone-app .agent-navmap.editable .agent-navmap-pin.selected .agent-navmap-dot {
+  cursor: move;
+}
+
+.ctp-phone-app .agent-navmap-pin.selected .agent-navmap-name {
+  border: 1px solid var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-navmap-pin.selected:not(.big, .territory) .agent-navmap-name {
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, 19px);
+}
+
+.ctp-phone-app .agent-navmap.dragging-pin .agent-navmap-pin.selected {
+  opacity: 0.85;
+}
+
+/* The GM's menu (right-click, or a long press): drop a pin here... */
+.ctp-phone-app .agent-navmap-menu {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  padding: 4px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.5);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--agent-panel) 96%, transparent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
+.ctp-phone-app .agent-navmap-menu button {
+  margin: 0;
+  padding: 5px 8px;
+  border: none;
+  background: none;
+  color: var(--agent-text);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  line-height: 1.3;
+  text-align: left;
+}
+
+.ctp-phone-app .agent-navmap-menu button:hover,
+.ctp-phone-app .agent-navmap-menu button:focus-visible {
+  background: rgba(var(--agent-cyan-rgb), 0.18);
+}
+
+.ctp-phone-app .agent-navmap-menu button i {
+  width: 16px;
+  color: var(--agent-cyan);
+  text-align: center;
+}
+
+.ctp-phone-app .agent-navmap-menu-mark {
+  position: absolute;
+  z-index: 200;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--agent-cyan);
+  border-radius: 50%;
+  transform-origin: 0 0;
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* -------------------------------------------- */
+/*  Over the map                                */
+/* -------------------------------------------- */
+
+.ctp-phone-app .agent-map-zoom {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ctp-phone-app .agent-map-zoom button {
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.5);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--agent-panel) 85%, transparent);
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-map-zoom button:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.2);
+}
+
+/* The picked pin: what it is, and its page (top right, clear of the filter panel and the zoom buttons). */
+.ctp-phone-app .agent-map-card {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  width: min(320px, calc(100% - 60px));
+  max-height: calc(100% - 70px);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 10px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.45);
+  border-left: 4px solid var(--pin, var(--agent-magenta));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--agent-panel) 92%, transparent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-map-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ctp-phone-app .agent-map-card-dot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--pin, var(--agent-magenta));
+  color: #fff;
+}
+
+.ctp-phone-app .agent-map-card-dot img {
+  width: 66%;
+  height: 66%;
+  border: none;
+}
+
+.ctp-phone-app .agent-map-card-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ctp-phone-app .agent-map-card-main small {
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-map-card-gm {
+  color: var(--agent-yellow) !important;
+}
+
+.ctp-phone-app .agent-map-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.ctp-phone-app .agent-map-card-actions:empty {
+  display: none;
+}
+
+.ctp-phone-app .agent-map-card-actions button {
+  flex: 1;
+  margin: 0;
+  padding: 3px 6px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.5);
+  border-radius: 6px;
+  background: rgba(var(--agent-cyan-rgb), 0.12);
+  color: var(--agent-cyan);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+/* Request Combat Cabb: its own row, in Combat Cabb's yellow. */
+.ctp-phone-app .agent-map-card-actions button.agent-map-card-cabb {
+  flex-basis: 100%;
+  order: -1;
+  border-color: rgba(245, 196, 0, 0.6);
+  background: rgba(245, 196, 0, 0.14);
+  color: #f5c400;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ctp-phone-app .agent-map-card.fresh {
+    animation: agent-map-card-in 0.15s ease-out;
+  }
+}
+
+@keyframes agent-map-card-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
+.ctp-phone-app .agent-map-card-crew {
+  color: var(--agent-yellow) !important;
+}
+
+.ctp-phone-app .agent-map-card-note {
+  margin: 6px 0 0;
+  color: var(--agent-muted);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+/* The journal page, read on the card: players without unrevealed secrets; the GM's secrets marked. */
+.ctp-phone-app .agent-map-preview {
+  position: relative;
+  flex: none;
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  line-height: 1.4;
+}
+
+/* Cut short: a few lines, fading out; the whole page opens on a tap. */
+.ctp-phone-app .agent-map-preview-text {
+  max-height: 9.5em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(#000 60%, transparent);
+  mask-image: linear-gradient(#000 60%, transparent);
+}
+
+.ctp-phone-app .agent-map-preview[data-action] {
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-map-preview[data-action]:is(:hover, :focus-visible) {
+  outline: 1px solid rgba(var(--agent-cyan-rgb), 0.6);
+}
+
+.ctp-phone-app .agent-map-preview-more {
+  display: block;
+  margin-top: 2px;
+  color: var(--agent-cyan);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-map-preview :is(h1, h2, h3, h4) {
+  margin: 6px 0 4px;
+  border: none;
+  color: var(--agent-cyan);
+  font-size: 1.1em;
+}
+
+.ctp-phone-app .agent-map-preview p {
+  margin: 0 0 6px;
+}
+
+.ctp-phone-app .agent-map-preview img {
+  max-width: 100%;
+  height: auto;
+  border: none;
+}
+
+.ctp-phone-app .agent-map-preview.gm section.secret {
+  margin: 4px 0;
+  padding: 2px 6px;
+  border-left: 2px dashed var(--agent-yellow);
+  background: rgba(255, 210, 0, 0.06);
+}
+
+.ctp-phone-app .agent-map-preview:not(.gm) section.secret.revealed {
+  margin: 4px 0;
+  padding: 2px 6px;
+  border-left: 2px solid var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-map-preview.gm section.secret.revealed {
+  border-left-style: solid;
+  border-left-color: var(--agent-cyan);
+  background: none;
+}
+
+.ctp-phone-app .agent-map-card-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-map-card-link > span {
+  flex: none;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-map-card-link .agent-dropdown {
+  flex: 1;
+  min-width: 0;
+}
+
+/* -------------------------------------------- */
+/*  Filtering, rings, the crew                  */
+/* -------------------------------------------- */
+
+.ctp-phone-app .agent-navmap-pin.filtered {
+  display: none;
+}
+
+/* A pin hovered in the filter panel: a pulsing ring. */
+.ctp-phone-app .agent-navmap-pin.ringed {
+  z-index: 3;
+}
+
+.ctp-phone-app .agent-navmap-pin.ringed .agent-navmap-dot {
+  box-shadow: 0 0 0 3px rgba(var(--agent-cyan-rgb), 0.9), 0 0 0 8px rgba(var(--agent-cyan-rgb), 0.3);
+}
+
+.ctp-phone-app .agent-navmap-pin.ringed .agent-navmap-name {
+  display: block;
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ctp-phone-app .agent-navmap-pin.ringed .agent-navmap-dot {
+    animation: agent-navmap-ring 0.9s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes agent-navmap-ring {
+  to { box-shadow: 0 0 0 3px rgba(var(--agent-cyan-rgb), 0.9), 0 0 0 13px rgba(var(--agent-cyan-rgb), 0.1); }
+}
+
+/* GM: a pin linked to a scene. */
+.ctp-phone-app .agent-navmap-pin.linked .agent-navmap-dot {
+  outline: 2px solid rgba(var(--agent-cyan-rgb), 0.8);
+  outline-offset: 1px;
+}
+
+/* The crew's GPS spot: an arrow in a pulsing disc. */
+.ctp-phone-app .agent-navmap-crew {
+  position: absolute;
+  z-index: 4;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.ctp-phone-app .agent-navmap-crew-dot,
+.ctp-phone-app .agent-navmap-crew-name {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.ctp-phone-app .agent-navmap-crew-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--agent-yellow);
+  color: #111;
+  font-size: 12px;
+  box-shadow: 0 0 0 6px rgba(255, 214, 0, 0.25), 0 0 12px rgba(255, 214, 0, 0.8);
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, -50%);
+}
+
+.ctp-phone-app .agent-navmap-crew-name {
+  padding: 0 4px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.75);
+  color: var(--agent-yellow);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  font-weight: bold;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, 16px);
+}
+
+.ctp-phone-app .agent-navmap-crew.editable .agent-navmap-crew-dot {
+  pointer-events: auto;
+  cursor: move;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ctp-phone-app .agent-navmap-crew-dot {
+    animation: agent-navmap-gps 1.6s ease-out infinite;
+  }
+}
+
+@keyframes agent-navmap-gps {
+  0% { box-shadow: 0 0 0 0 rgba(255, 214, 0, 0.6), 0 0 12px rgba(255, 214, 0, 0.8); }
+  100% { box-shadow: 0 0 0 16px rgba(255, 214, 0, 0), 0 0 12px rgba(255, 214, 0, 0.8); }
+}
+
+/* GM: place the crew (none yet), or where they are with a cross to take them off. */
+.ctp-phone-app :is(.agent-map-crew-drop, .agent-map-crew-clear) {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  z-index: 2;
+  width: auto;
+  margin: 0;
+  padding: 3px 10px;
+  border: 1px solid rgba(255, 214, 0, 0.6);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--agent-panel) 88%, transparent);
+  color: var(--agent-yellow);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  line-height: 1.6;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* -------------------------------------------- */
+/*  The filter panel (apps/map/navFilter.js)          */
+/* -------------------------------------------- */
+
+/* CPR Pin Filter's panel with its Agent view look, in the phone's colours (the skin's panel and text, so light
+   skins like Burner and Your Play stay readable). */
+.ctp-phone-app .agent-mapf {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  width: 250px;
+  max-width: calc(100% - 60px);
+  max-height: calc(100% - 16px);
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.55);
+  border-radius: 5px;
+  background:
+    linear-gradient(to bottom, rgba(var(--agent-cyan-rgb), 0.08), rgba(var(--agent-cyan-rgb), 0.02)),
+    color-mix(in srgb, var(--agent-panel) 94%, transparent);
+  box-shadow: 0 0 12px rgba(var(--agent-cyan-rgb), 0.25), inset 0 0 18px rgba(var(--agent-cyan-rgb), 0.06);
+  color: var(--agent-text);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-mapf a {
+  color: inherit;
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-mapf a:hover {
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-mapf-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(var(--agent-cyan-rgb), 0.35);
+  background: rgba(var(--agent-cyan-rgb), 0.06);
+}
+
+.ctp-phone-app .agent-mapf.collapsed .agent-mapf-header {
+  border-bottom: none;
+}
+
+.ctp-phone-app .agent-mapf-header h3 {
+  flex: 1;
+  margin: 0;
+  border: none;
+  color: var(--agent-cyan);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px rgba(var(--agent-cyan-rgb), 0.6);
+}
+
+.ctp-phone-app .agent-mapf-header > i,
+.ctp-phone-app .agent-mapf-total,
+.ctp-phone-app .agent-mapf-count,
+.ctp-phone-app .agent-mapf-hint {
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-mapf-total {
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-mapf-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 6px;
+  min-height: 0;
+  padding: 6px 8px;
+}
+
+.ctp-phone-app .agent-mapf.collapsed .agent-mapf-body {
+  display: none;
+}
+
+.ctp-phone-app .agent-mapf-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ctp-phone-app .agent-mapf-toolbar input {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.35);
+  background: rgba(var(--agent-cyan-rgb), 0.06);
+  color: var(--agent-text);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-mapf-gm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: rgba(var(--agent-cyan-rgb), 0.06);
+}
+
+.ctp-phone-app .agent-mapf-gm.active i {
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-mapf-list,
+.ctp-phone-app .agent-mapf-members,
+.ctp-phone-app .agent-mapf-pins {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ctp-phone-app .agent-mapf-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ctp-phone-app .agent-mapf-members {
+  display: none;
+  margin: 0 0 2px 18px;
+}
+
+.ctp-phone-app .agent-mapf-group.expanded .agent-mapf-members {
+  display: block;
+}
+
+.ctp-phone-app .agent-mapf-group.expanded > .agent-mapf-group-row .agent-mapf-caret,
+.ctp-phone-app .agent-mapf-category.open > .agent-mapf-row .agent-mapf-caret {
+  transform: rotate(90deg);
+}
+
+.ctp-phone-app .agent-mapf-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+}
+
+.ctp-phone-app .agent-mapf-row input[type="checkbox"] {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin: 0 2px;
+  accent-color: var(--agent-cyan);
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-mapf-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.ctp-phone-app .agent-mapf-toggle:hover,
+.ctp-phone-app .agent-mapf-pin:hover,
+.ctp-phone-app .agent-mapf-pin.hovered {
+  background: rgba(var(--agent-cyan-rgb), 0.14);
+}
+
+.ctp-phone-app .agent-mapf-caret {
+  width: 10px;
+  text-align: center;
+  transition: transform 0.1s;
+}
+
+.ctp-phone-app .agent-mapf-label {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ctp-phone-app .agent-mapf-group-row .agent-mapf-label {
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-mapf-count {
+  min-width: 24px;
+  text-align: right;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-mapf-pins {
+  margin: 0 0 4px 18px;
+  padding-left: 6px;
+  border-left: 1px solid rgba(var(--agent-cyan-rgb), 0.3);
+}
+
+.ctp-phone-app .agent-mapf-pin {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 20px;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-mapf-pin-name {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ctp-phone-app .agent-mapf-jump {
+  padding: 0 4px;
+}
+
+.ctp-phone-app .agent-mapf-empty,
+.ctp-phone-app .agent-mapf-hint {
+  margin: 0;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  font-style: italic;
+}
+
+/* -------------------------------------------- */
+/*  Districts (traced outlines, apps/map/navMap.js)   */
+/* -------------------------------------------- */
+
+.ctp-phone-app .agent-navmap-areas {
+  position: absolute;
+  z-index: 50; /* over the tiles, under the pins */
+  pointer-events: none;
+}
+
+.ctp-phone-app .agent-navmap-areas svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.ctp-phone-app .agent-navmap-areas path {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: calc(8px * var(--navmap-inv, 1));
+  transition: fill 0.15s, stroke 0.15s;
+}
+
+.ctp-phone-app .agent-navmap-areas path.hover {
+  stroke: rgba(var(--agent-cyan-rgb), 0.55);
+  stroke-width: calc(2px * var(--navmap-inv, 1));
+}
+
+.ctp-phone-app .agent-navmap-areas path.soft {
+  fill: rgba(var(--agent-cyan-rgb), 0.14);
+  stroke: rgba(var(--agent-cyan-rgb), 0.8);
+  stroke-width: calc(2px * var(--navmap-inv, 1));
+  stroke-dasharray: calc(6px * var(--navmap-inv, 1)) calc(4px * var(--navmap-inv, 1));
+}
+
+/* -------------------------------------------- */
+/*  Roads (the traced overlay, apps/map/navMap.js)    */
+/* -------------------------------------------- */
+
+/* Each layer its own stack, so the picture's tile levels never cover the roads. */
+.ctp-phone-app :is(.agent-navmap-tiles, .agent-navmap-roads) {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.ctp-phone-app .agent-navmap-tiles {
+  z-index: 1;
+  transition: opacity 0.2s, filter 0.2s;
+}
+
+.ctp-phone-app .agent-navmap-roads {
+  z-index: 2;
+}
+
+/* -------------------------------------------- */
+/*  The route (apps/map/navMap.js setRoute)           */
+/* -------------------------------------------- */
+
+.ctp-phone-app .agent-navmap-route {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 60; /* over the roads and districts, under the pins */
+  pointer-events: none;
+  --route-rgb: var(--agent-cyan-rgb);
+}
+
+/* Others' routes (the GM's map): players' planned routes, and cabs on their way or riding. Thinner, under this phone's own. */
+.ctp-phone-app .agent-navmap-routeline.player {
+  --route-rgb: 255, 70, 200;
+}
+
+.ctp-phone-app .agent-navmap-routeline.cabb {
+  --route-rgb: 255, 210, 0;
+}
+
+.ctp-phone-app .agent-navmap-routeline.other {
+  opacity: 0.85;
+}
+
+.ctp-phone-app .agent-navmap-routeline.other .core {
+  stroke-width: calc(3.5px * var(--navmap-inv, 1));
+}
+
+.ctp-phone-app .agent-navmap-routelabel {
+  position: absolute;
+  padding: 1px 6px;
+  border: 1px solid rgb(var(--route-rgb));
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.75);
+  color: rgb(var(--route-rgb));
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  font-weight: bold;
+  white-space: nowrap;
+  transform-origin: 0 0;
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, -28px);
+}
+
+.ctp-phone-app .agent-navmap-route svg {
+  position: absolute;
+  overflow: visible;
+}
+
+.ctp-phone-app .agent-navmap-route polyline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ctp-phone-app .agent-navmap-route .glow {
+  stroke: rgba(var(--route-rgb), 0.35);
+  stroke-width: calc(12px * var(--navmap-inv, 1));
+  filter: blur(calc(3px * var(--navmap-inv, 1)));
+}
+
+.ctp-phone-app .agent-navmap-route .core {
+  stroke: rgb(var(--route-rgb));
+  stroke-width: calc(5px * var(--navmap-inv, 1));
+}
+
+.ctp-phone-app .agent-navmap-route .flow {
+  stroke: #fff;
+  stroke-width: calc(2px * var(--navmap-inv, 1));
+  stroke-dasharray: calc(2px * var(--navmap-inv, 1)) calc(14px * var(--navmap-inv, 1));
+  opacity: 0.9;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ctp-phone-app .agent-navmap-route .flow {
+    animation: agent-navmap-flow 0.8s linear infinite;
+  }
+}
+
+@keyframes agent-navmap-flow {
+  to { stroke-dashoffset: calc(-16px * var(--navmap-inv, 1)); }
+}
+
+.ctp-phone-app .agent-navmap-route .start {
+  fill: rgb(var(--route-rgb));
+  stroke: #fff;
+  stroke-width: calc(2px * var(--navmap-inv, 1));
+}
+
+.ctp-phone-app .agent-navmap-route .end {
+  fill: rgba(0, 0, 0, 0.5);
+  stroke: rgb(var(--route-rgb));
+  stroke-width: calc(3px * var(--navmap-inv, 1));
+}
+
+/* The route's summary, bottom middle: from → to, how far, how long. */
+.ctp-phone-app .agent-map-routebar {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 120px);
+  padding: 4px 6px 4px 12px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.6);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--agent-panel) 92%, transparent);
+  box-shadow: 0 0 10px rgba(var(--agent-cyan-rgb), 0.3);
+  color: var(--agent-text);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.ctp-phone-app .agent-map-routebar-ends {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-map-routebar b {
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-map-routebar .agent-icon-btn {
+  flex: none;
+}
+
+/* With a route, the GM's crew chip moves to the bottom left. */
+.ctp-phone-app .agent-map:has(.agent-map-routebar) :is(.agent-map-crew-drop, .agent-map-crew-clear) {
+  left: 8px;
+  bottom: 44px;
+  transform: none;
+}
+
+/* -------------------------------------------- */
+/*  Skins on their side                         */
+/* -------------------------------------------- */
+
+/* Burner: the keypad chin moves to the right of the screen, the softkeys standing on end. */
+.ctp-phone-app.agent-landscape.skin-burner .window-content {
+  padding: 4px 78px 4px 16px;
+}
+
+.ctp-phone-app.agent-landscape.skin-burner .window-content::after {
+  left: auto;
+  right: -55px;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%) rotate(90deg);
+}
+
+/* The road lens: the lit roads in a circle around the mouse (apps/map/navMap.js _applyLens), glowing; held back a
+   quarter so the map's own text stays readable under it. */
+.ctp-phone-app .agent-navmap.road-lens .agent-navmap-roads {
+  opacity: 0.75;
+  filter: drop-shadow(0 0 calc(4px * var(--navmap-inv, 1)) rgba(255, 230, 120, 0.45));
+}
+
+/* -------------------------------------------- */
+/*  The GM's card: who sees it, and its editor  */
+/* -------------------------------------------- */
+
+.ctp-phone-app .agent-map-card-temp {
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-map-card-note.warn {
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-map-share,
+.ctp-phone-app .agent-map-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app :is(.agent-map-share-row, .agent-map-edit-row) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ctp-phone-app :is(.agent-map-share-row, .agent-map-edit-row) > span:first-child {
+  flex: 0 0 64px;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app :is(.agent-map-share-row, .agent-map-edit-row) .agent-dropdown {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* GM: the characters who see a pin ("Some characters"), ticked. */
+.ctp-phone-app .agent-map-seen-by {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  padding-left: 70px;
+}
+
+.ctp-phone-app .agent-map-seen-by label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  color: var(--agent-text);
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-map-seen-by input {
+  margin: 0;
+}
+
+.ctp-phone-app .agent-map-share-all {
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--agent-cyan);
+  border-radius: 5px;
+  background: rgba(var(--agent-cyan-rgb), 0.15);
+  color: var(--agent-cyan);
+  font-size: inherit;
+  font-weight: bold;
+  line-height: 1.3;
+}
+
+.ctp-phone-app .agent-map-edit-head {
+  color: var(--agent-cyan);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-map-edit-row input[type="text"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 24px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-map-edit-row input[type="color"] {
+  flex: none;
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  background: none;
+}
+
+.ctp-phone-app .agent-map-edit-row input[type="range"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-map-edit-row output {
+  flex: 0 0 42px;
+  text-align: right;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-map-edit-row.check {
+  gap: 6px;
+}
+
+.ctp-phone-app .agent-map-edit-row.check input {
+  margin: 0;
+}
+
+.ctp-phone-app .agent-map-edit-row.check span {
+  flex: none !important;
+  color: var(--agent-text) !important;
+}
+
+.ctp-phone-app .agent-map-card-actions button.agent-map-card-danger {
+  color: var(--agent-red, #ff4d6d);
+}
+
+/* GM: how many temporary pins are out (tap: clear them), over the crew chip. */
+.ctp-phone-app .agent-map-temp-clear {
+  position: absolute;
+  left: 50%;
+  bottom: 38px;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 3px 8px;
+  border: 1px solid var(--agent-cyan);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--agent-panel) 90%, transparent);
+  color: var(--agent-cyan);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-map-card.editing {
+  width: min(380px, calc(100% - 60px));
+}
+
+.ctp-phone-app .agent-map-card-actions button {
+  white-space: nowrap;
+}
+
+/* -------------------------------------------- */
+/*  Inline maps (apps/map/embed.js)             */
+/* -------------------------------------------- */
+
+.ctp-phone-app .agent-mapembed,
+.ctp-phone-app.agent-mapembed {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 180px;
+  height: 130px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.45);
+  border-radius: 8px;
+  background: #10112a;
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-mapembed:is(:hover, :focus-visible),
+.ctp-phone-app.agent-mapembed:is(:hover, :focus-visible) {
+  border-color: var(--agent-cyan);
+  outline: none;
+  box-shadow: 0 0 8px rgba(var(--agent-cyan-rgb), 0.4);
+}
+
+.ctp-phone-app .agent-navmap.agent-navmap-mini {
+  cursor: pointer;
+  pointer-events: none; /* the tap goes to the embed */
+}
+
+/* Districts only by name, small; the place itself picked out. */
+.ctp-phone-app .agent-navmap-mini .agent-navmap-pin.big .agent-navmap-name {
+  padding: 0 4px;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app .agent-mapembed-open {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  z-index: 2;
+  max-width: calc(100% - 12px);
+  overflow: hidden;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.75);
+  color: var(--agent-cyan);
+  font-family: var(--agent-font);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-mapembed.agent-mapembed-none {
+  display: none;
+}
+
+.ctp-phone-app .agent-navmap-mini .agent-navmap-pin:not(.big) .agent-navmap-name {
+  display: none;
+}

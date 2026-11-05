@@ -1,4 +1,4 @@
-import { cleanImage, cleanLocation, MAX_LENGTH, MAX_NAME } from "./validate.js";
+import { cleanImage, cleanLocation, MAX_NAME, textParts } from "./validate.js";
 import { canUsePhone } from "../model/agent.js";
 import { findContact, getContacts } from "../model/contacts.js";
 import { canActFor } from "../model/permissions.js";
@@ -88,17 +88,17 @@ export const methods = {
 
   _onGroupSend(user, { groupId, as, text, location, image, job }) {
     const group = this.threads.get(groupId);
-    text = clean(text, MAX_LENGTH);
+    const parts = textParts(text);
     location = cleanLocation(location);
     image = cleanImage(image, user);
     job = this._jobOffer(user, job);
-    if (!isGroup(group) || (!text && !location && !image && !job)) return;
+    if (!isGroup(group) || (!parts[0] && !location && !image && !job)) return;
     const member = group.members.find(m => m.key === as);
     if (!member || !canActFor(user, member)) return;
     if (member.actorId && !canUsePhone(game.actors.get(member.actorId))) return;
-    const message = this._message(member.key, text, { userId: user.id, name: member.name, location, image, job });
-    group.messages.push(message);
-    group.lastRead[user.isGM ? "gm" : member.key] = message.ts;
+    const messages = this._textMessages(member.key, parts, { userId: user.id, name: member.name, location, image, job });
+    group.messages.push(...messages);
+    group.lastRead[user.isGM ? "gm" : member.key] = messages.at(-1).ts;
     this.save();
     this._push(group, true);
     for (const m of group.members) if (m.key !== member.key) this._ding(m);
@@ -145,5 +145,9 @@ export const methods = {
       : this._systemText(acting.name, `removed ${target.name}`);
     group.messages.push(this._message("system", text, { system: true }));
     this._pushWithRemovals(group, previous, group.members.length === 0);
+    // A character removed by someone else hears it (the thread just goes from their phone).
+    if (target.actorId && acting.member?.key !== key && game.actors.get(target.actorId)) {
+      this._alertNow(target.actorId, { kind: "event", text: `You were removed from ${group.name}.` });
+    }
   }
 };

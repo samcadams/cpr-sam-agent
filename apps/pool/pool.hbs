@@ -1,0 +1,155 @@
+{{!-- App Store (apps/pool/page.js). Players: Featured (with what's on their Agent) / Subscriptions, or a lapsed app's lock screen. The GM: catalogue, characters, listings. --}}
+{{#if pool.locked}}
+  {{> agent-app-bar pool.bar}}
+  <div class="agent-info agent-app agent-pool agent-pool-locked">
+    <div class="agent-pool-lock">
+      <span class="agent-pool-icon agent-app-tile app-{{pool.locked.id}}"><span class="agent-home-icon"><i class="{{pool.locked.icon}}"></i></span></span>
+      <i class="fas fa-lock agent-pool-lock-glyph" aria-hidden="true"></i>
+      <h3>{{pool.locked.name}} is locked</h3>
+      <p>Your subscription lapsed. Renew it to use the app again.</p>
+      {{#if pool.offline}}<p class="agent-pool-offline"><i class="fas fa-signal"></i> No signal: the App Store can't reach the Net.</p>
+      {{else}}<button type="button" data-action="pool-renew" data-app="{{pool.locked.id}}"><i class="fas fa-rotate"></i> Renew · {{pool.locked.price}}/mo</button>{{/if}}
+      {{#if pool.locked.billedBy}}<small>Billed with your {{pool.locked.billedBy}} bill.</small>{{/if}}
+    </div>
+  </div>
+{{else if pool.gm}}
+  {{> agent-app-bar pool.bar}}
+  <div class="agent-info agent-app agent-pool agent-pool-gm">
+    <p class="agent-pool-note">
+      Phones show only the apps installed on each character: the preinstalled ones, and what they get here.
+      Switch the App Store off in Control to put every app back on every phone.
+    </p>
+    {{#if pool.billedBy}}<p class="agent-pool-note"><i class="fas fa-file-invoice-dollar"></i> Subscriptions are billed by {{pool.billedBy}}.</p>{{/if}}
+
+    <h3 class="agent-info-label"><i class="fas fa-users"></i> Characters{{#if pool.due}} <span class="agent-tab-count">{{pool.due}} due</span>{{/if}}</h3>
+    <ul class="agent-app-list agent-pool-characters">
+      {{#each pool.characters}}
+        <li class="agent-app-item">
+          <div class="agent-app-item-main">
+            <b>{{name}}</b>
+            {{#if apps.length}}
+              <div class="agent-pool-chips">
+                {{#each apps}}<span class="agent-pool-chip{{#if lapsed}} lapsed{{/if}}" title="{{source}}{{#if paid}}, paid {{paid}}{{/if}}">{{name}}{{#if lapsed}} <i class="fas fa-lock" aria-label="lapsed"></i>{{/if}} <a data-action="pool-revoke" data-actor-id="{{../actorId}}" data-app="{{id}}" title="Remove {{name}}"><i class="fas fa-xmark"></i></a>{{#if canForget}} <a data-action="pool-forget" data-actor-id="{{../actorId}}" data-app="{{id}}" title="Reset ownership of {{name}}: it must be bought again"><i class="fas fa-rotate-left"></i></a>{{/if}}</span>{{/each}}
+              </div>
+            {{else}}<small>Only the preinstalled apps.</small>{{/if}}
+            {{#if revoked.length}}<small>Removed: {{#each revoked}}{{name}} ({{reason}}){{#if canForget}} <a data-action="pool-forget" data-actor-id="{{../actorId}}" data-app="{{id}}" title="Reset ownership of {{name}}: it must be bought again"><i class="fas fa-rotate-left"></i></a>{{/if}}{{#unless @last}}, {{/unless}}{{/each}}</small>{{/if}}
+            {{#if uninstalled.length}}<small>Uninstalled: {{#each uninstalled}}{{name}} <a data-action="pool-forget" data-actor-id="{{../actorId}}" data-app="{{id}}" title="Reset ownership of {{name}}: it must be bought again"><i class="fas fa-rotate-left"></i></a>{{#unless @last}}, {{/unless}}{{/each}}</small>{{/if}}
+            {{#each subs}}
+              <div class="agent-pool-sub{{#if lapsed}} lapsed{{/if}}{{#if due}} due{{/if}}">
+                <span><i class="fas fa-repeat"></i> {{name}} · {{price}}/mo · {{#if sponsor}}paid by {{sponsor}}{{else if lapsed}}lapsed{{else if due}}due{{else}}active{{#if through}}, paid until {{through}}{{/if}}{{/if}}</span>
+                <span class="agent-pool-sub-actions">
+                  {{#if lapsed}}<a data-action="pool-sub" data-actor-id="{{../actorId}}" data-app="{{app}}" data-status="active" title="Reactivate"><i class="fas fa-play"></i></a>
+                  {{else}}<a data-action="pool-sub" data-actor-id="{{../actorId}}" data-app="{{app}}" data-status="lapsed" title="Mark lapsed"><i class="fas fa-pause"></i></a>{{/if}}
+                  <a data-action="pool-sponsor" data-actor-id="{{../actorId}}" data-app="{{app}}" title="{{#if sponsor}}Stop the sponsorship{{else}}Sponsor: never billed{{/if}}"><i class="fas fa-handshake{{#if sponsor}}-slash{{/if}}"></i></a>
+                  <a data-action="pool-sub" data-actor-id="{{../actorId}}" data-app="{{app}}" data-status="cancelled" title="Cancel (uninstalls it)"><i class="fas fa-xmark"></i></a>
+                </span>
+              </div>
+            {{/each}}
+            <div class="agent-btn-row">
+              {{#if due}}<button type="button" data-action="pool-bill" data-actor-id="{{actorId}}" data-all="0"><i class="fas fa-file-invoice-dollar"></i> Bill what's due</button>
+              {{else if billable}}<button type="button" data-action="pool-bill" data-actor-id="{{actorId}}" data-all="1"><i class="fas fa-file-invoice-dollar"></i> Bill a month ({{total}})</button>{{/if}}
+              <button type="button" data-action="pool-sideload" data-actor-id="{{actorId}}"><i class="fas fa-box"></i> Sideload…</button>
+            </div>
+            {{#if grant}}{{> agent-dropdown grant}}{{/if}}
+          </div>
+        </li>
+      {{else}}
+        <li class="agent-empty">No player characters.</li>
+      {{/each}}
+    </ul>
+
+    <h3 class="agent-info-label"><i class="fas fa-store"></i> Catalogue</h3>
+    <ul class="agent-app-list agent-pool-catalogue">
+      {{#each pool.catalogue}}
+        <li class="agent-app-item agent-pool-entry{{#unless on}} off{{/unless}}">
+          <div class="agent-app-item-main">
+            <b><i class="{{icon}}"></i> {{name}}</b>{{#unless on}} <small>(switched off in Control)</small>{{/unless}}
+            {{#if addon}}
+            <div class="agent-pool-fields">
+              <small>{{addon}} add-on, bought there once</small>
+              <input type="number" min="0" max="99999" class="agent-pool-num" data-pool-price="{{id}}" value="{{price}}" aria-label="{{name}} price in eddies" title="Price (eb; 0 = free)">
+            </div>
+            {{else}}
+            <div class="agent-pool-fields">
+              {{> agent-dropdown modelPick}}
+              {{#unless free}}<input type="number" min="0" max="99999" class="agent-pool-num" data-pool-price="{{id}}" value="{{price}}" aria-label="{{name}} price in eddies" title="Price (eb)">{{/unless}}
+              {{> agent-dropdown offerPick}}
+              <label class="agent-radio" title="On every phone from the start, and can't be uninstalled"><input type="checkbox" data-pool-pre="{{id}}" {{#if preinstalled}}checked{{/if}}> Preinstalled</label>
+            </div>
+            {{/if}}
+            <div class="agent-pool-fields">
+              <input type="text" maxlength="40" data-pool-text="{{id}}" data-field="publisher" value="{{publisher}}" placeholder="Publisher" aria-label="{{name}} publisher">
+            </div>
+          </div>
+        </li>
+      {{/each}}
+    </ul>
+
+    <h3 class="agent-info-label"><i class="fas fa-hourglass-half"></i> Coming soon (listings only)</h3>
+    <ul class="agent-app-list">
+      {{#each pool.listings}}
+        <li class="agent-app-item compact">
+          {{#if img}}<img class="agent-pool-listing-img" src="{{img}}" alt="">{{else}}<i class="{{icon}}"></i>{{/if}}
+          <div class="agent-app-item-main"><b>{{name}}</b>{{#if publisher}} <small>{{publisher}}</small>{{/if}} <small>· {{note}}</small></div>
+          <a class="agent-icon-btn" data-action="pool-listing-remove" data-id="{{id}}" title="Remove"><i class="fas fa-xmark"></i></a>
+        </li>
+      {{else}}
+        <li class="agent-empty">None. Add apps that don't exist yet, to tease them.</li>
+      {{/each}}
+    </ul>
+    <div class="agent-pool-fields agent-pool-add">
+      <input type="text" name="poolListing-name" maxlength="40" placeholder="App name" aria-label="Listing name">
+      <input type="text" name="poolListing-publisher" maxlength="40" placeholder="Publisher" aria-label="Listing publisher">
+      <input type="text" name="poolListing-icon" maxlength="60" placeholder="fas fa-cloud-rain" aria-label="Listing icon (Font Awesome class)">
+      <input type="text" name="poolListing-img" maxlength="200" placeholder="Picture (image path, optional)" aria-label="Listing picture (image path; replaces the icon)">
+      <input type="text" name="poolListing-note" maxlength="40" placeholder="Coming soon" aria-label="Listing tag">
+      <input type="text" name="poolListing-blurb" maxlength="160" placeholder="One line about it" aria-label="Listing blurb">
+      <button type="button" data-action="pool-listing-add"><i class="fas fa-plus"></i> Add listing</button>
+    </div>
+  </div>
+{{else}}
+  {{> agent-app-bar pool.bar}}
+  <div class="agent-tabs agent-pool-tabs">
+    {{#each pool.tabs}}
+      <a class="agent-tab{{#if active}} active{{/if}}" data-action="pool-tab" data-tab="{{id}}">{{label}}{{#if count}} <span class="agent-tab-count">{{count}}</span>{{/if}}</a>
+    {{/each}}
+  </div>
+  <div class="agent-info agent-app agent-pool">
+    {{#if pool.tab.featured}}
+      <ul class="agent-pool-cards">
+        {{#each pool.featured}}{{> agent-pool-card this offline=@root.pool.offline}}{{/each}}
+        {{#each pool.listings}}
+          <li class="agent-pool-card soon">
+            <span class="agent-pool-icon agent-app-tile"><span class="agent-home-icon{{#if img}} picture{{/if}}">{{#if img}}<img src="{{img}}" alt="">{{else}}<i class="{{icon}}"></i>{{/if}}</span></span>
+            <div class="agent-pool-card-main">
+              <b>{{name}}</b>{{#if publisher}}<small>{{publisher}}</small>{{/if}}
+              {{#if blurb}}<p>{{blurb}}</p>{{/if}}
+            </div>
+            <span class="agent-pool-tag">{{note}}</span>
+          </li>
+        {{/each}}
+      </ul>
+      {{#unless pool.featured.length}}{{#unless pool.listings.length}}<p class="agent-empty">You have everything the App Store offers.</p>{{/unless}}{{/unless}}
+      {{#if pool.have.length}}
+        <h3 class="agent-info-label">On your Agent</h3>
+        <ul class="agent-pool-cards compact">{{#each pool.have}}{{> agent-pool-card this offline=@root.pool.offline}}{{/each}}</ul>
+      {{/if}}
+    {{else}}
+      <ul class="agent-app-list agent-pool-subs">
+        {{#each pool.subs}}
+          <li class="agent-app-item compact{{#if lapsed}} lapsed{{/if}}">
+            <span class="agent-pool-icon small agent-app-tile app-{{app}}"><span class="agent-home-icon"><i class="{{icon}}"></i></span></span>
+            <div class="agent-app-item-main"><b>{{name}}</b> <small>{{price}}/mo · {{#if sponsor}}paid by {{sponsor}}{{else if lapsed}}lapsed{{else}}active{{/if}}</small></div>
+            {{#if lapsed}}<button type="button" data-action="pool-renew" data-app="{{app}}" {{#if @root.pool.offline}}disabled{{/if}}>Renew</button>{{/if}}
+            <a class="agent-icon-btn" data-action="pool-cancel" data-app="{{app}}" title="Cancel {{name}}"><i class="fas fa-xmark"></i></a>
+          </li>
+        {{else}}
+          <li class="agent-empty">No subscriptions.</li>
+        {{/each}}
+      </ul>
+      {{#if pool.subs.length}}
+        <p class="agent-pool-note">{{pool.total}} a month. {{#if pool.billedBy}}Billed with your monthly {{pool.billedBy}} bill.{{else}}Billed monthly by Ziggurat.{{/if}}</p>
+      {{/if}}
+    {{/if}}
+  </div>
+{{/if}}

@@ -11,10 +11,10 @@
   --agent-bg: #e9edf2;
   --agent-panel: #d5dce5;
   --agent-text: #1f2a36;
-  --agent-muted: #607083;
-  --agent-cyan-rgb: 42, 110, 200;
+  --agent-muted: #536071;
+  --agent-cyan-rgb: 30, 90, 175;
   --agent-magenta-rgb: 60, 170, 70;
-  --agent-yellow-rgb: 170, 100, 0;
+  --agent-yellow-rgb: 140, 80, 0;
   --agent-font: "Nunito", "Helvetica Neue", Arial, sans-serif;
   --gloss: linear-gradient(to bottom, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.15) 50%, transparent 51%);
   --tape: rgba(236, 226, 190, 0.85);
@@ -77,7 +77,7 @@
 }
 
 .ctp-phone-app.skin-dot .window-content::after {
-  content: "CITINET CHIP v3";
+  content: "CITINET CHIP v3" / "";
   position: absolute;
   left: 50%;
   bottom: 8px;
@@ -124,7 +124,7 @@
 }
 
 .ctp-phone-app.skin-dot .agent-signal:not(.offline)::before {
-  content: "\f2db";
+  content: "\f2db" / "";
   font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro";
   font-weight: 900;
   font-size: calc(10px * var(--agent-font-scale, 1));
@@ -247,7 +247,7 @@
 .ctp-phone-app.skin-dot .agent-quick-reply {
   border: 1px solid #2d4868;
   border-radius: 8px;
-  background: var(--gloss), linear-gradient(to bottom, #6d95c8, #3c679f);
+  background: var(--gloss), linear-gradient(to bottom, #4f79b0, #2f5a90);
   color: #fff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
 }

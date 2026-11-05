@@ -89,6 +89,13 @@
   white-space: pre-wrap;
 }
 
+/* Text in a conversation can be selected to copy. */
+.ctp-phone-app .agent-bubble,
+.ctp-phone-app .agent-bubble * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 .ctp-phone-app .agent-msg.mine .agent-bubble {
   background: linear-gradient(225deg, rgba(var(--agent-magenta-rgb), 0.16), rgba(var(--agent-magenta-rgb), 0.05));
   border-color: rgba(var(--agent-magenta-rgb), 0.5);
@@ -330,6 +337,15 @@
 .ctp-phone-app .agent-location-scene {
   color: var(--agent-muted);
   font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+/* A shared location on the Map's scene is drawn as an inline map; the link stays for other scenes. */
+.ctp-phone-app .agent-mapembed.ready + .agent-location {
+  display: none;
+}
+
+.ctp-phone-app .agent-mapembed {
+  margin: 2px 0;
 }
 
 .ctp-phone-app .agent-location + .agent-bubble-text {
@@ -653,4 +669,86 @@
 
 .ctp-phone-app .agent-set-viewed:hover {
   background: rgba(var(--agent-cyan-rgb), 0.12);
+}
+
+/* "Share to chat": picking an unbroken run of texts (pages/conversation.js). Each text is one big checkbox. */
+.ctp-phone-app .agent-msg.agent-sharing {
+  position: relative;
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-share-pick {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.ctp-phone-app .agent-share-pick:focus-visible {
+  outline: 2px solid var(--agent-cyan);
+  outline-offset: 2px;
+}
+
+.ctp-phone-app .agent-msg.agent-sharing:not(.agent-share-picked) {
+  opacity: 0.5;
+}
+
+/* Brighter, not outlined: skins clip their bubbles (Neon Agent's chamfers), which would cut an outline off. */
+.ctp-phone-app .agent-msg.agent-share-picked .agent-bubble {
+  filter: brightness(1.4) saturate(1.2);
+}
+
+/* A tick beside each picked text (not colour alone). */
+.ctp-phone-app .agent-msg.agent-share-picked::before {
+  content: "\f00c" / "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font: 900 calc(11px * var(--agent-font-scale, 1)) "Font Awesome 6 Pro", "Font Awesome 6 Free";
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-msg.mine.agent-share-picked::before {
+  left: -16px;
+}
+
+.ctp-phone-app .agent-msg.theirs.agent-share-picked::before {
+  right: -16px;
+}
+
+.ctp-phone-app .agent-system.agent-share-picked {
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-share-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--agent-panel);
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-share-count {
+  flex: 1;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-share-cancel,
+.ctp-phone-app .agent-share-post {
+  padding: 4px 8px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-share-post {
+  background: rgba(var(--agent-cyan-rgb), 0.18);
+  color: var(--agent-cyan);
+  font-weight: 700;
+}
+
+.ctp-phone-app .agent-share-cancel:hover,
+.ctp-phone-app .agent-share-post:hover {
+  background: rgba(var(--agent-cyan-rgb), 0.28);
 }

@@ -1,0 +1,100 @@
+/*
+ * WatchBox: the app's page (apps/watchbox/page.js, apps/watchbox/watchbox.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-watchbox {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 0;
+  padding: 20px 14px;
+  background: #000;
+  color: #d8d8d8;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-watchbox.idle {
+  flex: none;
+  padding: 16px;
+  margin-bottom: 8px;
+}
+
+.ctp-phone-app .agent-watchbox-eye {
+  position: relative;
+  width: 110px;
+  height: 56px;
+  border: 3px solid #d8d8d8;
+  border-radius: 50%;
+}
+
+.ctp-phone-app .agent-watchbox-eye i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 3px, #ff2a2a 4px 9px, #400 10px);
+  box-shadow: 0 0 12px #ff2a2a;
+  animation: ctp-wb-look 6s ease-in-out infinite;
+}
+
+@keyframes ctp-wb-look {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-24px); }
+  75% { transform: translateX(24px); }
+}
+
+.ctp-phone-app .agent-watchbox.assessing .agent-watchbox-eye i {
+  animation-duration: 2s;
+}
+
+.ctp-phone-app .agent-watchbox-status {
+  font-family: "Share Tech Mono", monospace;
+  font-size: calc(22px * var(--agent-font-scale, 1));
+  letter-spacing: 4px;
+}
+
+.ctp-phone-app .agent-watchbox-brand {
+  color: #777;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-watchbox.alarm {
+  animation: ctp-wb-alarm 0.5s steps(1) infinite;
+}
+
+.ctp-phone-app .agent-watchbox.alarm .agent-watchbox-status {
+  color: #ff2a2a;
+}
+
+@keyframes ctp-wb-alarm {
+  50% { background: #3a0000; }
+}
+
+.ctp-phone-app .agent-watchbox .agent-info-note {
+  color: #999;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctp-phone-app .agent-watchbox-eye i,
+  .ctp-phone-app .agent-watchbox.alarm,
+  .ctp-phone-app .agent-tt-dispatch { animation: none; }
+}
+
+/* WatchBox: its explanations, larger and in italics. */
+.ctp-phone-app .agent-wb .agent-info-note,
+.ctp-phone-app .agent-watchbox .agent-info-note {
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  font-style: italic;
+  line-height: 1.4;
+}

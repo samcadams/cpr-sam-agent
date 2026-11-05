@@ -1,0 +1,217 @@
+{{!-- Handprint Scanner and Retina Scanner (apps/handscan/page.js; the Retina Scanner's template includes this one). --}}
+{{> agent-app-bar bioscan.bar}}
+{{#if bioscan.gm}}
+  <div class="agent-info agent-app agent-bioscan">
+    <h3 class="agent-info-label">Rounds waiting for you</h3>
+    <ol class="agent-app-list">
+      {{#each bioscan.pendingRounds}}
+        <li class="agent-app-item agent-bio-pending" data-scan="{{id}}" data-index="{{index}}">
+          <div class="agent-app-item-main">
+            <div class="agent-app-item-top"><b><i class="fas {{icon}}"></i> {{who}}</b> <small>round {{round}}</small>{{#if noticed}}<span class="agent-bio-noticed">NOTICED</span>{{/if}}</div>
+            <div>{{what}}</div>
+            <small><i class="fas fa-dice-d10"></i> {{line}}{{#if detail}} ({{detail}}){{/if}}</small>
+            <div class="agent-money-actions">
+              <a class="pay" data-action="bio-confirm" data-id="{{id}}" data-index="{{index}}"><i class="fas fa-check"></i> Confirm</a>
+              <a class="decline" data-action="bio-void" data-id="{{id}}" data-index="{{index}}"><i class="fas fa-xmark"></i> Void</a>
+              <a data-action="bio-notice" data-id="{{id}}" title="The target noticed the scan (only you see this)"><i class="fas fa-eye"></i> {{#if noticed}}Not noticed{{else}}They notice{{/if}}</a>
+            </div>
+          </div>
+        </li>
+      {{else}}
+        <li class="agent-empty">No rounds waiting.</li>
+      {{/each}}
+    </ol>
+
+    <h3 class="agent-info-label">Scans in progress</h3>
+    <ol class="agent-app-list">
+      {{#each bioscan.scans}}
+        <li class="agent-app-item" data-scan="{{id}}">
+          <div class="agent-app-item-main">
+            <div class="agent-app-item-top"><b><i class="fas {{icon}}"></i> {{who}}</b> <small>{{kindName}} · {{method}}</small><span class="agent-row-time">{{ago}}</span></div>
+            <div>{{label}} <small>({{what}})</small>{{#if noticed}} <span class="agent-bio-noticed">NOTICED</span>{{/if}}</div>
+            {{> agent-bio-pips}}
+            {{#if subject}}
+              <small>Subject: <a data-action="bio-open-actor" data-actor-id="{{subjectId}}"><i class="fas fa-user"></i> {{subject}}</a></small>
+            {{/if}}
+            <div class="agent-bio-row">
+              <input type="text" name="bioLink" data-id="{{id}}" list="bio-actors" placeholder="Actor name" aria-label="Whose {{kindName}} this is" value="{{subject}}">
+              <a data-action="bio-link" data-id="{{id}}"><i class="fas fa-link"></i> Link actor</a>
+              <a data-action="bio-notice" data-id="{{id}}" title="The target noticed the scan (only you see this)"><i class="{{#if noticed}}fas{{else}}far{{/if}} fa-eye"></i></a>
+              <a class="decline" data-action="bio-cancel" data-id="{{id}}" title="Cancel the scan"><i class="fas fa-trash"></i></a>
+            </div>
+          </div>
+        </li>
+      {{else}}
+        <li class="agent-empty">None.</li>
+      {{/each}}
+    </ol>
+
+    <details class="agent-section" data-section="bioRecords" {{#if bioscan.open.bioRecords}}open{{/if}}>
+      <summary>Records by subject ({{bioscan.groups.length}})</summary>
+      <p class="agent-info-note">Stale means the lock was re-keyed: a glove or lens made from it won't work. Players never see stale marks, copies follow their original.</p>
+      {{#each bioscan.groups}}
+        <div class="agent-bio-group">
+          <div class="agent-bio-group-name">{{#if actorId}}<a data-action="bio-open-actor" data-actor-id="{{actorId}}"><i class="fas fa-user"></i> {{name}}</a>{{else}}{{name}}{{/if}}</div>
+          <ol class="agent-app-list" data-short-list="bio-group-{{key}}">
+            {{#each records}}
+              <li class="agent-app-item compact{{#if stale}} agent-bio-stale{{/if}}" data-record="{{id}}">
+                <div class="agent-app-item-main">
+                  <div><i class="fas {{icon}}"></i> <b>{{holder}}</b> <small>{{line}}{{#if copy}} · copy{{/if}} · {{date}}</small>{{#if stale}} <span class="agent-bio-stale-tag">STALE</span>{{/if}}{{#if noticed}} <span class="agent-bio-noticed">NOTICED</span>{{/if}}</div>
+                  <small>{{label}}{{#if stale}} · {{stale.reason}}{{/if}}</small>
+                  <div class="agent-bio-row">
+                    {{#if stale}}
+                      <a data-action="bio-unstale" data-id="{{id}}"><i class="fas fa-rotate-left"></i> Unmark</a>
+                    {{else}}
+                      <input type="text" name="bioStale" data-id="{{id}}" placeholder="Why (only you see it)" aria-label="Why it's stale">
+                      <a data-action="bio-stale" data-id="{{id}}"><i class="fas fa-lock"></i> Mark stale</a>
+                    {{/if}}
+                  </div>
+                  <div class="agent-bio-row">
+                    <input type="text" name="bioLink" data-id="{{id}}" list="bio-actors" placeholder="Actor name" aria-label="Whose record this is" value="{{linkName}}">
+                    <a data-action="bio-link" data-id="{{id}}"><i class="fas fa-link"></i> Link actor</a>
+                  </div>
+                </div>
+              </li>
+            {{/each}}
+          </ol>
+        </div>
+      {{else}}
+        <p class="agent-empty">No records yet.</p>
+      {{/each}}
+    </details>
+
+    <details class="agent-section" data-section="bioSetup" {{#if bioscan.open.bioSetup}}open{{/if}}>
+      <summary>Setup</summary>
+      <div class="agent-setting-row"><span>DV</span><input type="number" min="1" max="40" data-bio-setting="dv" value="{{bioscan.config.dv}}"></div>
+      <div class="agent-setting-row"><span>Handprint rounds</span><input type="number" min="1" max="20" data-bio-setting="handRounds" value="{{bioscan.config.handRounds}}"></div>
+      <div class="agent-setting-row"><span>Retina rounds</span><input type="number" min="1" max="20" data-bio-setting="retinaRounds" value="{{bioscan.config.retinaRounds}}"></div>
+      <div class="agent-setting-row"><span>Partial prints needed</span><input type="number" min="1" max="20" data-bio-setting="partialPrints" value="{{bioscan.config.partialPrints}}"></div>
+      <label class="agent-radio"><input type="checkbox" data-bio-setting="confirm" {{#if bioscan.config.confirm}}checked{{/if}}> I confirm each good round <small>("Target can't move" always waits for you)</small></label>
+      <div class="agent-info-label">MicroVideo (Retina Scanner on an Internal Agent)</div>
+      <ol class="agent-app-list">
+        {{#each bioscan.microVideo}}
+          <li class="agent-app-item compact"><div class="agent-app-item-main"><b>{{name}}</b> <small>{{label}}</small></div>
+            <a data-action="bio-mv" data-actor-id="{{id}}" title="Detected, has it, hasn't (tap to change)"><i class="fas fa-{{#if set}}user-pen{{else}}wand-magic-sparkles{{/if}}"></i></a></li>
+        {{else}}
+          <li class="agent-empty">No player characters.</li>
+        {{/each}}
+      </ol>
+      <p class="agent-info-note">Nothing tracks Actions or range: a round is an Action, and the scanner works only in Melee Range. Book: Going Quiet pp. 6-7.</p>
+    </details>
+    <datalist id="bio-actors">{{#each bioscan.actors}}<option value="{{this}}">{{/each}}</datalist>
+  </div>
+{{else if bioscan.new}}
+  <div class="agent-info agent-app agent-bioscan">
+    {{#with bioscan.new}}
+      <div class="agent-bio-banner"><i class="fas {{@root.bioscan.icon}}"></i> {{#if direct}}New {{@root.bioscan.name}} scan{{else}}Lift a print{{/if}}</div>
+      {{#if direct}}
+        <h3 class="agent-info-label">Who?</h3>
+        <div class="agent-bio-tokens" role="listbox" aria-label="People in sight">
+          {{#each tokens}}
+            <a class="agent-bio-token{{#if picked}} picked{{/if}}" role="option" aria-selected="{{#if picked}}true{{else}}false{{/if}}" data-action="bio-pick" data-token-id="{{tokenId}}" title="{{#if name}}{{name}}{{else}}Unknown{{/if}}{{#if far}} (not in melee range){{/if}}">
+              <img src="{{img}}" alt=""><span>{{#if name}}{{name}}{{else}}Unknown{{/if}}</span>
+            </a>
+          {{else}}
+            <p class="agent-info-note">Nobody in sight.</p>
+          {{/each}}
+          <a class="agent-bio-token offmap{{#if offMap}} picked{{/if}}" role="option" aria-selected="{{#if offMap}}true{{else}}false{{/if}}" data-action="bio-offmap"><i class="fas fa-user-secret"></i><span>Someone not on the map</span></a>
+        </div>
+        {{#if far}}<p class="agent-bio-far"><i class="fas fa-triangle-exclamation"></i> Not in melee range: you have to be right next to them.</p>{{/if}}
+        {{#if sides}}
+          <div class="agent-bio-row" role="radiogroup" aria-label="Which hand">
+            {{#each sides}}<a class="agent-bio-choice{{#if on}} on{{/if}}" role="radio" aria-checked="{{#if on}}true{{else}}false{{/if}}" data-action="bio-side" data-side="{{value}}"><i class="fas fa-hand"></i> {{label}}</a>{{/each}}
+          </div>
+        {{/if}}
+      {{else}}
+        <div class="agent-bio-row" role="radiogroup" aria-label="What kind of print">
+          {{#each methods}}<a class="agent-bio-choice{{#if on}} on{{/if}}" role="radio" aria-checked="{{#if on}}true{{else}}false{{/if}}" data-action="bio-method" data-method="{{value}}">{{label}}</a>{{/each}}
+        </div>
+      {{/if}}
+      <input type="text" name="bioLabel" maxlength="80" value="{{label}}" placeholder="{{#if direct}}Label: who, where{{else}}Label: whose, from what{{/if}}" aria-label="Label">
+      <p class="agent-info-note">
+        {{#if direct}}Hold still and scan for {{need}} rounds (they needn't be in a row): each one is your Action and {{skill}} DV {{@root.bioscan.dv}}, automatic if they can't move.
+        {{else}}{{need}} {{#if (eq need 1)}}scan{{else}}scans{{/if}} of a print on a smooth surface, each {{skill}} DV {{@root.bioscan.dv}}.{{/if}}
+      </p>
+      <div class="agent-money-actions">
+        <a class="pay" data-action="bio-start"><i class="fas fa-fingerprint"></i> Start scan</a>
+        <a class="decline" data-action="bio-back">Cancel</a>
+      </div>
+    {{/with}}
+  </div>
+{{else if bioscan.scan}}
+  <div class="agent-info agent-app agent-bioscan">
+    {{#with bioscan.scan}}
+      <div class="agent-bio-banner"><i class="fas {{icon}}"></i> {{label}} <small>{{what}}</small></div>
+      <div class="agent-bio-scanner{{#if waiting}} waiting{{/if}}">
+        <i class="fas {{icon}} agent-bio-glyph" aria-hidden="true"></i>
+        {{> agent-bio-pips}}
+        <div class="agent-bio-count">{{count}}</div>
+      </div>
+      {{#if canRound}}
+        {{#if direct}}
+          <button type="button" class="agent-wide-btn" data-action="bio-round" data-id="{{id}}" {{#if busy}}disabled{{/if}}><i class="fas fa-dice-d10"></i> Scan a round ({{skill}} DV {{dv}})</button>
+          <button type="button" class="agent-wide-btn" data-action="bio-round" data-id="{{id}}" data-auto="1"><i class="fas fa-user-lock"></i> Target can't move</button>
+        {{else}}
+          <button type="button" class="agent-wide-btn" data-action="bio-round" data-id="{{id}}" {{#if busy}}disabled{{/if}}><i class="fas fa-dice-d10"></i> Scan a print ({{skill}} DV {{dv}})</button>
+        {{/if}}
+        {{#if combat}}<p class="agent-info-note"><i class="fas fa-hand-fist"></i> This uses your Action this turn.</p>{{/if}}
+      {{else}}
+        <p class="agent-info-note"><i class="fas fa-hourglass-half"></i> Waiting for the GM.</p>
+      {{/if}}
+      {{#if rounds.length}}
+        <ol class="agent-app-list agent-bio-rounds">
+          {{#each rounds}}<li class="agent-app-item compact agent-bio-round {{status}}"><div class="agent-app-item-main"><span>Round {{n}}: {{line}}</span> <small>{{word}}</small></div></li>{{/each}}
+        </ol>
+      {{/if}}
+      <div class="agent-money-actions">
+        <a data-action="bio-back"><i class="fas fa-arrow-left"></i> Leave for now</a>
+        <a class="decline" data-action="bio-cancel" data-id="{{id}}"><i class="fas fa-trash"></i> Stop scan</a>
+      </div>
+    {{/with}}
+  </div>
+{{else}}
+  <div class="agent-info agent-app agent-bioscan">
+    <div class="agent-bio-banner"><i class="fas {{bioscan.icon}}"></i> {{bioscan.name}} Scanner</div>
+    {{#if bioscan.blocked}}
+      <p class="agent-bio-far"><i class="fas fa-eye-slash"></i> {{bioscan.blocked}}</p>
+    {{else}}
+      <button type="button" class="agent-wide-btn" data-action="bio-new" data-method="direct"><i class="fas {{bioscan.icon}}"></i> {{#if bioscan.isHand}}Scan a hand{{else}}Scan an eye{{/if}}</button>
+    {{/if}}
+    {{#if bioscan.isHand}}<button type="button" class="agent-wide-btn" data-action="bio-new" data-method="print"><i class="fas fa-fingerprint"></i> Lift a print</button>{{/if}}
+
+    {{#if bioscan.scans.length}}
+      <h3 class="agent-info-label">In progress</h3>
+      <ol class="agent-app-list">
+        {{#each bioscan.scans}}
+          <li class="agent-app-item compact"><a class="agent-app-item-main" data-action="bio-open" data-id="{{id}}"><b>{{label}}</b> <small>{{what}} · {{count}} · {{ago}}</small></a>
+            {{> agent-bio-pips}}</li>
+        {{/each}}
+      </ol>
+    {{/if}}
+
+    <h3 class="agent-info-label">Vault</h3>
+    <ol class="agent-app-list agent-bio-vault" data-short-list="bio-vault">
+      {{#each bioscan.records}}
+        <li class="agent-app-item agent-bio-record{{#if fresh}} fresh{{/if}}" data-record="{{id}}">
+          <i class="fas {{icon}} agent-bio-record-icon" aria-hidden="true"></i>
+          <div class="agent-app-item-main">
+            {{#if renaming}}
+              <div class="agent-bio-row">
+                <input type="text" name="bioRename" data-id="{{id}}" maxlength="80" value="{{label}}" aria-label="New label">
+                <a data-action="bio-rename-save" data-id="{{id}}"><i class="fas fa-check"></i> Save</a>
+              </div>
+            {{else}}
+              <b>{{label}}</b>
+            {{/if}}
+            <small>{{line}} · {{date}}{{#if scene}} · {{scene}}{{/if}}</small>
+            {{#if from}}<small>Saved from {{from}}</small>{{/if}}
+          </div>
+          <a data-action="bio-rename" data-id="{{id}}" title="Rename"><i class="fas fa-pen"></i></a>
+          <a data-action="bio-delete" data-id="{{id}}" title="Delete"><i class="fas fa-trash"></i></a>
+        </li>
+      {{else}}
+        <li class="agent-empty">{{#if bioscan.isHand}}No handprints yet.{{else}}No retinal patterns yet.{{/if}}</li>
+      {{/each}}
+    </ol>
+  </div>
+{{/if}}

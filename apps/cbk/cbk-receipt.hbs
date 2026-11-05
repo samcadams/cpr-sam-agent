@@ -1,0 +1,21 @@
+{{!-- One CBK receipt (apps/cbk/cbk.hbs): the player's Receipts, and the GM's (gm=true). --}}
+<article class="agent-cbk-receipt {{status}}" data-cbk-receipt="{{id}}"{{#if paid}} data-keep{{/if}}>
+  <header>
+    <b class="agent-cbk-code">{{code}}</b>
+    <span class="agent-cbk-receipt-status {{status}}">{{statusLabel}}</span>
+    <b class="agent-cbk-receipt-price">{{priceLabel}}</b>
+  </header>
+  <p><b>{{name}}</b>{{#if gm}} · {{actorName}}{{/if}}</p>
+  <small>{{#if letter}}{{letter}}: {{/if}}{{market}} · {{date}} {{time}}</small>
+  {{#if paid}}<small class="agent-cbk-booth">{{boothLine}}</small>{{/if}}
+  {{#if gm}}
+    {{#if refundable}}
+      <div class="agent-btn-row">
+        <button type="button" class="agent-wide-btn" data-action="cbk-refund" data-receipt="{{id}}"><i class="fas fa-rotate-left"></i> Refund{{#if app}} and uninstall{{/if}}</button>
+        {{#if paid}}<button type="button" class="agent-wide-btn" data-action="cbk-handover" data-receipt="{{id}}"><i class="fas fa-hand-holding"></i> Hand over</button>{{/if}}
+      </div>
+    {{/if}}
+  {{else if paid}}
+      <button type="button" class="agent-wide-btn agent-cbk-pickup" data-action="cbk-pickup" data-receipt="{{id}}" {{#unless open}}disabled title="The market is closed: pick it up the next time it opens"{{/unless}}><i class="fas fa-qrcode"></i> Show receipt at the booth</button>
+  {{/if}}
+</article>

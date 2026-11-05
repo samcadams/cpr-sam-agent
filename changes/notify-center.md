@@ -1,0 +1,4 @@
+- Notifications: while the phone is open, texts, Agent alerts and the GM's cards drop in as a banner on its screen instead of a pop-up beside the phone button.
+- Notification center: tap or pull down the phone's status bar to see everything waiting (unread conversations, your Agent's alerts, or the GM's cards on the GM Phone), answer an Agent's question there, and clear items one by one or all at once. The status bar shows how many are waiting.
+- Jobs and contact requests now arrive as Agent alerts (and a card for the GM), so they wait in the notification center too.
+- The Garden: your Agent tells you when someone replies to your post, and when a Garden post changes your Reputation.

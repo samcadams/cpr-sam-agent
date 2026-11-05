@@ -1,0 +1,83 @@
+{{!-- BangMe! (apps/bangme/page.js). --}}
+{{> agent-app-bar bangme.bar}}
+<div class="agent-info agent-app agent-bangme">
+  {{#if bangme.gm}}<div class="agent-setting-row"><span>Character</span>{{> agent-dropdown bangme.picker}}</div>{{/if}}
+  <div class="agent-bang-balance">
+    <small>Balance</small>
+    <b>{{#if bangme.wallet}}{{bangme.balance}}{{else}}No account{{/if}}</b>
+    <span class="agent-bang-brand">Eurobank</span>
+  </div>
+  {{#if bangme.gm}}
+    <div class="agent-btn-row">
+      <button type="button" class="agent-wide-btn" data-action="ledger-adjust"><i class="fas fa-scale-balanced"></i> Adjust</button>
+      <button type="button" class="agent-wide-btn" data-action="ledger-export"><i class="fas fa-file-csv"></i> Export</button>
+    </div>
+  {{else}}
+    <button type="button" class="agent-wide-btn agent-bang-btn" data-action="bang"><i class="fas fa-burst"></i> Bang someone</button>
+  {{/if}}
+
+  {{#if bangme.held.length}}
+    <h3 class="agent-info-label">Waiting for you</h3>
+    <ol class="agent-app-list">
+      {{#each bangme.held}}
+        <li class="agent-app-item compact">
+          <div class="agent-app-item-main"><b>{{amountLabel}}</b> from {{party}}{{#if memo}} · {{memo}}{{/if}}</div>
+          {{#unless ../bangme.gm}}<a class="agent-app-chip" data-action="bang-transfer" data-thread-id="{{threadId}}" data-message-id="{{messageId}}"><i class="fas fa-building-columns"></i> Transfer</a>{{/unless}}
+        </li>
+      {{/each}}
+    </ol>
+  {{/if}}
+
+  <h3 class="agent-info-label">Invoices <a class="agent-icon-btn" data-action="invoice-new" title="New invoice"><i class="fas fa-plus"></i></a></h3>
+  <ol class="agent-app-list" data-short-list="bangme-invoices">
+    {{#each bangme.invoices}}
+      <li class="agent-app-item compact"{{#if canPay}} data-keep{{/if}}>
+        <div class="agent-app-item-main"><b>{{amountLabel}}</b> {{party}}<small>{{statusLabel}}{{#if memo}} · {{memo}}{{/if}}</small></div>
+        {{#if canPay}}
+          <a class="agent-app-chip" data-action="invoice-answer" data-invoice-id="{{id}}" data-answer="pay">Pay</a>
+          <a class="agent-icon-btn" data-action="invoice-answer" data-invoice-id="{{id}}" data-answer="decline" title="Decline"><i class="fas fa-xmark"></i></a>
+        {{/if}}
+        {{#if canCancel}}<a class="agent-icon-btn" data-action="invoice-answer" data-invoice-id="{{id}}" data-answer="cancel" title="Cancel it"><i class="fas fa-trash"></i></a>{{/if}}
+      </li>
+    {{else}}
+      <li class="agent-empty">No invoices.</li>
+    {{/each}}
+  </ol>
+
+  <h3 class="agent-info-label">Pay points{{#if bangme.gm}} <a class="agent-icon-btn" data-action="paypoint-edit" title="New pay point"><i class="fas fa-plus"></i></a>{{/if}}</h3>
+  <ol class="agent-app-list" data-short-list="bangme-points">
+    {{#each bangme.points}}
+      <li class="agent-app-item compact{{#unless open}} closed{{/unless}}">
+        {{#if img}}<img class="agent-avatar" src="{{img}}" alt="">{{else}}<span class="agent-avatar"><i class="fas fa-cash-register"></i></span>{{/if}}
+        <div class="agent-app-item-main"><b>{{name}}</b><small>{{prices}}</small>{{#if where}}<small><i class="fas fa-location-dot"></i> {{where}}</small>{{/if}}</div>
+        {{#if ../bangme.gm}}
+          <a class="agent-icon-btn{{#if open}} active{{/if}}" data-action="paypoint-toggle" data-point-id="{{id}}" title="{{#if open}}Open: players see it. Close it{{else}}Closed: open it for players{{/if}}"><i class="fas {{#if open}}fa-door-open{{else}}fa-door-closed{{/if}}"></i></a>
+          <a class="agent-icon-btn" data-action="paypoint-edit" data-point-id="{{id}}" title="Edit"><i class="fas fa-pen"></i></a>
+          <a class="agent-icon-btn" data-action="paypoint-delete" data-point-id="{{id}}" title="Delete"><i class="fas fa-trash"></i></a>
+        {{else}}
+          <a class="agent-app-chip" data-action="paypoint-pay" data-point-id="{{id}}">Pay</a>
+        {{/if}}
+      </li>
+    {{else}}
+      <li class="agent-empty">{{#if bangme.gm}}Add merchants the players can pay: bars, clinics, stalls.{{else}}No pay points around.{{/if}}</li>
+    {{/each}}
+  </ol>
+
+  <h3 class="agent-info-label">Ledger</h3>
+  <div class="agent-app-chips">
+    {{#each bangme.filters}}<a class="agent-app-chip{{#if active}} active{{/if}}" data-action="bang-filter" data-filter="{{id}}">{{label}}</a>{{/each}}
+  </div>
+  <ol class="agent-app-list agent-ledger" data-short-list="bangme-ledger">
+    {{#each bangme.rows}}
+      <li class="agent-app-item compact">
+        <div class="agent-app-item-main">
+          <div class="agent-app-item-top"><b>{{party}}</b><span class="agent-row-time">{{time}}</span></div>
+          <small>{{kindLabel}}{{#if memo}} · {{memo}}{{/if}}{{#if status}} · {{status}}{{/if}}</small>
+        </div>
+        <span class="agent-ledger-amount{{#if credit}} credit{{/if}}">{{amountLabel}}</span>
+      </li>
+    {{else}}
+      <li class="agent-empty">No money moved yet.</li>
+    {{/each}}
+  </ol>
+</div>

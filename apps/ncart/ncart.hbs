@@ -1,0 +1,44 @@
+{{!-- NCART Runner (apps/ncart/page.js). Players: the game fills the page, its leaderboard drawn inside. --}}
+{{> agent-app-bar ncart.bar}}
+{{#if ncart.gm}}
+  <div class="agent-info agent-app agent-ncart-gm">
+    <h3 class="agent-info-label"><i class="fas fa-trophy"></i> Leaderboard</h3>
+    <ol class="agent-app-list agent-ncart-board" data-short-list="ncart-board">
+      {{#each ncart.board}}
+        <li class="agent-app-item compact">
+          <span class="agent-ncart-rank">{{rank}}</span>
+          <div class="agent-app-item-main"><b>{{name}}</b>{{#if who}} <small>({{who}})</small>{{/if}}{{#if fake}} <small>(made up)</small>{{/if}}</div>
+          <span class="agent-ncart-score" title="Data shards"><i class="fas fa-gem" aria-hidden="true"></i> {{shards}}</span>
+          <span class="agent-ncart-dist">{{dist}} m</span>
+          <a class="agent-icon-btn" data-action="ncart-remove" data-id="{{id}}" title="Remove"><i class="fas fa-xmark"></i></a>
+        </li>
+      {{else}}
+        <li class="agent-empty">No runs yet.</li>
+      {{/each}}
+    </ol>
+    <h3 class="agent-info-label">Add to the board</h3>
+    <div class="agent-setting-row">
+      <input type="text" name="ncartName" maxlength="24" placeholder="Name" aria-label="Name">
+      <input type="number" name="ncartShards" min="0" max="99999" value="150" class="agent-ncart-num" aria-label="Shards" title="Shards">
+      <input type="number" name="ncartDist" min="0" max="999999" value="400" class="agent-ncart-num" aria-label="Metres" title="Metres">
+      <a class="agent-icon-btn" data-action="ncart-fake" title="Add"><i class="fas fa-plus"></i></a>
+    </div>
+    <button type="button" class="agent-wide-btn" data-action="ncart-fill"><i class="fas fa-shuffle"></i> Fill with randoms</button>
+    <button type="button" class="agent-wide-btn" data-action="ncart-reset"><i class="fas fa-trash"></i> Clear the board</button>
+
+    <h3 class="agent-info-label"><i class="fas fa-road-barrier"></i> Obstacles</h3>
+    {{#each ncart.families}}
+      <label class="agent-radio"><input type="checkbox" data-ncart-family="{{id}}" {{#if on}}checked{{/if}}> {{label}}</label>
+    {{/each}}
+    <h3 class="agent-info-label"><i class="fas fa-bolt"></i> Power-ups</h3>
+    {{#each ncart.powers}}
+      <label class="agent-radio"><input type="checkbox" data-ncart-power="{{id}}" {{#if on}}checked{{/if}}> {{label}}</label>
+    {{/each}}
+  </div>
+{{else}}
+  <div class="agent-ncart">
+    {{!-- The canvas describes itself (aria-label), and the run's moments are read out (see _ncartSay). --}}
+    <canvas class="agent-ncart-canvas" role="img" aria-label="NCART Runner"></canvas>
+    <p class="agent-sr-only" aria-live="polite" data-ncart-say></p>
+  </div>
+{{/if}}

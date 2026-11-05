@@ -1,0 +1,85 @@
+{{!-- Great River's shop (apps/market/page.js _marketShopData): the player's Shop tab, and the GM's (gm=true: what players see, with Hide / Unavailable per item). --}}
+{{#if loading}}
+  <p class="agent-empty"><i class="fas fa-spinner fa-spin"></i> Loading the catalogue…</p>
+{{else}}
+  {{#if gm}}
+    <p class="agent-info-note">What players see today ({{day}}). <i class="fas fa-eye-slash"></i> hides an item; <i class="fas fa-ban"></i> lists it as unavailable. Tap again to put it back on sale.</p>
+    <div class="agent-btn-row">
+      <button type="button" class="agent-wide-btn" data-action="market-reroll"><i class="fas fa-dice"></i> New picks for today</button>
+      {{#if blockedCount}}<button type="button" class="agent-wide-btn" data-action="market-unblock-all"><i class="fas fa-rotate-left"></i> All {{blockedCount}} back on sale</button>{{/if}}
+    </div>
+  {{/if}}
+
+  {{#if deal}}
+    <section class="agent-market-deals" aria-label="Hot Deals" aria-roledescription="carousel">
+      <h3 class="agent-info-label"><i class="fas fa-fire"></i> Hot Deals <small>{{deal.at}} of {{deal.count}}</small></h3>
+      <div class="agent-market-deal{{#if deal.inCart}} in-cart{{/if}}">
+        {{#if deal.many}}<a class="agent-icon-btn agent-market-deal-step" data-action="market-deal" data-step="-1" title="Previous deal"><i class="fas fa-chevron-left"></i></a>{{/if}}
+        {{#with deal}}
+          <img src="{{img}}" alt="" data-action="market-open" data-uuid="{{uuid}}">
+          <div class="agent-market-deal-main">
+            <b>{{name}}</b>
+            <small>{{typeLabel}}{{#if tier}} · {{tier}}{{/if}}</small>
+            <span><s>{{wasLabel}}</s> <b class="agent-market-price">{{priceLabel}}</b> <span class="agent-market-off">−{{off}}%</span></span>
+          </div>
+          {{#unless ../gm}}<a class="agent-icon-btn agent-market-add" data-action="market-add" data-uuid="{{uuid}}" title="Add {{name}} to the cart">{{#if inCart}}<span class="agent-market-incart">{{inCart}}</span>{{else}}<i class="fas fa-cart-plus"></i>{{/if}}</a>{{/unless}}
+        {{/with}}
+        {{#if deal.many}}<a class="agent-icon-btn agent-market-deal-step" data-action="market-deal" data-step="1" title="Next deal"><i class="fas fa-chevron-right"></i></a>{{/if}}
+      </div>
+      {{#if deal.many}}
+        <div class="agent-market-dots">
+          {{#each deal.dots}}<a class="{{#if active}}active{{/if}}" data-action="market-deal" data-index="{{index}}" title="{{name}}" aria-current="{{#if active}}true{{else}}false{{/if}}"></a>{{/each}}
+        </div>
+      {{/if}}
+    </section>
+  {{/if}}
+
+  {{#if featured.length}}
+    <section class="agent-market-featured" aria-label="Featured">
+      <h3 class="agent-info-label"><i class="fas fa-star"></i> Featured</h3>
+      <div class="agent-market-tiles">
+        {{#each featured}}
+          <div class="agent-market-tile{{#if inCart}} in-cart{{/if}}">
+            <img src="{{img}}" alt="" data-action="market-open" data-uuid="{{uuid}}">
+            <b title="{{name}}">{{name}}</b>
+            <span class="agent-market-price{{#unless price}} on-request{{/unless}}">{{priceLabel}}</span>
+            {{#if tier}}<small class="agent-price-tier">{{tier}}</small>{{/if}}
+            {{#unless ../gm}}<a class="agent-icon-btn agent-market-add" data-action="market-add" data-uuid="{{uuid}}" title="Add {{name}} to the cart">{{#if inCart}}<span class="agent-market-incart">{{inCart}}</span>{{else}}<i class="fas fa-cart-plus"></i>{{/if}}</a>{{/unless}}
+          </div>
+        {{/each}}
+      </div>
+    </section>
+  {{/if}}
+
+  <div class="agent-market-tools">
+    <input type="search" name="marketSearch" value="{{search}}" placeholder="Search" aria-label="Search Great River" data-live autocomplete="off">
+    {{> agent-dropdown typePick}}
+    {{> agent-dropdown sortPick}}
+    {{#if showPick}}{{> agent-dropdown showPick}}{{/if}}
+  </div>
+  <small class="agent-market-found">{{found}} item{{#unless (eq found 1)}}s{{/unless}}</small>
+  <ol class="agent-app-list agent-market-list">
+    {{#each rows}}
+      <li class="agent-app-item compact{{#if inCart}} in-cart{{/if}}{{#if disabled}} unavailable{{/if}}">
+        <img class="agent-avatar" src="{{img}}" alt="" data-action="market-open" data-uuid="{{uuid}}">
+        <div class="agent-app-item-main">
+          <b>{{name}}</b>
+          <small>{{#if featured}}<i class="fas fa-star" title="Featured today"></i> {{/if}}{{#if off}}<span class="agent-market-off">−{{off}}%</span> {{/if}}{{typeLabel}}{{#if tier}} · <i>{{tier}}</i>{{/if}} · {{sourceLabel}}</small>
+        </div>
+        {{#if ../gm}}
+          {{#if blockLabel}}<span class="agent-market-block">{{blockLabel}}</span>{{else}}<span class="agent-market-price{{#unless price}} on-request{{/unless}}">{{#if wasLabel}}<s>{{wasLabel}}</s> {{/if}}{{priceLabel}}</span>{{/if}}
+          <a class="agent-icon-btn{{#if hidden}} active{{/if}}" data-action="market-block" data-uuid="{{uuid}}" data-how="hide" aria-pressed="{{#if hidden}}true{{else}}false{{/if}}" title="{{#if hidden}}Show {{name}} again{{else}}Hide {{name}} from players{{/if}}"><i class="fas fa-eye-slash"></i></a>
+          <a class="agent-icon-btn{{#if unavailable}} active{{/if}}" data-action="market-block" data-uuid="{{uuid}}" data-how="off" aria-pressed="{{#if unavailable}}true{{else}}false{{/if}}" title="{{#if unavailable}}Put {{name}} back on sale{{else}}Make {{name}} unavailable{{/if}}"><i class="fas fa-ban"></i></a>
+        {{else if disabled}}
+          <span class="agent-market-block">Unavailable</span>
+        {{else}}
+          <span class="agent-market-price{{#unless price}} on-request{{/unless}}">{{#if wasLabel}}<s>{{wasLabel}}</s> {{/if}}{{priceLabel}}</span>
+          <a class="agent-icon-btn agent-market-add" data-action="market-add" data-uuid="{{uuid}}" title="Add {{name}} to the cart">{{#if inCart}}<span class="agent-market-incart">{{inCart}}</span>{{else}}<i class="fas fa-cart-plus"></i>{{/if}}</a>
+        {{/if}}
+      </li>
+    {{else}}
+      <li class="agent-empty">Nothing matches.</li>
+    {{/each}}
+  </ol>
+  {{#if more}}<button type="button" class="agent-wide-btn" data-action="market-more">Show more</button>{{/if}}
+{{/if}}

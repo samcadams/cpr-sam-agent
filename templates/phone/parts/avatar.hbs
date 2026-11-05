@@ -1,2 +1,2 @@
-{{!-- A picture, or initials when there's none. Context: { img, name, initials }. --}}
-{{#if img}}<img class="agent-avatar" src="{{img}}" alt="{{name}}">{{else}}<span class="agent-avatar">{{initials}}</span>{{/if}}
+{{!-- A picture, or initials when there's none. Context: { img, name, initials }. The name is always written beside it, so the picture itself is silent. --}}
+{{#if img}}<img class="agent-avatar" src="{{img}}" alt="">{{else}}<span class="agent-avatar" aria-hidden="true">{{initials}}</span>{{/if}}

@@ -1,0 +1,22 @@
+{{!-- One app in the App Store (apps/pool/pool.hbs): a card from pool.js poolData, plus `offline`. Its icon is the
+     app's home-screen tile (.agent-app-tile, styles/phone/app-pages.css). --}}
+<li class="agent-pool-card app-{{id}}{{#if downloading}} downloading{{/if}}">
+  <span class="agent-pool-icon agent-app-tile app-{{id}}"><span class="agent-home-icon"><i class="{{icon}}"></i></span></span>
+  <div class="agent-pool-card-main">
+    <b>{{name}}</b>{{#if publisher}}<small>{{publisher}}</small>{{/if}}
+    {{#if blurb}}<p>{{blurb}}</p>{{/if}}
+    {{#if citinet}}<small class="agent-pool-citinet" title="Black Chrome keyword: doesn't work without a CitiNet connection"><i class="fas fa-satellite-dish"></i> Requires CitiNet</small>{{/if}}
+    {{#if downloading}}<span class="agent-pool-progress" role="progressbar" aria-label="Downloading {{name}}"><span style="animation-duration: {{downloading.ms}}ms; animation-delay: -{{downloading.elapsed}}ms"></span></span>{{/if}}
+  </div>
+  <div class="agent-pool-buy">
+    {{#if downloading}}<small class="agent-pool-dl">Downloading…</small>
+    {{else if open}}<button type="button" data-action="pool-open" data-app="{{id}}">Open</button>
+    {{else if renew}}<button type="button" data-action="pool-renew" data-app="{{id}}" {{#if offline}}disabled{{/if}}>Renew</button>
+    {{else}}
+      <button type="button" data-action="pool-get" data-app="{{id}}" {{#if offline}}disabled{{/if}}>{{#if subscribe}}Subscribe{{else if buy}}{{price}}{{else}}Get{{/if}}</button>
+      {{#unless buy}}<small>{{#if owned}}Owned{{else}}{{price}}{{/if}}</small>{{/unless}}
+      {{#if tier}}{{#unless owned}}<small class="agent-price-tier">{{tier}}</small>{{/unless}}{{/if}}
+    {{/if}}
+    {{#if removable}}<a class="agent-icon-btn agent-pool-remove" data-action="pool-remove" data-app="{{id}}" title="Uninstall {{name}}" aria-label="Uninstall {{name}}"><i class="fas fa-trash"></i></a>{{/if}}
+  </div>
+</li>

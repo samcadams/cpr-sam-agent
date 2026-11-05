@@ -1,9 +1,11 @@
-import { cleanImage, cleanLocation, gm, MAX_LENGTH, MAX_NAME } from "./validate.js";
-import { DEFAULT_CONTACT_IMG } from "../config.js";
+import { cleanImage, cleanLocation, gm, MAX_NAME, textParts } from "./validate.js";
+import { DEFAULT_CONTACT_IMG, MODULE_ID } from "../config.js";
 import { canUsePhone, isPlayerCharacter } from "../model/agent.js";
-import { findContact, getContacts, setContacts } from "../model/contacts.js";
+import { findContact, getContacts, setContacts, shownName } from "../model/contacts.js";
+import { feature } from "../model/features.js";
 import { canActFor, canView, readKey } from "../model/permissions.js";
-import { actorAvatar, displayName, isDirect, isGroup } from "../model/threads.js";
+import { shareCard, shareFits } from "../model/share.js";
+import { actorAvatar, displayName, isDirect, isGroup, unknownLabel } from "../model/threads.js";
 import { clean } from "../util/text.js";
 
 /*
@@ -15,7 +17,8 @@ export const requests = {
   send: "_onSend",
   read: "_onRead",
   viewed: gm("_onViewed"),
-  reveal: gm("_onReveal")
+  reveal: gm("_onReveal"),
+  "share-texts": "_onShareTexts"
 };
 
 export const methods = {
@@ -67,6 +70,8 @@ export const methods = {
       mirror.messages.push({ ...message, id: foundry.utils.randomID(), from: message.from === "pc" ? "contact" : "pc" });
       // A PC writing has obviously seen the other PC's messages.
       if (message.from === "pc") mirror.viewed = Math.max(mirror.viewed ?? 0, message.ts);
+      // The GM wrote it, so the GM has read both copies.
+      if (game.users.get(message.userId)?.isGM) mirror.lastRead.gm = Math.max(mirror.lastRead.gm ?? 0, message.ts);
     }
     this.save();
     this._push(thread, notify);
@@ -113,11 +118,11 @@ export const methods = {
   },
 
   async _onSend(user, msg) {
-    const text = clean(msg.text, MAX_LENGTH);
+    const parts = textParts(msg.text);
     const location = cleanLocation(msg.location);
     const image = cleanImage(msg.image, user);
     const job = this._jobOffer(user, msg.job);
-    if (!text && !location && !image && !job) return;
+    if (!parts[0] && !location && !image && !job) return;
 
     let thread;
     if (user.isGM) {
@@ -129,11 +134,14 @@ export const methods = {
     }
     if (!thread) return;
 
-    const message = this._message(user.isGM ? "contact" : "pc", text, { userId: user.id, location, image, job });
-    thread.lastRead[user.isGM ? "gm" : "owner"] = message.ts;
-    if (user.isGM) thread.viewed = message.ts; // replying means the contact has seen it
-    this._postDirect(thread, message);
-    this._dingDirect(thread, message.from);
+    // A long text arrives as several bubbles: only the last one notifies.
+    const messages = this._textMessages(user.isGM ? "contact" : "pc", parts, { userId: user.id, location, image, job });
+    for (const message of messages) {
+      thread.lastRead[user.isGM ? "gm" : "owner"] = message.ts;
+      if (user.isGM) thread.viewed = message.ts; // replying means the contact has seen it
+      this._postDirect(thread, message, message === messages.at(-1));
+    }
+    this._dingDirect(thread, messages[0].from);
   },
 
   _onRead(user, { threadId, ts, actorId }) {
@@ -149,6 +157,14 @@ export const methods = {
       const mirror = this._mirror(thread, false);
       if (mirror && (mirror.viewed ?? 0) < thread.lastRead[key]) {
         mirror.viewed = thread.lastRead[key];
+        this._push(mirror);
+      }
+    }
+    // PC-to-PC: the GM sees both copies, so reading one reads the other (mirrored messages share ts).
+    if (isDirect(thread) && user.isGM) {
+      const mirror = this._mirror(thread, false);
+      if (mirror && (mirror.lastRead.gm ?? 0) < thread.lastRead.gm) {
+        mirror.lastRead.gm = thread.lastRead.gm;
         this._push(mirror);
       }
     }
@@ -187,5 +203,50 @@ export const methods = {
     named.viewed = Math.max(named.viewed ?? 0, hidden.viewed ?? 0);
     this._pushWithRemovals(hidden, this._viewers(hidden), true);
     this._push(named);
+  },
+
+  /**
+   * Share an unbroken run of texts (from, to: message ids) in a direct or group conversation to chat,
+   * publicly, as the sharer's phone shows it (see model/share.js). Players share as a PC they own
+   * (`actorId`, for groups); the GM as the conversation's NPC side (`as`: the group NPC it speaks as).
+   */
+  async _onShareTexts(user, { threadId, actorId, as, from, to, theme }) {
+    if (!feature("shareTexts")) return;
+    const thread = this.threads.get(threadId);
+    if (!(isDirect(thread) || isGroup(thread)) || !canView(user, thread)) return;
+    const start = thread.messages.findIndex(m => m.id === from);
+    const end = thread.messages.findIndex(m => m.id === to);
+    if (start < 0 || end < start) return;
+    const run = thread.messages.slice(start, end + 1);
+    if (!shareFits(run)) return;
+
+    let card;
+    let alias;
+    if (isGroup(thread)) {
+      const me = user.isGM
+        ? thread.members.find(m => !m.actorId && m.key === as) ?? thread.members.find(m => !m.actorId)
+        : thread.members.find(m => m.actorId && m.actorId === actorId && canActFor(user, m));
+      if (!user.isGM && !me) return;
+      alias = me?.name ?? thread.name;
+      const mine = user.isGM ? m => m.from.startsWith("n:") : m => m.from === me.key;
+      card = { title: thread.name, run, mine, sender: m => m.name ?? null };
+    } else {
+      const actor = game.actors.get(thread.actorId);
+      if (!actor) return;
+      const hidden = unknownLabel();
+      if (user.isGM) {
+        // Headed with the PC, as on the GM Phone. A hidden caller stays hidden.
+        alias = thread.hideId ? hidden : thread.contact;
+        card = { title: displayName(actor), run, mine: m => m.from === "contact" };
+      } else {
+        alias = displayName(actor);
+        card = { title: thread.hideId ? hidden : shownName(actor, thread.contact), run, mine: m => m.from === "pc" };
+      }
+    }
+    const content = shareCard({ ...card, sharer: alias, theme });
+    await ChatMessage.create({
+      speaker: { alias }, content, style: CONST.CHAT_MESSAGE_STYLES?.OTHER ?? 0,
+      flags: { [MODULE_ID]: { sharedTexts: { threadId: thread.id, from, to, userId: user.id } } }
+    });
   }
 };

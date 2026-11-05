@@ -1,0 +1,99 @@
+{{!-- Calendar (apps/calendar/page.js). --}}
+{{> agent-app-bar calendar.bar}}
+<div class="agent-info agent-app agent-cal">
+  {{#if calendar.picker}}<div class="agent-setting-row"><span>Whose downtime</span>{{> agent-dropdown calendar.picker}}</div>{{/if}}
+  {{#if calendar.noCalendar}}
+    <p class="agent-empty">The calendar needs Simple Calendar running.</p>
+  {{else}}
+    {{#with calendar}}
+      {{#if round}}
+        <div class="agent-cal-round">
+          <i class="fas fa-hourglass-half"></i> Downtime from {{round.from}} ({{round.days}} days): your schedule is {{round.schedule}}.
+          {{#unless gm}}<a data-action="cal-downtime">Open Downtime</a>{{/unless}}
+        </div>
+      {{/if}}
+      <div class="agent-cal-head">
+        <a class="agent-icon-btn" data-action="cal-step" data-step="-1" title="Previous month"><i class="fas fa-chevron-left"></i></a>
+        <b>{{title}}</b>
+        <a class="agent-icon-btn" data-action="cal-step" data-step="1" title="Next month"><i class="fas fa-chevron-right"></i></a>
+        <a class="agent-icon-btn" data-action="cal-today" title="Today"><i class="fas fa-calendar-day"></i></a>
+      </div>
+      <table class="agent-cal-grid">
+        <thead><tr>{{#each weekdays}}<th>{{this}}</th>{{/each}}</tr></thead>
+        <tbody>
+          {{#each weeks}}
+            <tr>
+              {{#each this}}
+                {{#if this}}
+                  <td class="agent-cal-day{{#if today}} today{{/if}}{{#if selected}} selected{{/if}}" data-action="cal-day" data-day="{{index}}">
+                    <span>{{day}}</span>
+                    {{#if wxIcon}}<i class="{{wxIcon}} agent-cal-wx" title="{{wxName}}" aria-label="{{wxName}}"></i>{{/if}}
+                    <span class="agent-cal-marks">{{#if note}}<i class="note"></i>{{/if}}{{#if downtime}}<i class="downtime"></i>{{/if}}</span>
+                  </td>
+                {{else}}
+                  <td class="agent-cal-blank"></td>
+                {{/if}}
+              {{/each}}
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      <div class="agent-cal-legend"><span><i class="note"></i> Notes</span>{{#if hq}}<span><i class="downtime"></i> Downtime</span>{{/if}}</div>
+
+      <h3 class="agent-info-label">{{day.label}}{{#if day.weather}} <small class="agent-cal-wxday"><i class="{{day.weather.wxIcon}}"></i> {{day.weather.wxName}}</small>{{/if}}</h3>
+      <ol class="agent-app-list">
+        {{#each day.notes}}
+          <li class="agent-app-item agent-cal-note">
+            <i class="fas fa-note-sticky agent-app-item-icon"></i>
+            <div class="agent-app-item-main">
+              <div class="agent-app-item-top"><b>{{title}}</b><span class="agent-row-time">{{time}}</span></div>
+              {{#if html}}<div class="agent-cal-note-body">{{{html}}}</div>{{/if}}
+              {{#if mine}}<div class="agent-money-actions"><a class="decline" data-action="cal-note-delete" data-note-id="{{id}}"><i class="fas fa-trash"></i> Delete</a></div>{{/if}}
+            </div>
+          </li>
+        {{else}}
+          <li class="agent-empty">No notes.</li>
+        {{/each}}
+      </ol>
+      {{#if day.downtime.length}}
+        <h3 class="agent-info-label">{{#if gm}}{{actorName}}'s downtime{{else}}What you did{{/if}}</h3>
+        <ol class="agent-app-list">
+          {{#each day.downtime}}
+            <li class="agent-app-item compact agent-cal-block">
+              <i class="{{icon}} agent-app-item-icon" style="color: {{color}}"></i>
+              <div class="agent-app-item-main">
+                <div class="agent-app-item-top"><b>{{name}}</b><span class="agent-row-time">{{time}}</span></div>
+                {{#if detail}}<small>{{detail}}</small>{{/if}}
+                {{#if notes}}<small><em>{{notes}}</em></small>{{/if}}
+              </div>
+            </li>
+          {{/each}}
+        </ol>
+      {{/if}}
+
+      {{#if day.canAdd}}
+        {{#if adding}}
+          <div class="agent-cal-form">
+            <input type="text" name="calTitle" maxlength="100" placeholder="Title">
+            <div class="agent-setting-row">
+              <label class="agent-radio"><input type="checkbox" name="calAllDay"> All day</label>
+              <input type="time" name="calTime" value="12:00">
+            </div>
+            <textarea name="calDetails" rows="3" placeholder="Details (optional)"></textarea>
+            {{#unless gm}}
+              <label class="agent-radio"><input type="radio" name="calShare" value="me" checked> Just me</label>
+              {{#if day.crew}}<label class="agent-radio"><input type="radio" name="calShare" value="crew"> My crew</label>{{/if}}
+            {{/unless}}
+            {{#if actorName}}<label class="agent-radio"><input type="checkbox" name="calRemind"> Remind me when it starts</label>{{/if}}
+            <div class="agent-money-actions">
+              <a class="pay" data-action="cal-note-save"><i class="fas fa-floppy-disk"></i> Add</a>
+              <a data-action="cal-add">Cancel</a>
+            </div>
+          </div>
+        {{else}}
+          <button type="button" class="agent-wide-btn" data-action="cal-add"><i class="fas fa-plus"></i> Add a note</button>
+        {{/if}}
+      {{/if}}
+    {{/with}}
+  {{/if}}
+</div>

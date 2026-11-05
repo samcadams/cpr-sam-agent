@@ -1,0 +1,17 @@
+{{!-- A clipping on the GM's desk (apps/screamsheet/page.js _screamGm). --}}
+<div class="agent-scream-card agent-scream-desk outlet-{{outletKey}}">
+  <a class="agent-scream-desk-head" data-action="scream-open" data-id="{{id}}" title="Read it">
+    <span class="agent-scream-outlet">{{outlet}} · {{depth}}{{#if dv}} (DV {{dv}}){{/if}}{{#if front}} · Front Page{{/if}}</span>
+    <b>{{title}}</b>
+  </a>
+  <span class="agent-scream-note">
+    {{#if source}}{{source}}{{#if sourceLabel}}: {{sourceLabel}}{{/if}} · {{/if}}{{reach}}{{#if subjects}} · About {{subjects}}{{/if}}
+    {{#if at}} · goes out in {{at}} h{{/if}}{{#if date}} · {{date}}{{/if}}{{#if pulled}} · Pulled by {{pulled}}{{/if}}
+  </span>
+  <div class="agent-scream-actions">
+    <a data-action="scream-edit" data-id="{{id}}"><i class="fas fa-pen"></i> Edit</a>
+    {{#unless date}}<a data-action="scream-publish" data-id="{{id}}"><i class="fas fa-paper-plane"></i> Publish</a>
+    <a data-action="scream-claude" data-id="{{id}}" title="Claude rewrites the text in the outlet's voice"><i class="fas {{#if writing}}fa-spinner fa-spin{{else}}fa-wand-magic-sparkles{{/if}}"></i> {{#if writing}}Writing…{{else}}Redraft{{/if}}</a>{{/unless}}
+    <a data-action="scream-delete" data-id="{{id}}"><i class="fas fa-trash"></i> {{#if date}}Take down{{else}}Bin{{/if}}</a>
+  </div>
+</div>

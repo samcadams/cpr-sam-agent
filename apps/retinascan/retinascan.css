@@ -1,0 +1,2 @@
+/* Retina Scanner: its home-screen tile (amber). Its page is the Handprint Scanner's (apps/handscan/handscan.css). */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-retinascan { --app-rgb: 235, 170, 50; }

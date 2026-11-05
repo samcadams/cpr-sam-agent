@@ -1,10 +1,9 @@
 {{!-- How a phone looks and behaves. Context: lookData() (ui/phone/pages/settings.js). --}}
-<label class="agent-info-label">Look</label>
+<h3 class="agent-info-label">Look</h3>
 {{#if freeInternal}}
   <label class="agent-radio">
     <input type="checkbox" data-phone-setting="freeInternal" {{#if freeInternal.on}}checked{{/if}}> Disable forced Internal Agent theming
   </label>
-  <p class="agent-info-note">Off: your Internal Agent is a projected HUD. On: it looks like any other phone, in the skin you pick.</p>
 {{/if}}
 {{#if skin}}
   <div class="agent-setting-row"><span>Skin</span>{{> agent-dropdown skin}}</div>
@@ -12,47 +11,53 @@
 <p class="agent-info-note">{{blurb}}</p>
 {{#if palette}}
   <div class="agent-setting-row"><span>{{#if hud}}HUD colours{{else}}Colour palette{{/if}}</span>{{> agent-dropdown palette}}</div>
-{{else}}
-  <p class="agent-info-note">{{paletteNote}}</p>
 {{/if}}
 {{#if hudOpacity}}
   <div class="agent-setting-row">
     <span>{{opacityLabel}}</span>
     <input type="range" name="hudOpacity" min="0.2" max="1" step="0.05" value="{{hudOpacity}}">
   </div>
-  <p class="agent-info-note">Just for you: how solid it looks on your screen.</p>
 {{/if}}
 <div class="agent-setting-row">
   <span>Text size <span class="agent-font-scale-value">{{fontScale.percent}}%</span></span>
   <input type="range" name="fontScale" min="0.8" max="1.5" step="0.05" value="{{fontScale.value}}">
 </div>
-<p class="agent-info-note">Just for you: every piece of text on the phone, bigger or smaller.</p>
+{{#each volumes}}
+  <div class="agent-setting-row">
+    <span>{{label}} <span class="agent-range-value">{{percent}}%</span></span>
+    <input type="range" data-volume="{{key}}" min="0" max="1" step="0.05" value="{{value}}">
+  </div>
+{{/each}}
+<h3 class="agent-info-label">Sounds</h3>
+{{#each sounds}}
+  <div class="agent-setting-row agent-sound-row">
+    <span>{{label}}</span>
+    {{> agent-dropdown picker}}
+    <a class="agent-icon-btn" data-action="sound-preview" data-kind="{{kind}}" title="Play"><i class="fas fa-play"></i></a>
+  </div>
+{{/each}}
 {{#if canDockSide}}{{#unless homeNavigation}}
   <label class="agent-radio"><input type="checkbox" data-phone-setting="dock" {{#if dockSide}}checked{{/if}}> Vertical Dock</label>
 {{/unless}}{{/if}}
-<label class="agent-info-label">Getting around</label>
-<label class="agent-radio"><input type="radio" name="navigation" value="dock" {{#unless homeNavigation}}checked{{/unless}}> Dock <span class="notes">— your apps along the bottom, the rest under {{@root.appearance.names.home}}</span></label>
-<label class="agent-radio"><input type="radio" name="navigation" value="home" {{#if homeNavigation}}checked{{/if}}> Home screen <span class="notes">— every app on one screen, and a Home button</span></label>
+<h3 class="agent-info-label">Navigation Method</h3>
+<label class="agent-radio"><input type="radio" name="navigation" value="dock" {{#unless homeNavigation}}checked{{/unless}}> Dock</label>
+<label class="agent-radio"><input type="radio" name="navigation" value="home" {{#if homeNavigation}}checked{{/if}}> Home Screen</label>
 {{#unless homeNavigation}}
   <div class="agent-dock-choices">
     {{#each dock.apps}}
       <label class="agent-radio{{#if disabled}} disabled{{/if}}"><input type="checkbox" data-dock-app="{{id}}" {{#if on}}checked{{/if}} {{#if disabled}}disabled{{/if}}> <i class="{{icon}}"></i> {{name}}</label>
     {{/each}}
   </div>
-  <p class="agent-info-note">Up to {{dock.max}} on the dock. The rest are under {{@root.appearance.names.home}}.</p>
 {{/unless}}
 {{#if comms}}
-  <label class="agent-info-label">New texts</label>
+  <h3 class="agent-info-label">New texts</h3>
   {{#each notify}}
     <label class="agent-radio"><input type="radio" name="notifyStyle" value="{{value}}" {{#if checked}}checked{{/if}}> {{label}}</label>
   {{/each}}
-  <p class="agent-info-note">How a new text shows up on this phone when its conversation isn't already open.</p>
 {{/if}}
-<label class="agent-radio"><input type="checkbox" data-phone-setting="lockScreen" {{#if lockScreen}}checked{{/if}}> Lock screen</label>
-<p class="agent-info-note">Taking the phone out shows the time and new messages first.</p>
+<label class="agent-radio"><input type="checkbox" data-phone-setting="lockScreen" {{#if lockScreen}}checked{{/if}}> Show Lockscreen</label>
 {{#if comms}}
-  <label class="agent-radio"><input type="checkbox" data-phone-setting="split" {{#if split}}checked{{/if}}> Split view when wide</label>
-  <p class="agent-info-note">Drag the window wider than {{@root.splitWidth}}px to see your conversations beside the open one.</p>
+  <label class="agent-radio"><input type="checkbox" data-phone-setting="split" {{#if split}}checked{{/if}}> Split (some) apps on wide displays</label>
   {{#if simTiles}}
     <label class="agent-radio"><input type="checkbox" data-phone-setting="simTiles" {{#if simTiles.on}}checked{{/if}}> NPC SIM tiles</label>
     <p class="agent-info-note">A tile per NPC above the conversations, with its unread count: tap one to act as them.</p>

@@ -1,0 +1,55 @@
+/*
+ * 4Tify (SecSystems orange): the app's page (apps/fortify/page.js, apps/fortify/fortify.hbs). Built from the phone's
+ * colour variables, so every skin and palette carries over.
+ */
+
+/* Its home-screen tile, and the content folder's full-colour icon while it keeps its default icon (as Trauma Team's, app-pages.css). */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-fortify { --app-rgb: 255, 140, 50; }
+body.agent-art-fortify .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-fortify .agent-home-icon:has(> i.fa-shield-halved),
+body.agent-art-fortify .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-fortify > i.fa-shield-halved { --app-picture: var(--agent-art-fortify); }
+body.agent-art-fortify .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-fortify .agent-home-icon:has(> i.fa-shield-halved) {
+  border-color: transparent;
+  background: var(--app-picture) center / cover no-repeat;
+}
+body.agent-art-fortify .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-fortify .agent-home-icon > i.fa-shield-halved { visibility: hidden; }
+body.agent-art-fortify .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-fortify > i.fa-shield-halved {
+  display: inline-block;
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 0.3em;
+  background: var(--app-picture) center / cover no-repeat;
+}
+body.agent-art-fortify .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-fortify > i.fa-shield-halved::before { content: none; }
+
+.ctp-phone-app .agent-fortify { --fortify-rgb: 255, 140, 50; }
+
+.ctp-phone-app .agent-fortify-finder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  margin-bottom: 0.8em;
+  padding: 1em;
+  border: 1px dashed rgba(var(--fortify-rgb), 0.6);
+  border-radius: 0.6em;
+  text-align: center;
+}
+.ctp-phone-app .agent-fortify-finder > i { font-size: 2.4em; color: rgb(var(--fortify-rgb)); }
+.ctp-phone-app .agent-fortify-finder > p { margin: 0; }
+
+.ctp-phone-app .agent-fortify-ring {
+  display: grid;
+  place-items: center;
+  width: 6em;
+  height: 6em;
+  border-radius: 50%;
+  background: conic-gradient(rgb(var(--fortify-rgb)) calc(var(--scan) * 1%), rgba(var(--fortify-rgb), 0.15) 0);
+  mask: radial-gradient(circle, transparent 55%, #000 56%);
+}
+
+/* Void and Use mark take what they need, and leave the row to the text (Foundry's buttons are width: 100%). */
+.ctp-phone-app .agent-fortify .agent-app-item button { flex: none; width: auto; white-space: nowrap; }
+
+.ctp-phone-app .agent-fortify-home { display: flex; align-items: center; gap: 0.8em; }
+.ctp-phone-app .agent-fortify-home ul { margin: 0; padding-left: 1.1em; }
+.ctp-phone-app .agent-fortify-grade { font-size: 3em; line-height: 1; color: rgb(255, 70, 70); }

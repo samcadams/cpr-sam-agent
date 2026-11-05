@@ -1,0 +1,21 @@
+{
+  "_id": "cpragentRecipe04",
+  "_key": "!macros!cpragentRecipe04",
+  "name": "Ask the crew (Agent alert)",
+  "type": "script",
+  "scope": "global",
+  "img": "icons/svg/hazard.svg",
+  "command": "// Recipe from API.md. GM only. Change \"V\" to one of your characters (or a list of them).\n// Run \"Ask the crew: listen for answers\" once per session to act on the answer.\nconst agent = game.modules.get(\"cpr-sam-agent\").api;\nawait agent.alert({ to: \"V\", kind: \"warning\", text: \"Unknown AV approaching. Reroute?\", choices: [\"Reroute\", \"Hold\"], tag: \"av-reroute\" });",
+  "author": null,
+  "folder": null,
+  "sort": 400000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "12.343",
+    "systemId": "cyberpunk-red-core",
+    "systemVersion": "0.92.4"
+  }
+}

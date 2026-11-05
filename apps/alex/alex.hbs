@@ -1,0 +1,188 @@
+{{!-- Ask Alex Anything (apps/alex/page.js). --}}
+{{> agent-app-bar alex.bar}}
+{{#if alex.gm}}
+  <div class="agent-info agent-app agent-alex">
+    <h3 class="agent-info-label">Waiting for Alex</h3>
+    <ol class="agent-app-list">
+      {{#each alex.waiting}}
+        <li class="agent-app-item agent-alex-query">
+          <div class="agent-app-item-main">
+            <div class="agent-app-item-top"><b>{{name}}</b>{{#if priority}} <span class="agent-alex-saai-tag" title="Big SAAI: priority crawl. Ziggurat logs this question."><i class="fas fa-bolt"></i> Big SAAI</span>{{/if}}<span class="agent-row-time">{{ago}}</span></div>
+            <div class="agent-alex-question">"{{text}}"</div>
+            <small>{{suggest}}</small>
+            {{#if agent}}<small class="agent-alex-voice"><i class="fas fa-robot"></i> {{agent.label}} · {{agent.personality}}{{#if agent.voices}} <em>(voices the draft)</em>{{/if}}</small>{{/if}}
+            {{#if needsRoll}}
+              <div class="agent-alex-roll">{{#if roll}}Rolled <b>{{roll.total}}</b> vs DV {{dv}}: {{#if roll.success}}success{{else}}failure{{/if}} <small>({{roll.detail}})</small>{{else}}Waiting for their roll (DV {{dv}})…{{/if}}</div>
+            {{/if}}
+            {{#if @root.alex.hasPool}}
+              <details class="agent-alex-matches" data-section="alexMatches" {{#if @root.alex.matchesOpen}}open{{/if}}>
+                <summary><i class="fas fa-book"></i> Data Pool matches ({{matches.length}})</summary>
+                {{#each matches}}
+                  <div class="agent-alex-match">
+                    <div><b>{{name}}</b> {{#each hits}}<span class="agent-alex-chip">{{this}}</span>{{/each}}{{#if secret}} <i class="fas fa-eye-slash agent-alex-match-secret" title="Has secrets (left out when used)"></i>{{/if}}</div>
+                    {{#if preview}}<small>{{preview}}</small>{{else}}<small><em>Only secrets: nothing public to send.</em></small>{{/if}}
+                    <div class="agent-money-actions">
+                      {{#if preview}}<a class="pay" data-action="alex-use" data-query-id="{{../id}}" data-entry-id="{{id}}"><i class="fas fa-arrow-down"></i> Use</a>{{/if}}
+                      <a data-action="alex-open-entry" data-entry-id="{{id}}"><i class="fas fa-book-open"></i> Open</a>
+                    </div>
+                  </div>
+                {{else}}
+                  <small>No entry's name or keywords are in this question.</small>
+                {{/each}}
+              </details>
+            {{/if}}
+            {{#if ai.ready}}
+              <div class="agent-alex-ai">
+                <div class="agent-alex-ai-row">
+                  {{#if ai.direction}}<small class="agent-alex-direction" title="Your directions for Alex"><i class="fas fa-compass"></i> {{ai.direction}}</small>{{/if}}
+                  {{#if ai.web}}<small title="Web search on"><i class="fas fa-globe"></i></small>{{/if}}
+                  {{#if ai.busy}}
+                    <span class="agent-alex-crawling">Claude is drafting<span>.</span><span>.</span><span>.</span></span>
+                  {{else}}
+                    <a class="pay" data-action="alex-draft" data-query-id="{{id}}"><i class="fas fa-wand-magic-sparkles"></i> {{#if ai.result}}Redraft{{else}}Draft with Claude{{/if}}</a>
+                  {{/if}}
+                </div>
+                {{#if ai.error}}<div class="agent-alex-ai-error"><i class="fas fa-triangle-exclamation"></i> {{ai.error}}</div>{{/if}}
+              </div>
+            {{/if}}
+            <textarea data-query-id="{{id}}" rows="4" placeholder="Alex's answer. On a bad roll, make it confident and wrong.">{{draft}}</textarea>
+            {{#if ai.result}}
+              <div class="agent-alex-notes">
+                <div class="agent-alex-notes-title"><i class="fas fa-user-secret"></i> Claude's notes for you <small>(players never see these)</small></div>
+                {{#unless ai.result.found}}<div class="agent-alex-note warn"><i class="fas fa-ban"></i> Nothing public to find: consider No results.</div>{{/unless}}
+                {{#if ai.rollDv}}<div class="agent-alex-note roll"><i class="fas fa-dice-d10"></i> Suggests a Library Search first, DV {{ai.rollDv}}. <a data-action="alex-need-roll" data-query-id="{{id}}" data-dv="{{ai.rollDv}}">Ask for it</a></div>{{/if}}
+                {{#if ai.result.secretsUsed}}<div class="agent-alex-note secret"><i class="fas fa-eye-slash"></i> <b>From secrets:</b> {{ai.result.secretsUsed}}</div>{{/if}}
+                {{#if ai.result.gmNote}}<div class="agent-alex-note"><i class="fas fa-note-sticky"></i> {{ai.result.gmNote}}</div>{{/if}}
+                {{#if ai.result.sources.length}}<div class="agent-alex-note"><i class="fas fa-book"></i> <b>Sources:</b> {{#each ai.result.sources}}<span class="agent-alex-chip">{{this}}</span>{{/each}}</div>{{/if}}
+                {{#if ai.read.length}}<div class="agent-alex-note"><i class="fas fa-location-dot"></i> <b>Locations read:</b> {{#each ai.read}}<span class="agent-alex-chip">{{this}}</span>{{/each}}</div>{{/if}}
+                <small class="agent-alex-cost">{{ai.cost}}{{#if ai.searches}} · {{ai.searches}} web search{{/if}}</small>
+              </div>
+            {{/if}}
+            {{#if image}}<img class="agent-alex-img" src="{{image}}" alt="">{{/if}}
+            <div class="agent-money-actions">
+              <a class="pay" data-action="alex-answer" data-query-id="{{id}}"><i class="fas fa-reply"></i> Answer</a>
+              <a data-action="alex-photo" data-query-id="{{id}}" title="Attach a picture"><i class="{{@root.appearance.icons.photo}}"></i></a>
+              {{#unless needsRoll}}<input type="number" name="alexDv" data-query-id="{{id}}" value="{{dv}}" min="1" title="DV"><a data-action="alex-need-roll" data-query-id="{{id}}"><i class="fas fa-dice-d10"></i> Ask for a roll</a>{{/unless}}
+              <a class="decline" data-action="alex-none" data-query-id="{{id}}">No results</a>
+            </div>
+          </div>
+        </li>
+      {{else}}
+        <li class="agent-empty">No questions waiting.</li>
+      {{/each}}
+    </ol>
+    {{#if alex.recent.length}}
+      <h3 class="agent-info-label">Answered</h3>
+      <ol class="agent-app-list" data-short-list="alex-recent">
+        {{#each alex.recent}}
+          <li class="agent-app-item compact"><div class="agent-app-item-main"><b>{{name}}</b>{{#if priority}} <span class="agent-alex-saai-tag" title="Big SAAI: Ziggurat logged this question."><i class="fas fa-bolt"></i> Big SAAI</span>{{/if}}: "{{text}}"<small>{{#if none}}No results{{else}}{{answer.text}}{{/if}}</small></div></li>
+        {{/each}}
+      </ol>
+    {{/if}}
+    <details class="agent-section" data-section="alexPool" {{#if alex.open.alexPool}}open{{/if}}>
+      <summary>Data Pool keywords</summary>
+      <p class="agent-info-note">Put a line <b>Data Pool Keywords: merc bar, rogue</b> in any journal entry, or keep the entry in a <b>{{alex.folder}}</b> folder. Its name counts as a keyword too.</p>
+      <p class="agent-info-note">A question that mentions one lists the entry under it. Pick one with Use to put its text in the answer (secret blocks and the keywords line left out). Nothing goes to the player until you answer, so you can ask for a roll first.</p>
+      <button type="button" class="agent-wide-btn" data-action="alex-example"><i class="fas fa-book-open"></i> Create an example entry</button>
+    </details>
+    <details class="agent-section" data-section="alexAi" {{#if alex.open.alexAi}}open{{/if}}>
+      <summary>Optional Anthropic API</summary>
+      <p class="agent-info-note">Additionally, if you have an Anthropic API key, you can integrate Haiku, the current cheapest model, to serve as a draft-tool for your responses.</p>
+      <p class="agent-info-note">This requires configuration of a Workspace, and an API Key generated through Anthropic's portal.</p>
+      <p class="agent-info-note">This system can also integrate with the Journal. Any journal article under a "Data Pool" folder, or containing "Data Pool Keywords" can be indexed by Haiku. Be aware, this increases token size &amp; subsequent request cost.</p>
+      <p class="agent-info-note">This also can integrate with a journal folder titled "Locations", and any subfolders recursively.</p>
+      <div class="agent-setting-row agent-alex-key"><span>API key</span><input type="password" data-alex-setting="key" value="{{alex.settings.key}}" placeholder="sk-ant-…" autocomplete="off" aria-label="Anthropic API key"><button type="button" data-action="alex-ai-test" title="Test the key"><i class="fas fa-plug"></i> Test</button></div>
+      <label class="agent-radio"><input type="checkbox" data-alex-remember {{#if alex.settings.remember}}checked{{/if}}> Remember the key in this browser</label>
+      <p class="agent-info-note">Never sent to the Foundry server or players. Off: kept until this page reloads. Set a spend limit on its workspace in the Anthropic Console.</p>
+      <div class="agent-setting-row"><span>Standing direction</span></div>
+      <textarea data-alex-setting="standing" aria-label="Standing direction" rows="2" placeholder="For every answer, e.g. &quot;Alex plugs Ziggurat products.&quot;">{{alex.settings.standing}}</textarea>
+      <label class="agent-radio"><input type="checkbox" data-alex-setting="agentVoice" {{#if alex.settings.agentVoice}}checked{{/if}}> Answer in the asker's Agent personality</label>
+      <div class="agent-setting-row"><span>Answer length (sentences)</span><input type="number" data-alex-setting="sentences" min="1" max="8" value="{{alex.settings.sentences}}"></div>
+      <div class="agent-setting-row"><span>Web search sites</span><input type="text" data-alex-setting="domains" value="{{alex.settings.domains}}"></div>
+      <div class="agent-setting-row"><span>Session cap ($, 0 = none)</span><input type="number" data-alex-setting="cap" min="0" step="0.5" value="{{alex.settings.cap}}"></div>
+      <div class="agent-setting-row"><span>This session</span><span>{{alex.settings.spend}}</span></div>
+      <button type="button" class="agent-wide-btn" data-action="alex-rules"><i class="fas fa-scroll"></i> {{#if alex.settings.rulesOpen}}Hide{{else}}View{{/if}} base instructions{{#if alex.settings.rulesCustom}} (edited){{/if}}</button>
+      {{#if alex.settings.rulesOpen}}
+        <textarea class="agent-alex-rules" data-alex-setting="rules" rows="16">{{alex.settings.rulesText}}</textarea>
+        <p class="agent-info-note">Sent with every draft. {sentences} becomes the answer length. Kept in this browser.</p>
+        {{#if alex.settings.rulesCustom}}<button type="button" class="agent-wide-btn" data-action="alex-rules-reset"><i class="fas fa-rotate-left"></i> Back to the default</button>{{/if}}
+      {{/if}}
+      <p class="agent-info-note">Claude tells only what's public, and lists anything it drew from a secret block (Data Pool or Locations) under "From secrets". Model: {{alex.settings.model}}.</p>
+    </details>
+  </div>
+{{else}}
+  {{#with alex.saai}}
+    {{#if owned}}
+      <a class="agent-alex-saai-badge" data-action="alex-saai-details" title="Big SAAI: Library Search +{{bonus}}. Read the terms."><i class="fas fa-bolt"></i> Big SAAI</a>
+    {{else if banner}}
+      <div class="agent-alex-saai-banner">
+        <span class="agent-alex-saai-logo" aria-hidden="true">Z</span>
+        <span class="agent-alex-saai-pitch"><b>Upgrade your SAAI</b> smarter, faster answers. {{price}}</span>
+        <a data-action="alex-saai-details">Details</a>
+        <a class="agent-icon-btn" data-action="alex-saai-dismiss" title="Not now" aria-label="Hide the Big SAAI offer"><i class="fas fa-xmark"></i></a>
+      </div>
+    {{else if chip}}
+      <a class="agent-alex-saai-badge agent-alex-saai-chip" data-action="alex-saai-details" title="Big SAAI by Ziggurat: details" aria-label="Big SAAI details"><span class="agent-alex-saai-logo" aria-hidden="true">Z</span> Upgrade</a>
+    {{/if}}
+  {{/with}}
+  {{#if alex.saai.open}}
+    <div class="agent-info agent-alex-saai-sheet">
+      <div class="agent-alex-saai-head"><span class="agent-alex-saai-logo" aria-hidden="true">Z</span><div><b>Big SAAI</b><small>Ziggurat · Ask Alex add-on</small></div></div>
+      <ul class="agent-alex-saai-list">
+        <li><i class="fas fa-dice-d10"></i> Library Search <b>+3</b> instead of +2</li>
+        <li><i class="fas fa-bolt"></i> Priority crawl: your questions go first</li>
+      </ul>
+      {{#if alex.saai.owned}}
+        <p class="agent-alex-saai-owned"><i class="fas fa-check"></i> Installed on your Agent.</p>
+      {{else if alex.saai.downloading}}
+        <span class="agent-pool-progress" role="progressbar" aria-label="Downloading Big SAAI"><span style="animation-duration: {{alex.saai.downloading.ms}}ms; animation-delay: -{{alex.saai.downloading.elapsed}}ms"></span></span>
+        <small>Downloading…</small>
+      {{else}}
+        <button type="button" data-action="alex-saai-buy" {{#unless alex.online}}disabled{{/unless}}><i class="fas fa-bolt"></i> Buy · {{alex.saai.price}}</button>
+        {{#unless alex.online}}<small>No CitiNet connection.</small>{{/unless}}
+      {{/if}}
+      <details class="agent-alex-eula">
+        <summary>Terms of Service (scroll)</summary>
+        <div class="agent-alex-eula-text" tabindex="0">{{#each alex.saai.eula}}<p>{{this}}</p>{{/each}}</div>
+      </details>
+      <button type="button" class="agent-wide-btn" data-action="alex-saai-details"><i class="fas fa-arrow-left"></i> Back</button>
+    </div>
+  {{else}}
+  <div class="agent-messages agent-alex-thread">
+    {{#each alex.queries}}
+      <div class="agent-msg mine" data-alex-query="{{id}}"><div class="agent-bubble"><div class="agent-bubble-text">{{text}}</div></div><div class="agent-meta">{{time}}</div></div>
+      <div class="agent-msg theirs agent-alex-reply">
+        <div class="agent-msg-sender">Alex</div>
+        <div class="agent-bubble">
+          {{#if crawling}}<div class="agent-alex-crawling">Alex is crawling the Pool<span>.</span><span>.</span><span>.</span></div>{{/if}}
+          {{#if needsRoll}}
+            {{#if roll}}<div>You searched: <b>{{roll.total}}</b>. Alex is sorting what it found…</div>
+            {{else}}<div>Alex needs your help filtering the Pool: Library Search, DV {{dv}}.</div>
+              <div class="agent-money-actions"><a class="pay" data-action="alex-roll" data-query-id="{{id}}"><i class="fas fa-dice-d10"></i> Roll Library Search (+{{@root.alex.saai.bonus}})</a></div>
+            {{/if}}
+          {{/if}}
+          {{#if answered}}
+            {{#if answer.image}}<img class="agent-photo" src="{{answer.image}}" data-action="open-photo" data-src="{{answer.image}}" alt="">{{/if}}
+            {{#if answer.text}}<div class="agent-bubble-text"{{#if reveal}} data-reveal="{{id}}"{{/if}}>{{answer.text}}</div>{{/if}}
+          {{/if}}
+          {{#if priority}}{{#unless crawling}}<small class="agent-alex-priority"><i class="fas fa-bolt"></i> priority crawl</small>{{/unless}}{{/if}}
+          {{#if none}}<div class="agent-alex-none">No results in the local Pool.</div>{{/if}}
+        </div>
+      </div>
+    {{else}}
+      <div class="agent-alex-hello">
+        <div class="agent-alex-hello-title"><i class="fas fa-magnifying-glass"></i> Hi, I'm Alex.</div>
+        <p>Ask me anything. I crawl the whole local Data Pool for you: screamsheets and newsfeeds, business directories, maps, Night Market listings, who's hiring, who's hunting, and whatever the city is whispering about today.</p>
+        <p>I read the junk so you don't have to, and give you the short version. The better you help me filter (Library Search), the better my answers get. Mostly.</p>
+        <p class="agent-alex-hello-try">Try: "Who runs the Afterlife?" · "Cheapest ripperdoc in Watson?" · "What happened in Heywood last night?"</p>
+        <small>Ask Alex Anything is brought to you by Ziggurat.</small>
+      </div>
+    {{/each}}
+  </div>
+  <div class="agent-alex-compose">
+    <textarea name="alexQuery" data-live rows="1" maxlength="2000" aria-label="Question for Alex" aria-description="Enter asks, Shift+Enter starts a new line" placeholder="Ask Alex Anything…" {{#unless alex.online}}disabled{{/unless}}>{{alex.draft}}</textarea>
+    <button type="button" data-action="alex-ask" title="Ask" {{#unless alex.online}}disabled{{/unless}}><i class="fas fa-magnifying-glass"></i></button>
+    {{#if alex.canClear}}<a class="agent-icon-btn" data-action="alex-clear" title="Clear answered searches"><i class="fas fa-broom"></i></a>{{/if}}
+  </div>
+  {{/if}}
+{{/if}}

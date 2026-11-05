@@ -1,0 +1,71 @@
+{{!-- The GM's Agent Monitor (ui/AgentMonitor.js): every player character's Agent, and what's on it. --}}
+<div class="agent-monitor">
+  <div class="agent-monitor-bar">
+    <span class="agent-monitor-count">{{openCount}} out</span>
+    <a class="agent-icon-btn{{#if onlyOpen}} active{{/if}}" data-monitor="only-open" title="{{#if onlyOpen}}Show every Agent{{else}}Only Agents that are out{{/if}}"><i class="fas fa-filter"></i></a>
+    <a class="agent-icon-btn{{#if historyOff}} active{{/if}}" data-monitor="history" title="{{#if historyOff}}Show action history{{else}}Hide all action history{{/if}}"><i class="fas {{#if historyOff}}fa-clock-rotate-left{{else}}fa-list{{/if}}"></i></a>
+    <a class="agent-icon-btn" data-monitor="refresh" title="Ask every player's Agent to report again"><i class="fas fa-rotate"></i></a>
+  </div>
+
+  <ol class="agent-monitor-list">
+    {{#each rows}}
+      <li class="agent-monitor-row{{#if open}} open{{/if}}{{#unless online}} offline{{/unless}}">
+        <a class="agent-monitor-portrait" data-monitor="sheet" data-actor-id="{{id}}" title="Open {{name}}'s sheet"><img class="agent-monitor-img" src="{{img}}" alt="{{name}}'s sheet" /></a>
+        <div class="agent-monitor-main">
+          <div class="agent-monitor-head">
+            <span class="agent-monitor-name">{{name}}</span>
+            <span class="agent-monitor-agent" title="{{#if internal}}Internal Agent{{else}}Carried Agent{{/if}}"><i class="fas {{#if internal}}fa-microchip{{else}}fa-mobile-screen-button{{/if}}"></i> {{agent}}</span>
+            {{#unless internal}}
+              {{#if silent}}<span class="agent-monitor-ringer silent" title="On silent: no rings or text tones around them"><i class="fas fa-bell-slash" aria-hidden="true"></i> Silent</span>
+              {{else}}<span class="agent-monitor-ringer" title="Sound on: rings and text tones are heard around them" aria-label="Sound on"><i class="fas fa-bell" aria-hidden="true"></i></span>{{/if}}
+            {{/unless}}
+            <span class="agent-monitor-tools">
+              <a class="{{#if noSignal}}active{{/if}}" data-monitor="signal" data-actor-id="{{id}}" aria-pressed="{{#if noSignal}}true{{else}}false{{/if}}"
+                 title="{{#if noSignal}}Restore cellular service{{else}}Cut cellular service (their incoming messages are held){{/if}}"><i class="fas fa-tower-cell"></i></a>
+              {{#if hasToken}}<a data-monitor="pan" data-actor-id="{{id}}" title="Pan to their token"><i class="fas fa-location-crosshairs"></i></a>{{/if}}
+            </span>
+          </div>
+
+          <div class="agent-monitor-status">
+            {{#if icon}}<i class="{{icon}}" aria-hidden="true"></i>{{/if}}
+            <strong>{{status}}</strong>
+            {{#if screen}}<span class="agent-monitor-screen">› {{screen}}</span>{{/if}}
+            {{#if typing}}<span class="agent-monitor-typing" title="Typing">typing…</span>{{/if}}
+            {{#if since}}<span class="agent-monitor-since">{{since}}</span>{{/if}}
+          </div>
+
+          {{#if badges.length}}
+            <div class="agent-monitor-badges">
+              {{#each badges}}<span class="agent-monitor-badge {{cls}}"><i class="{{icon}}" aria-hidden="true"></i> {{label}}</span>{{/each}}
+            </div>
+          {{/if}}
+
+          {{#if log.length}}
+            <ul class="agent-monitor-log">
+              {{#each log}}
+                <li class="{{#if urgent}}urgent{{/if}}">
+                  <span class="agent-monitor-ago">{{ago}}</span> {{text}}{{#if ../players.[1]}} <span class="agent-monitor-who">({{user}})</span>{{/if}}
+                  <a class="agent-monitor-dismiss" data-monitor="dismiss" data-did="{{id}}" title="Dismiss this line" aria-label="Dismiss: {{text}}"><i class="fas fa-xmark"></i></a>
+                </li>
+              {{/each}}
+            </ul>
+            {{#if more}}<a class="agent-monitor-more" data-monitor="log" data-actor-id="{{id}}">+{{more}} earlier</a>{{/if}}
+            {{#if expanded}}<a class="agent-monitor-more" data-monitor="log" data-actor-id="{{id}}">less</a>{{/if}}
+            <a class="agent-monitor-more" data-monitor="clear" data-actor-id="{{id}}" title="Dismiss all of {{name}}'s history">clear</a>
+          {{/if}}
+
+          <div class="agent-monitor-players">
+            {{#each players}}<span class="{{#if active}}on{{/if}}{{#if holding}} holding{{/if}}" title="{{#if active}}Online{{else}}Offline{{/if}}"><i class="fas fa-circle" style="color: {{color}}"></i> {{name}}</span>{{/each}}
+          </div>
+        </div>
+      </li>
+    {{else}}
+      <li class="agent-monitor-empty">{{#if onlyOpen}}No Agents out right now.{{else}}No player character has an Agent.{{/if}}</li>
+    {{/each}}
+  </ol>
+
+  <label class="agent-monitor-opacity" title="How see-through this window is (solid while the pointer is on it)">
+    <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
+    <input type="range" name="opacity" min="0.15" max="1" step="0.05" value="{{opacity}}" aria-label="Monitor opacity" />
+  </label>
+</div>

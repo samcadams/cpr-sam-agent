@@ -1,0 +1,316 @@
+/*
+ * The GM's Agent Monitor (ui/AgentMonitor.js): a see-through panel over the scene, as clear as its
+ * footer slider says (--monitor-alpha), and solid while the pointer or focus is on it.
+ */
+.ctp-phone-app.ctp-agent-monitor {
+  min-width: 280px;
+  min-height: 180px;
+  border-color: rgba(var(--agent-cyan-rgb), 0.45);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--agent-bg) calc(var(--monitor-alpha, 0.6) * 100%), transparent);
+  backdrop-filter: blur(2px);
+  transition: background-color 0.2s;
+}
+
+.ctp-phone-app.ctp-agent-monitor:hover,
+.ctp-phone-app.ctp-agent-monitor:focus-within {
+  background-color: var(--agent-bg);
+}
+
+.ctp-phone-app.ctp-agent-monitor .window-header {
+  background: transparent;
+}
+
+.ctp-phone-app.ctp-agent-monitor .window-content,
+.ctp-phone-app.ctp-agent-monitor .window-resizable-handle {
+  background-color: transparent;
+}
+
+.ctp-agent-monitor .agent-monitor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: var(--agent-font);
+  font-size: 12px;
+  color: var(--agent-text);
+  text-shadow: 0 0 3px #000, 0 0 1px #000;
+}
+
+.ctp-agent-monitor .agent-monitor-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-bottom: 1px solid rgba(var(--agent-cyan-rgb), 0.2);
+}
+
+.ctp-agent-monitor .agent-monitor-count {
+  flex: 1;
+  color: var(--agent-cyan);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-agent-monitor .agent-monitor-list {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.ctp-agent-monitor .agent-monitor-row {
+  display: flex;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(var(--agent-cyan-rgb), 0.12);
+  border-left: 3px solid transparent;
+}
+
+.ctp-agent-monitor .agent-monitor-row.open {
+  border-left-color: var(--agent-cyan);
+}
+
+.ctp-agent-monitor .agent-monitor-row.offline {
+  opacity: 0.55;
+}
+
+.ctp-agent-monitor .agent-monitor-portrait {
+  flex: none;
+  align-self: flex-start;
+}
+
+.ctp-agent-monitor .agent-monitor-portrait:hover .agent-monitor-img,
+.ctp-agent-monitor .agent-monitor-portrait:focus-visible .agent-monitor-img {
+  border-color: var(--agent-cyan);
+  box-shadow: 0 0 6px rgba(var(--agent-cyan-rgb), 0.6);
+}
+
+.ctp-agent-monitor .agent-monitor-img {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.35);
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.ctp-agent-monitor .agent-monitor-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-agent-monitor .agent-monitor-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ctp-agent-monitor .agent-monitor-name {
+  overflow: hidden;
+  color: var(--agent-yellow);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ctp-agent-monitor .agent-monitor-agent {
+  overflow: hidden;
+  color: var(--agent-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A carried Agent's ringer: a quiet bell when sound is on, lit when it's on silent. */
+.ctp-agent-monitor .agent-monitor-ringer {
+  flex: none;
+  color: var(--agent-muted);
+  font-size: 10px;
+}
+
+.ctp-agent-monitor .agent-monitor-ringer.silent {
+  padding: 0 5px;
+  border: 1px solid var(--agent-yellow);
+  border-radius: 8px;
+  color: var(--agent-yellow);
+}
+
+.ctp-agent-monitor .agent-monitor-tools {
+  display: flex;
+  flex: none;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.ctp-agent-monitor .agent-monitor-tools a,
+.ctp-agent-monitor .agent-monitor-more {
+  color: var(--agent-muted);
+}
+
+/* Signal cut (the tower button): lit, like Control's. */
+.ctp-agent-monitor .agent-monitor-tools a.active {
+  color: var(--agent-magenta);
+}
+
+.ctp-agent-monitor .agent-monitor-tools a:hover,
+.ctp-agent-monitor .agent-monitor-tools a:focus-visible,
+.ctp-agent-monitor .agent-monitor-more:hover {
+  color: var(--agent-cyan);
+}
+
+.ctp-agent-monitor .agent-monitor-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.ctp-agent-monitor .agent-monitor-status i {
+  color: var(--agent-cyan);
+}
+
+.ctp-agent-monitor .agent-monitor-screen {
+  color: var(--agent-text);
+  overflow-wrap: anywhere;
+}
+
+.ctp-agent-monitor .agent-monitor-typing {
+  color: var(--agent-magenta);
+  animation: ctp-monitor-blink 1.2s steps(2) infinite;
+}
+
+.ctp-agent-monitor .agent-monitor-since {
+  margin-left: auto;
+  color: var(--agent-muted);
+  font-size: 10px;
+}
+
+@keyframes ctp-monitor-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+body.ctp-reduce-motion .ctp-agent-monitor .agent-monitor-typing {
+  animation: none;
+}
+
+.ctp-agent-monitor .agent-monitor-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 3px;
+}
+
+.ctp-agent-monitor .agent-monitor-badge {
+  padding: 0 5px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.3);
+  border-radius: 8px;
+  color: var(--agent-muted);
+  font-size: 10px;
+}
+
+.ctp-agent-monitor .agent-monitor-badge.live {
+  border-color: var(--agent-good);
+  color: var(--agent-good);
+}
+
+.ctp-agent-monitor .agent-monitor-badge.warn {
+  border-color: var(--agent-yellow);
+  color: var(--agent-yellow);
+}
+
+.ctp-agent-monitor .agent-monitor-badge.alarm,
+.ctp-agent-monitor .agent-monitor-log .urgent {
+  border-color: var(--agent-magenta);
+  color: var(--agent-magenta);
+}
+
+.ctp-agent-monitor .agent-monitor-log {
+  margin: 3px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11px;
+}
+
+.ctp-agent-monitor .agent-monitor-log li {
+  overflow-wrap: anywhere;
+}
+
+/* A line's × shows when the pointer or focus is on it. */
+.ctp-agent-monitor .agent-monitor-dismiss {
+  margin-left: 4px;
+  color: var(--agent-muted);
+  opacity: 0;
+}
+
+.ctp-agent-monitor .agent-monitor-log li:hover .agent-monitor-dismiss,
+.ctp-agent-monitor .agent-monitor-dismiss:focus-visible {
+  opacity: 1;
+}
+
+.ctp-agent-monitor .agent-monitor-dismiss:hover {
+  color: var(--agent-magenta);
+}
+
+.ctp-agent-monitor .agent-monitor-more + .agent-monitor-more {
+  margin-left: 8px;
+}
+
+.ctp-agent-monitor .agent-monitor-ago,
+.ctp-agent-monitor .agent-monitor-who {
+  color: var(--agent-muted);
+}
+
+.ctp-agent-monitor .agent-monitor-ago {
+  display: inline-block;
+  min-width: 3ch;
+}
+
+.ctp-agent-monitor .agent-monitor-more {
+  font-size: 10px;
+}
+
+.ctp-agent-monitor .agent-monitor-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+  color: var(--agent-muted);
+  font-size: 10px;
+}
+
+.ctp-agent-monitor .agent-monitor-players .on {
+  color: var(--agent-text);
+}
+
+.ctp-agent-monitor .agent-monitor-players .holding {
+  text-decoration: underline;
+}
+
+.ctp-agent-monitor .agent-monitor-players i {
+  font-size: 7px;
+  vertical-align: middle;
+}
+
+.ctp-agent-monitor .agent-monitor-empty {
+  padding: 16px;
+  color: var(--agent-muted);
+  text-align: center;
+}
+
+.ctp-agent-monitor .agent-monitor-opacity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.2);
+  color: var(--agent-muted);
+}
+
+.ctp-agent-monitor .agent-monitor-opacity input {
+  flex: 1;
+  height: 12px;
+}

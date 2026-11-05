@@ -1,16 +1,14 @@
 /*
- * Zetatech Grade A and Grade A-Plus. "Unobtrusive. Effective. Rectangular. Available everywhere."
- * (All About Agents, p. 9). The plain phone: a matte slab, one clean sans-serif, neutral greys and a
- * single accent from the colour palette. The densest layout of any skin. The A-Plus adds a
- * holo-projector: the newest message and incoming calls lift off the glass.
+ * Zetatech Grade A. "Unobtrusive. Effective. Rectangular. Available everywhere." (All About Agents,
+ * p. 9). The plain phone: a matte slab, one clean sans-serif, neutral greys and a single accent from the
+ * colour palette. The densest layout of any skin.
  */
 
-.ctp-phone-app.skin-zetatech,
-.ctp-phone-app.skin-zetatechplus {
+.ctp-phone-app.skin-zetatech {
   --agent-bg: #1b1d20;
   --agent-panel: #232629;
   --agent-text: #e4e6e8;
-  --agent-muted: #858b92;
+  --agent-muted: #898e95;
   --agent-magenta-rgb: var(--agent-cyan-rgb);
   --agent-yellow-rgb: 225, 228, 232;
   --agent-font: "Inter", "Segoe UI", "Helvetica Neue", sans-serif;
@@ -21,8 +19,7 @@
   backdrop-filter: none;
 }
 
-.ctp-phone-app.skin-zetatech .window-header,
-.ctp-phone-app.skin-zetatechplus .window-header {
+.ctp-phone-app.skin-zetatech .window-header {
   background: #2b2e32;
   border-bottom: 1px solid #111;
   color: #9ba1a8;
@@ -32,55 +29,45 @@
   letter-spacing: 3px;
 }
 
-.ctp-phone-app.skin-zetatech .window-content,
-.ctp-phone-app.skin-zetatechplus .window-content {
+.ctp-phone-app.skin-zetatech .window-content {
   padding: 0 5px;
   background: #2b2e32;
 }
 
-.ctp-phone-app.skin-zetatech .agent-phone,
-.ctp-phone-app.skin-zetatechplus .agent-phone {
+.ctp-phone-app.skin-zetatech .agent-phone {
   box-sizing: border-box;
   border-radius: 3px;
   background: var(--agent-bg);
   font-size: calc(12px * var(--agent-font-scale, 1));
 }
 
-.ctp-phone-app.skin-zetatech .agent-phone::after,
-.ctp-phone-app.skin-zetatechplus .agent-phone::after {
+.ctp-phone-app.skin-zetatech .agent-phone::after {
   display: none;
 }
 
-.ctp-phone-app.skin-zetatech .agent-statusbar,
-.ctp-phone-app.skin-zetatechplus .agent-statusbar {
+.ctp-phone-app.skin-zetatech .agent-statusbar {
   background: none;
   font-size: calc(10px * var(--agent-font-scale, 1));
   letter-spacing: 1px;
 }
 
-.ctp-phone-app.skin-zetatech .agent-brand,
-.ctp-phone-app.skin-zetatechplus .agent-brand {
+.ctp-phone-app.skin-zetatech .agent-brand {
   color: var(--agent-text);
   font-weight: 600;
 }
 
-.ctp-phone-app.skin-zetatech .agent-date,
-.ctp-phone-app.skin-zetatechplus .agent-date {
+.ctp-phone-app.skin-zetatech .agent-date {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .ctp-phone-app.skin-zetatech .agent-inbox-bar,
-.ctp-phone-app.skin-zetatech .agent-thread-bar,
-.ctp-phone-app.skin-zetatechplus .agent-inbox-bar,
-.ctp-phone-app.skin-zetatechplus .agent-thread-bar {
+.ctp-phone-app.skin-zetatech .agent-thread-bar {
   padding: 4px 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .ctp-phone-app.skin-zetatech .agent-inbox-name,
-.ctp-phone-app.skin-zetatech .agent-thread-name,
-.ctp-phone-app.skin-zetatechplus .agent-inbox-name,
-.ctp-phone-app.skin-zetatechplus .agent-thread-name {
+.ctp-phone-app.skin-zetatech .agent-thread-name {
   color: var(--agent-text);
   font-size: calc(13px * var(--agent-font-scale, 1));
   font-weight: 600;
@@ -89,8 +76,7 @@
 }
 
 /* Small square portraits and tight rows: more on one screen. */
-.ctp-phone-app.skin-zetatech .agent-avatar,
-.ctp-phone-app.skin-zetatechplus .agent-avatar {
+.ctp-phone-app.skin-zetatech .agent-avatar {
   flex-basis: 26px;
   width: 26px;
   height: 26px;
@@ -101,45 +87,36 @@
   font-size: calc(10px * var(--agent-font-scale, 1));
 }
 
-.ctp-phone-app.skin-zetatech .agent-row,
-.ctp-phone-app.skin-zetatechplus .agent-row {
+.ctp-phone-app.skin-zetatech .agent-row {
   gap: 8px;
   padding: 4px 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.ctp-phone-app.skin-zetatech .agent-row:hover,
-.ctp-phone-app.skin-zetatechplus .agent-row:hover {
+.ctp-phone-app.skin-zetatech .agent-row:hover {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.ctp-phone-app.skin-zetatech .agent-row-name,
-.ctp-phone-app.skin-zetatechplus .agent-row-name {
+.ctp-phone-app.skin-zetatech .agent-row-name {
   font-size: calc(12px * var(--agent-font-scale, 1));
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }
 
-.ctp-phone-app.skin-zetatech .agent-row-preview,
-.ctp-phone-app.skin-zetatechplus .agent-row-preview {
+.ctp-phone-app.skin-zetatech .agent-row-preview {
   font-size: calc(11px * var(--agent-font-scale, 1));
 }
 
 .ctp-phone-app.skin-zetatech .agent-unread,
-.ctp-phone-app.skin-zetatech .agent-dock-badge,
-.ctp-phone-app.skin-zetatechplus .agent-unread,
-.ctp-phone-app.skin-zetatechplus .agent-dock-badge {
+.ctp-phone-app.skin-zetatech .agent-dock-badge {
   background: var(--agent-cyan);
   color: #111;
 }
 
 .ctp-phone-app.skin-zetatech input,
 .ctp-phone-app.skin-zetatech textarea,
-.ctp-phone-app.skin-zetatech .agent-dropdown-btn,
-.ctp-phone-app.skin-zetatechplus input,
-.ctp-phone-app.skin-zetatechplus textarea,
-.ctp-phone-app.skin-zetatechplus .agent-dropdown-btn {
+.ctp-phone-app.skin-zetatech .agent-dropdown-btn {
   background: #141618;
   border: 1px solid #3a3e43;
   border-radius: 3px;
@@ -147,14 +124,12 @@
 }
 
 /* Messages: flat grey for theirs, the accent for yours. No gradients, no glow. */
-.ctp-phone-app.skin-zetatech .agent-messages,
-.ctp-phone-app.skin-zetatechplus .agent-messages {
+.ctp-phone-app.skin-zetatech .agent-messages {
   gap: 4px;
   padding: 6px 8px;
 }
 
-.ctp-phone-app.skin-zetatech .agent-bubble,
-.ctp-phone-app.skin-zetatechplus .agent-bubble {
+.ctp-phone-app.skin-zetatech .agent-bubble {
   padding: 4px 8px;
   border: none;
   border-radius: 4px;
@@ -162,45 +137,38 @@
   font-size: calc(12px * var(--agent-font-scale, 1));
 }
 
-.ctp-phone-app.skin-zetatech .agent-msg.mine .agent-bubble,
-.ctp-phone-app.skin-zetatechplus .agent-msg.mine .agent-bubble {
+.ctp-phone-app.skin-zetatech .agent-msg.mine .agent-bubble {
   border: none;
   border-radius: 4px;
   background: rgba(var(--agent-cyan-rgb), 0.22);
 }
 
-.ctp-phone-app.skin-zetatech .agent-msg.mine.persona .agent-bubble,
-.ctp-phone-app.skin-zetatechplus .agent-msg.mine.persona .agent-bubble {
+.ctp-phone-app.skin-zetatech .agent-msg.mine.persona .agent-bubble {
   box-shadow: inset -3px 0 0 var(--persona);
 }
 
-.ctp-phone-app.skin-zetatech .agent-system,
-.ctp-phone-app.skin-zetatechplus .agent-system {
+.ctp-phone-app.skin-zetatech .agent-system {
   border: none;
   font-size: calc(10px * var(--agent-font-scale, 1));
 }
 
-.ctp-phone-app.skin-zetatech .agent-dock,
-.ctp-phone-app.skin-zetatechplus .agent-dock {
+.ctp-phone-app.skin-zetatech .agent-dock {
   padding: 2px 6px 4px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-.ctp-phone-app.skin-zetatech .agent-dock-app,
-.ctp-phone-app.skin-zetatechplus .agent-dock-app {
+.ctp-phone-app.skin-zetatech .agent-dock-app {
   border-radius: 4px;
   font-size: calc(14px * var(--agent-font-scale, 1));
 }
 
-.ctp-phone-app.skin-zetatech .agent-dock-app span,
-.ctp-phone-app.skin-zetatechplus .agent-dock-app span {
+.ctp-phone-app.skin-zetatech .agent-dock-app span {
   font-size: calc(9px * var(--agent-font-scale, 1));
   letter-spacing: 0;
   text-transform: none;
 }
 
-.ctp-phone-app.skin-zetatech .agent-dock-app.active,
-.ctp-phone-app.skin-zetatechplus .agent-dock-app.active {
+.ctp-phone-app.skin-zetatech .agent-dock-app.active {
   text-shadow: none;
   box-shadow: inset 0 2px 0 var(--agent-cyan);
 }
@@ -210,19 +178,12 @@
 .ctp-phone-app.skin-zetatech .agent-quick-reply,
 .ctp-phone-app.skin-zetatech .agent-money,
 .ctp-phone-app.skin-zetatech .agent-job,
-.ctp-phone-app.skin-zetatech .agent-location,
-.ctp-phone-app.skin-zetatechplus .agent-wide-btn,
-.ctp-phone-app.skin-zetatechplus .agent-card-action,
-.ctp-phone-app.skin-zetatechplus .agent-quick-reply,
-.ctp-phone-app.skin-zetatechplus .agent-money,
-.ctp-phone-app.skin-zetatechplus .agent-job,
-.ctp-phone-app.skin-zetatechplus .agent-location {
+.ctp-phone-app.skin-zetatech .agent-location {
   border-radius: 4px;
   box-shadow: none;
 }
 
-.ctp-phone-app.skin-zetatech .agent-acting-as,
-.ctp-phone-app.skin-zetatechplus .agent-acting-as {
+.ctp-phone-app.skin-zetatech .agent-acting-as {
   border: none;
   background: rgba(255, 255, 255, 0.05);
   color: var(--agent-text);
@@ -230,139 +191,23 @@
   text-transform: none;
 }
 
-.ctp-phone-app.skin-zetatech .agent-acting-name,
-.ctp-phone-app.skin-zetatechplus .agent-acting-name {
+.ctp-phone-app.skin-zetatech .agent-acting-name {
   text-shadow: none;
 }
 
-.ctp-phone-app.skin-zetatech .window-resizable-handle,
-.ctp-phone-app.skin-zetatechplus .window-resizable-handle {
+.ctp-phone-app.skin-zetatech .window-resizable-handle {
   border-top: 1px solid #111;
   background:
     repeating-linear-gradient(90deg, #6b7178 0 2px, transparent 2px 5px) center / 36px 4px no-repeat,
     #2b2e32;
 }
 
-.ctp-phone-app.skin-zetatech .window-resizable-handle i,
-.ctp-phone-app.skin-zetatechplus .window-resizable-handle i {
+.ctp-phone-app.skin-zetatech .window-resizable-handle i {
   color: #9ba1a8;
 }
 
-/* ---------------- A-Plus: the holo lift ---------------- */
-
-.ctp-phone-app.skin-zetatechplus .agent-brand::after {
-  content: " A+";
-  color: var(--agent-cyan);
-}
-
-/* The newest message rises off the glass on a faint projected beam. */
-.ctp-phone-app.skin-zetatechplus .agent-msg:nth-last-child(1 of .agent-msg) .agent-bubble {
-  background:
-    repeating-linear-gradient(to bottom, rgba(var(--agent-cyan-rgb), 0.12) 0 1px, transparent 1px 3px),
-    rgba(var(--agent-cyan-rgb), 0.12);
-  box-shadow: 0 6px 12px -4px rgba(var(--agent-cyan-rgb), 0.55), 0 0 0 1px rgba(var(--agent-cyan-rgb), 0.45);
-  transform: translateY(-2px);
-  animation: ctp-zeta-lift 0.5s ease-out;
-}
-
-@keyframes ctp-zeta-lift {
-  from { transform: none; box-shadow: none; }
-}
-
-/* Incoming calls: the caller's portrait projected above the screen. */
-.ctp-phone-app.skin-zetatechplus .agent-call-screen.incoming .agent-call-avatar {
-  box-shadow: 0 14px 20px -8px rgba(var(--agent-cyan-rgb), 0.7), 0 0 18px rgba(var(--agent-cyan-rgb), 0.35);
-  transform: translateY(-6px);
-}
-
-.ctp-phone-app.skin-zetatechplus .agent-call-screen.incoming::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 30%;
-  width: 120px;
-  height: 90px;
-  transform: translateX(-50%);
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% 100%, rgba(var(--agent-cyan-rgb), 0.28), transparent 70%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ctp-phone-app.skin-zetatechplus .agent-msg .agent-bubble { animation: none; }
-}
-
-/*
- * The A-Plus's projector, stronger: everything that's new floats above the glass. The newest
- * message is projected (beam, scanlines, a halo), unread rows and dock badges glow, and the header
- * carries a faint projected shimmer, so the phone reads as "the one with the holo".
- */
-.ctp-phone-app.skin-zetatechplus .agent-phone {
-  background:
-    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(var(--agent-cyan-rgb), 0.12), transparent 70%),
-    var(--agent-bg);
-}
-
-.ctp-phone-app.skin-zetatechplus .agent-msg:nth-last-child(1 of .agent-msg) {
-  position: relative;
-}
-
-.ctp-phone-app.skin-zetatechplus .agent-msg:nth-last-child(1 of .agent-msg)::before {
-  /* the beam from the glass up to the projected message */
-  content: "";
-  position: absolute;
-  left: 10%;
-  right: 10%;
-  bottom: -6px;
-  height: 14px;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% 100%, rgba(var(--agent-cyan-rgb), 0.45), transparent 70%);
-  filter: blur(2px);
-}
-
-.ctp-phone-app.skin-zetatechplus .agent-msg:nth-last-child(1 of .agent-msg) .agent-bubble {
-  transform: translateY(-4px) scale(1.02);
-  text-shadow: 0 0 6px rgba(var(--agent-cyan-rgb), 0.8);
-  animation: ctp-zeta-lift 0.5s ease-out, ctp-zeta-flicker 5s steps(1) 0.5s infinite;
-}
-
-@keyframes ctp-zeta-flicker {
-  0%, 96%, 100% { opacity: 1; }
-  97% { opacity: 0.75; }
-  98% { opacity: 1; }
-  99% { opacity: 0.85; }
-}
-
-/* Unread conversations and badges project too. */
-.ctp-phone-app.skin-zetatechplus .agent-row:has(.agent-unread) {
-  box-shadow: inset 3px 0 0 var(--agent-cyan), 0 0 12px -4px rgba(var(--agent-cyan-rgb), 0.6);
-}
-
-.ctp-phone-app.skin-zetatechplus .agent-unread,
-.ctp-phone-app.skin-zetatechplus .agent-dock-badge {
-  box-shadow: 0 0 8px rgba(var(--agent-cyan-rgb), 0.9);
-  transform: translateY(-2px);
-}
-
-/* The lock screen's notifications hover above it. */
-.ctp-phone-app.skin-zetatechplus .agent-lock-note {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 14px -6px rgba(var(--agent-cyan-rgb), 0.6);
-  background:
-    repeating-linear-gradient(to bottom, rgba(var(--agent-cyan-rgb), 0.08) 0 1px, transparent 1px 3px),
-    var(--agent-panel);
-}
-
-.ctp-phone-app.skin-zetatechplus .agent-lock-time {
-  text-shadow: 0 0 14px rgba(var(--agent-cyan-rgb), 0.9), 0 12px 18px rgba(var(--agent-cyan-rgb), 0.4);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ctp-phone-app.skin-zetatechplus .agent-msg .agent-bubble { animation: none; }
-}
-
 /* The Home button: a flat grey pill. */
-.ctp-phone-app.skin-zetatech .agent-home-button,
-.ctp-phone-app.skin-zetatechplus .agent-home-button {
+.ctp-phone-app.skin-zetatech .agent-home-button {
   width: 56px;
   height: 22px;
   border: none;
@@ -372,6 +217,3 @@
   font-size: calc(10px * var(--agent-font-scale, 1));
 }
 
-.ctp-phone-app.skin-zetatechplus .agent-home-button {
-  box-shadow: 0 0 10px rgba(var(--agent-cyan-rgb), 0.5);
-}

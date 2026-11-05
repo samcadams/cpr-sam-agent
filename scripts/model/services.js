@@ -11,6 +11,30 @@ import { MODULE_ID } from "../config.js";
  * (Older saves may carry a `money` flag; it is ignored.)
  */
 
+/*
+ * Built-in services every world starts with. The active GM adds each one once (ids remembered in the
+ * "seededServices" setting), so a GM can edit or delete it and it stays that way.
+ */
+export const DEFAULT_SERVICES = [{
+  id: "reo-meatwagon",
+  name: "REO Meatwagon",
+  img: "icons/svg/heal.svg",
+  actions: [{ id: "reo-pickup", label: "Request Pickup" }],
+  callLabel: "REO Meatwagon",
+  access: "all"
+}];
+
+/** Active GM: add the built-in services this world hasn't had yet. */
+export async function seedDefaultServices() {
+  const seeded = game.settings.get(MODULE_ID, "seededServices") ?? [];
+  const fresh = DEFAULT_SERVICES.filter(d => !seeded.includes(d.id));
+  if (!fresh.length) return;
+  const services = getServices();
+  for (const d of fresh) if (!services.some(s => s.id === d.id)) services.push(foundry.utils.deepClone(d));
+  await game.settings.set(MODULE_ID, "services", services);
+  await game.settings.set(MODULE_ID, "seededServices", [...seeded, ...fresh.map(d => d.id)]);
+}
+
 export function getServices() {
   return foundry.utils.deepClone(game.settings.get(MODULE_ID, "services") ?? []);
 }

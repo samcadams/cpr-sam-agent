@@ -2,7 +2,7 @@ import { attachPhotoDialog, moneyDialog, pickJobDialog } from "../../dialogs/for
 import { openLocation, pickLocation } from "../../location.js";
 import { findContact, getContacts } from "../../../model/contacts.js";
 import { getService } from "../../../model/services.js";
-import { canSendImages, feature } from "../../../model/features.js";
+import { canSendImages, commsOn, feature } from "../../../model/features.js";
 import { formatMoney, hasWallet } from "../../../model/money.js";
 import { QUEST_LABELS } from "../../../model/quests.js";
 import { store } from "../../../store.js";
@@ -28,7 +28,10 @@ export const actions = {
     this.render();
   },
   "open-location"(d) {
-    openLocation({ sceneId: d.sceneId, noteId: d.noteId, x: Number(d.x), y: Number(d.y) });
+    const place = { sceneId: d.sceneId || null, noteId: d.noteId || null, x: Number(d.x), y: Number(d.y) };
+    // A place on the Map (apps/map) opens there when this phone has it; else on its scene.
+    if (this.mapOpen?.(place)) return;
+    if (place.sceneId) openLocation(place);
   },
   "attach-photo"() {
     this._attachPhoto();
@@ -112,6 +115,17 @@ export const inputs = {
 };
 
 export const methods = {
+  /** Open the conversation with one of `actorId`'s contacts, `text` typed in the box (DataPool's "Send to…"). */
+  composeTo(actorId, contact, text) {
+    if (!commsOn()) return ui.notifications.warn("Messages are off right now.");
+    this.view = { kind: "direct", threadId: null, actorId, contact, hidden: false };
+    this.app = "messages";
+    this.locked = false;
+    this.notesOpen = false;
+    this.drafts[this.draftKey] = text;
+    this.render(true);
+  },
+
   _send(textarea) {
     if (this._sendMessage(textarea?.value.trim() ?? "") && textarea) {
       textarea.value = "";
@@ -229,7 +243,7 @@ export const methods = {
       }
     }
     if (store.request("money-respond", { threadId: thread.id, messageId, action }) && action === "transfer") {
-      playPhoneSound("moneySound"); // cash sound as the funds land
+      playPhoneSound("money", this.context()?.settingsOwner); // cash sound as the funds land
     }
   },
 

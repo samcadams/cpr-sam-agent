@@ -1,6 +1,7 @@
 import { gm, MAX_NAME } from "./validate.js";
 import { DEFAULT_CONTACT_IMG } from "../config.js";
 import { canUsePhone } from "../model/agent.js";
+import { commsOn } from "../model/features.js";
 import { findContact, getContacts, setContacts } from "../model/contacts.js";
 import { actorAvatar, displayName, knownNpcs, npcKey } from "../model/threads.js";
 import { clean } from "../util/text.js";
@@ -45,6 +46,7 @@ export const methods = {
     this.requests.set(request.id, request);
     this.save();
     this._pushRequests({ kind: "new", request });
+    if (commsOn()) this._gmCard({ id: `contact:${request.id}`, title: "Contact request", body: `${displayName(actor)} wants ${name}'s number`, icon: "fa-user-plus", open: { app: "contacts" } });
   },
 
   async _onRequestResolve(user, { requestId, approve, name, linkActorId }) {
@@ -66,6 +68,12 @@ export const methods = {
       }
     }
     this.save();
+    this._gmCardDone(`contact:${request.id}`);
     this._pushRequests({ kind: approve ? "approved" : "denied", request });
+    if (actor && commsOn()) {
+      this._alertNow(actor.id, approve
+        ? { kind: "contact", from: "Contact added", text: `${request.name} is now in your contacts.` }
+        : { kind: "contact", from: "Request denied", text: `Couldn't get ${request.name}'s number.` });
+    }
   }
 };

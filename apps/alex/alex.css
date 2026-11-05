@@ -1,0 +1,370 @@
+/*
+ * Ask Alex Anything: the app's page (apps/alex/page.js, apps/alex/alex.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-alex-reply .agent-msg-sender {
+  color: #9a7cff;
+}
+
+.ctp-phone-app .agent-alex-crawling {
+  color: var(--agent-muted);
+  font-style: italic;
+}
+
+.ctp-phone-app .agent-alex-crawling span {
+  animation: ctp-alex-dot 1.4s infinite;
+}
+
+.ctp-phone-app .agent-alex-crawling span:nth-child(2) { animation-delay: 0.2s; }
+
+.ctp-phone-app .agent-alex-crawling span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes ctp-alex-dot {
+  0%, 60%, 100% { opacity: 0.2; }
+  30% { opacity: 1; }
+}
+
+.ctp-phone-app .agent-alex-none {
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-alex-source {
+  display: block;
+  margin-top: 4px;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-alex-compose {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  background: var(--agent-panel);
+  position: relative;
+  z-index: 1;
+}
+
+/* The question box: one line to start, growing to about six as the question gets longer. */
+.ctp-phone-app .agent-alex-compose textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 28px;
+  max-height: calc(6 * 1.35em + 12px);
+  field-sizing: content;
+  resize: none;
+  padding: 5px 10px;
+  background: var(--agent-bg);
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.4);
+  border-radius: 14px;
+  color: var(--agent-text);
+  font-family: var(--agent-font);
+  line-height: 1.35;
+  overflow-y: auto;
+}
+
+.ctp-phone-app .agent-alex-compose {
+  align-items: flex-end;
+}
+
+.ctp-phone-app .agent-alex-question {
+  margin: 2px 0;
+  font-style: italic;
+}
+
+.ctp-phone-app .agent-alex-voice {
+  display: block;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-alex-roll {
+  margin: 4px 0;
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-alex-img {
+  max-width: 100%;
+  max-height: 90px;
+  margin: 2px 0;
+}
+
+/* Claude's drafts (GM Phone). */
+.ctp-phone-app .agent-alex-ai {
+  margin: 4px 0;
+}
+
+.ctp-phone-app .agent-alex-ai textarea {
+  width: 100%;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-alex-ai-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 2px 0;
+}
+
+/* The directions given in the Draft popup, on one line (the popup has them whole). */
+.ctp-phone-app .agent-alex-direction {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.ctp-phone-app .agent-alex-ai-error {
+  color: var(--agent-magenta);
+  margin: 2px 0;
+}
+
+.ctp-phone-app .agent-alex-notes {
+  margin: 4px 0;
+  padding: 6px 8px;
+  border: 1px solid var(--agent-yellow);
+  border-left-width: 4px;
+  border-radius: 4px;
+  background: rgba(255, 210, 0, 0.08);
+}
+
+.ctp-phone-app .agent-alex-notes-title {
+  color: var(--agent-yellow);
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.ctp-phone-app .agent-alex-notes-title small {
+  font-weight: normal;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-alex-note {
+  margin: 3px 0;
+}
+
+.ctp-phone-app .agent-alex-note.warn,
+.ctp-phone-app .agent-alex-note.secret {
+  color: var(--agent-magenta);
+}
+
+.ctp-phone-app .agent-alex-note.roll a {
+  color: var(--agent-cyan);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-alex-chip {
+  display: inline-block;
+  margin: 1px 3px 1px 0;
+  padding: 0 6px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.5);
+  border-radius: 8px;
+  font-size: 0.9em;
+}
+
+/* Alex AI settings: full-width controls stay inside the section. */
+.ctp-phone-app .agent-alex .agent-section .agent-wide-btn,
+.ctp-phone-app .agent-alex .agent-section textarea {
+  box-sizing: border-box;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.ctp-phone-app .agent-alex-rules {
+  width: 100%;
+  font-family: monospace;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-alex-cost {
+  display: block;
+  text-align: right;
+  color: var(--agent-muted);
+}
+
+/* Ask Alex Anything, before the first question. */
+.ctp-phone-app .agent-alex-hello {
+  margin: 10px 6px;
+  padding: 12px;
+  border: 1px solid rgba(154, 124, 255, 0.5);
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(154, 124, 255, 0.14), transparent 70%), var(--agent-panel);
+  color: var(--agent-text);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  line-height: 1.45;
+}
+
+.ctp-phone-app .agent-alex-hello p {
+  margin: 6px 0;
+}
+
+.ctp-phone-app .agent-alex-hello-title {
+  color: #9a7cff;
+  font-size: calc(15px * var(--agent-font-scale, 1));
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-alex-hello-try {
+  color: var(--agent-muted);
+  font-style: italic;
+}
+
+.ctp-phone-app .agent-alex-hello small {
+  color: var(--agent-muted);
+}
+
+/* The Data Pool entries a question mentions (GM Phone): pick one to answer from. */
+.ctp-phone-app .agent-alex-matches {
+  margin: 4px 0;
+  padding: 3px 6px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.3);
+  border-radius: 4px;
+}
+
+.ctp-phone-app .agent-alex-matches summary {
+  cursor: pointer;
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-alex-match {
+  margin: 4px 0;
+  padding-top: 4px;
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.15);
+}
+
+.ctp-phone-app .agent-alex-match small {
+  display: block;
+  white-space: pre-line;
+}
+
+.ctp-phone-app .agent-alex-match-secret {
+  color: var(--agent-magenta);
+}
+
+/* The API key, with its Test button beside it. */
+.ctp-phone-app .agent-alex-key input {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-alex-key button {
+  flex: none;
+  width: auto;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+/* Big SAAI (Ziggurat add-on, apps/alex/page.js _alexSaaiData): the banner, the badge, the details sheet with its
+   terms, the "priority crawl" tag under answers and the GM's tag on its questions. */
+.ctp-phone-app .agent-alex-saai-banner {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(var(--agent-yellow-rgb), 0.35);
+  background: rgba(var(--agent-yellow-rgb), 0.1);
+  font-size: 0.85em;
+}
+
+.ctp-phone-app .agent-alex-saai-pitch {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-alex-saai-logo {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: var(--agent-yellow);
+  color: var(--agent-bg);
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-alex-saai-badge {
+  flex: none;
+  align-self: flex-start;
+  margin: 4px 8px 0;
+  padding: 1px 8px;
+  border: 1px solid rgba(var(--agent-yellow-rgb), 0.6);
+  border-radius: 10px;
+  color: var(--agent-yellow);
+  font-size: 0.8em;
+}
+
+.ctp-phone-app .agent-alex-saai-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 2px;
+}
+
+.ctp-phone-app .agent-alex-saai-chip .agent-alex-saai-logo {
+  width: 14px;
+  height: 14px;
+  font-size: 0.8em;
+}
+
+.ctp-phone-app .agent-alex-saai-tag,
+.ctp-phone-app .agent-alex-priority {
+  color: var(--agent-yellow);
+  font-size: 0.8em;
+}
+
+.ctp-phone-app .agent-alex-priority {
+  display: block;
+  margin-top: 4px;
+}
+
+.ctp-phone-app .agent-alex-saai-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ctp-phone-app .agent-alex-saai-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ctp-phone-app .agent-alex-saai-head small {
+  display: block;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-alex-saai-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.ctp-phone-app .agent-alex-saai-list i {
+  width: 1.4em;
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-alex-saai-owned {
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-alex-eula-text {
+  max-height: 120px;
+  overflow-y: auto;
+  padding: 4px 6px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  color: var(--agent-muted);
+  font-size: 0.75em;
+}
+
+.ctp-phone-app .agent-alex-eula-text p {
+  margin: 0 0 4px;
+}

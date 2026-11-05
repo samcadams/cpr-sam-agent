@@ -1,0 +1,1 @@
+- Map: "Request Combat Cabb" on a place's card, for characters with Combat Cabb on their Agent: opens Combat Cabb with that place as the destination (and the route's start as the pickup when the GM hasn't set where the crew is).

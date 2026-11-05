@@ -13,7 +13,7 @@
   --agent-bg: #f7f3ff;
   --agent-panel: #ece4ff;
   --agent-text: #2a2346;
-  --agent-muted: #7a6f9c;
+  --agent-muted: #6b6188;
   --agent-cyan-rgb: 86, 72, 190;
   --agent-magenta-rgb: 236, 72, 153;
   --agent-yellow-rgb: 190, 110, 0;
@@ -103,7 +103,7 @@
 }
 
 .ctp-phone-app.skin-yourplay .agent-brand {
-  color: rgb(var(--agent-magenta-rgb));
+  color: #c82878; /* the pink, dark enough to read on the pastel */
 }
 
 .ctp-phone-app.skin-yourplay .agent-signal i {
@@ -216,7 +216,7 @@
 
 /* ▼: more to read, blinking on the newest line from the other side. */
 .ctp-phone-app.skin-yourplay .agent-msg.theirs:nth-last-child(1 of .agent-msg) .agent-bubble::after {
-  content: "▼";
+  content: "▼" / "";
   position: absolute;
   right: 6px;
   bottom: 1px;
@@ -314,7 +314,7 @@
 }
 
 .ctp-phone-app.skin-yourplay .agent-dock-app::before {
-  content: "▶";
+  content: "▶" / "";
   font-size: calc(10px * var(--agent-font-scale, 1));
   visibility: hidden;
 }

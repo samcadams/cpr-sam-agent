@@ -38,6 +38,25 @@ export function jobCard(message, canRespond) {
   };
 }
 
+const PKG_STATUS = { offered: "App package", installed: "Installed", declined: "Declined" };
+
+/** A CBK invite in a message (apps/cbk/host.js), as a card. canAccept: this phone is the one it's for, and online. */
+export function cbkInviteCard(message, canAccept) {
+  const invite = message.cbk;
+  if (!invite) return null;
+  return { ...invite, accepted: invite.status === "accepted", canAccept: canAccept && invite.status === "offered" };
+}
+
+/**
+ * A Fixer's app package in a message (apps/pool/host.js), as a card. A paid one installs when its money
+ * request is paid; canInstall (a free one): this phone is the one it's for, and online.
+ */
+export function pkgCard(message, canInstall) {
+  const pkg = message.pkg;
+  if (!pkg) return null;
+  return { ...pkg, statusLabel: PKG_STATUS[pkg.status] ?? "", canInstall: canInstall && pkg.status === "offered" && !message.money };
+}
+
 /** Group a message's reactions into chips: [{ emoji, count, mine }]. */
 export function reactionChips(message, myKey) {
   const chips = new Map();

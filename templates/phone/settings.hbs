@@ -16,28 +16,4 @@
     <summary>Look and dock</summary>
     {{> agent-look-settings settings.look}}
   </details>
-
-  {{#if settings.comms}}
-  <details class="agent-section" data-section="quickReplies" {{#if settings.open.quickReplies}}open{{/if}}>
-    <summary>Quick replies</summary>
-    <textarea name="quickReplies" rows="5" placeholder="One per line, e.g.&#10;OMW&#10;Can't talk&#10;Need backup">{{settings.quickReplies}}</textarea>
-    <p class="agent-info-note">One per line (up to 12). Tap one in a conversation to send it.</p>
-  </details>
-
-  <details class="agent-section" data-section="emoji" {{#if settings.open.emoji}}open{{/if}}>
-    <summary>Reaction keyboard</summary>
-    <div class="agent-control-field">
-      <span class="agent-control-field-head">Your reactions
-        <a class="agent-icon-btn{{#if settings.emoji.catalog}} active{{/if}}" data-action="emoji-catalog" title="Pick emoji"><i class="far fa-face-smile"></i> Pick</a>
-      </span>
-      <textarea name="phoneEmoji" rows="3" placeholder="Separated by spaces">{{settings.emoji.text}}</textarea>
-    </div>
-    {{#if settings.emoji.catalog}}{{> agent-emoji-catalog settings.emoji.catalog}}{{/if}}
-    {{#if settings.emoji.custom}}
-      <button type="button" class="agent-wide-btn" data-action="emoji-reset"><i class="fas fa-rotate-left"></i> Use the GM's set</button>
-    {{else}}
-      <p class="agent-info-note">The GM's set, until you change it.</p>
-    {{/if}}
-  </details>
-  {{/if}}
 </div>

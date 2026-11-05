@@ -1,0 +1,21 @@
+{
+  "_id": "cpragentRecipe07",
+  "_key": "!macros!cpragentRecipe07",
+  "name": "Prep and offer a job",
+  "type": "script",
+  "scope": "global",
+  "img": "icons/svg/chest.svg",
+  "command": "// Recipe from API.md. GM only. Change \"V\" to one of your characters.\nconst agent = game.modules.get(\"cpr-sam-agent\").api;\nconst job = await agent.jobs.save({ name: \"Totentanz\", description: \"Get Rogue's package out of Totentanz.\\nPay: 2000eb each.\" });\nawait agent.jobs.offer({ job, to: \"V\", from: \"Rogue\", text: \"Got something for you.\" });",
+  "author": null,
+  "folder": null,
+  "sort": 700000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "12.343",
+    "systemId": "cyberpunk-red-core",
+    "systemVersion": "0.92.4"
+  }
+}

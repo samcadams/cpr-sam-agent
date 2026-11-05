@@ -44,6 +44,23 @@ export const inputs = {
       }
     }
   },
+  // The open list: arrow keys move between options, Escape closes it (Enter picks, see ui/a11y.js).
+  ".agent-dropdown-menu": {
+    keydown(event) {
+      const menu = event.currentTarget;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        this._closeDropdowns();
+        return;
+      }
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+      event.preventDefault();
+      const options = [...menu.querySelectorAll(".agent-dropdown-option:not([hidden])")];
+      const at = options.indexOf(document.activeElement);
+      const next = event.key === "ArrowDown" ? Math.min(options.length - 1, at + 1) : Math.max(0, at - 1);
+      options[next]?.focus();
+    }
+  },
   // Clicking anywhere else closes an open dropdown.
   ".agent-phone": {
     click(event) {
@@ -60,9 +77,10 @@ export const methods = {
    */
   _toggleDropdown(button) {
     const phone = this.element?.find(".agent-phone")[0];
-    const name = button.closest(".agent-dropdown")?.dataset.name;
-    const menu = phone?.querySelector(`.agent-dropdown-menu[data-name="${name}"]`);
-    if (!menu) return;
+    // Its own menu: several dropdowns may share a name (one per App Store row), and an open menu is moved
+    // out to the phone, so the button keeps hold of it.
+    const menu = (button._menu ??= button.closest(".agent-dropdown")?.querySelector(".agent-dropdown-menu"));
+    if (!phone || !menu) return;
     const wasOpen = !menu.hidden;
     this._closeDropdowns();
     if (wasOpen) return;
@@ -70,6 +88,7 @@ export const methods = {
     phone.append(menu);
     menu.hidden = false;
     button.classList.add("open");
+    button.setAttribute("aria-expanded", "true");
     // Positions are inside the phone's border (a skin may give the screen a bezel).
     const outer = phone.getBoundingClientRect();
     const box = { left: outer.left + phone.clientLeft, top: outer.top + phone.clientTop, width: phone.clientWidth, height: phone.clientHeight };
@@ -92,14 +111,20 @@ export const methods = {
       filterMenu(menu, "");
       search.focus();
     }
-    menu.querySelector(".selected")?.scrollIntoView({ block: "nearest" });
+    const selected = menu.querySelector(".selected");
+    selected?.scrollIntoView({ block: "nearest" });
+    // From the keyboard, the list opens on the option that's picked now.
+    if (!search && button.matches(":focus-visible")) (selected ?? menu.querySelector(".agent-dropdown-option"))?.focus();
   },
 
   _closeDropdowns() {
     const root = this.element?.[0];
     if (!root) return;
     for (const menu of root.querySelectorAll(".agent-dropdown-menu:not([hidden])")) menu.hidden = true;
-    for (const button of root.querySelectorAll(".agent-dropdown-btn.open")) button.classList.remove("open");
+    for (const button of root.querySelectorAll(".agent-dropdown-btn.open")) {
+      button.classList.remove("open");
+      button.setAttribute("aria-expanded", "false");
+    }
     this._flush(); // a redraw that waited for the menu to close
   }
 };

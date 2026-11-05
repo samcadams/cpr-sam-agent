@@ -1,198 +1,11 @@
 /*
  * Field Agents: "Agents customized for specific fields, like construction, medicine, or technical
  * work, might come equipped with built-ins specific to those tasks, like laser surveying tools or a
- * rudimentary MedScanner." (All About Agents, p. 9). Three builds:
- *  - Construction: high-vis rubber bumpers, huge touch targets and a level bubble.
+ * rudimentary MedScanner." (All About Agents, p. 9). Two builds:
  *  - Med: trauma-kit white and red, with the biomonitor's vitals under the status bar
  *    (templates/phone.hbs, .agent-vitals; AgentPhone._vitals).
  *  - Tech: gunmetal with exposed screws and a diagnostics readout.
  */
-
-/* ---------------- Construction ---------------- */
-
-.ctp-phone-app.skin-fieldConstruction {
-  --hivis: #f5c400;
-  --agent-bg: #121212;
-  --agent-panel: #1d1d1b;
-  --agent-cyan-rgb: 245, 196, 0;
-  --agent-magenta-rgb: 255, 120, 20;
-  --agent-yellow-rgb: 245, 196, 0;
-  --agent-text: #f4f1e6;
-  --agent-muted: #9a9585;
-  --agent-font: "Barlow Condensed", "Arial Narrow", sans-serif;
-  border: 9px solid var(--hivis);
-  border-radius: 26px;
-  background: #121212;
-  box-shadow: inset 0 0 0 2px #7a6200, 0 0 0 2px #2a2300, 0 10px 24px rgba(0, 0, 0, 0.6);
-  backdrop-filter: none;
-}
-
-.ctp-phone-app.skin-fieldConstruction .window-header {
-  background: var(--hivis);
-  border: none;
-  color: #1a1a1a;
-  font-weight: 700;
-  letter-spacing: 3px;
-}
-
-.ctp-phone-app.skin-fieldConstruction .window-header a {
-  color: #1a1a1a;
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-phone {
-  font-size: calc(16px * var(--agent-font-scale, 1));
-  font-weight: 500;
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-phone::after {
-  display: none;
-}
-
-/* The level bubble, beside the brand. */
-.ctp-phone-app.skin-fieldConstruction .agent-brand::after {
-  content: "";
-  display: inline-block;
-  width: 38px;
-  height: 9px;
-  margin-left: 6px;
-  vertical-align: middle;
-  border: 1px solid #7f9a3a;
-  border-radius: 5px;
-  background:
-    radial-gradient(circle, #f4ffd0 0 3px, transparent 3.5px) 50% 50% / 9px 9px no-repeat,
-    linear-gradient(#7f9a3a, #7f9a3a) 50% 50% / 1px 100% no-repeat,
-    linear-gradient(to bottom, #c8e46a, #9fbf34);
-  animation: ctp-field-level 6s ease-in-out infinite;
-}
-
-@keyframes ctp-field-level {
-  0%, 100% { background-position: 46% 50%, 50% 50%, 0 0; }
-  50% { background-position: 56% 50%, 50% 50%, 0 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ctp-phone-app.skin-fieldConstruction .agent-brand::after { animation: none; }
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-statusbar {
-  background: #1d1d1b;
-  font-size: calc(12px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-inbox-bar,
-.ctp-phone-app.skin-fieldConstruction .agent-thread-bar {
-  background: repeating-linear-gradient(-45deg, var(--hivis) 0 8px, #1a1a1a 8px 16px) left / 10px 100% no-repeat, #1d1d1b;
-  padding-left: 18px;
-  border-bottom: 2px solid var(--hivis);
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-inbox-name,
-.ctp-phone-app.skin-fieldConstruction .agent-thread-name {
-  color: var(--hivis);
-  font-size: calc(18px * var(--agent-font-scale, 1));
-  font-weight: 700;
-  letter-spacing: 2px;
-}
-
-/* Big targets for gloved hands. */
-.ctp-phone-app.skin-fieldConstruction .agent-row {
-  padding: 10px 12px;
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-row-name {
-  font-size: calc(17px * var(--agent-font-scale, 1));
-  font-weight: 700;
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-row-preview {
-  font-size: calc(15px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-avatar {
-  flex-basis: 40px;
-  width: 40px;
-  height: 40px;
-  border: 2px solid var(--hivis);
-  border-radius: 6px;
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-icon-btn {
-  padding: 6px 9px;
-  font-size: calc(18px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-bubble {
-  border: 2px solid rgba(245, 196, 0, 0.6);
-  border-radius: 6px;
-  background: #1f1f1c;
-  font-size: calc(16px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-msg.mine .agent-bubble {
-  border: 2px solid var(--hivis);
-  border-radius: 6px;
-  background: var(--hivis);
-  color: #1a1a1a;
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-msg.mine .agent-bubble * {
-  color: #1a1a1a;
-}
-
-.ctp-phone-app.skin-fieldConstruction input,
-.ctp-phone-app.skin-fieldConstruction textarea,
-.ctp-phone-app.skin-fieldConstruction .agent-dropdown-btn {
-  min-height: 30px;
-  border: 2px solid #5c5642;
-  border-radius: 6px;
-  font-family: var(--agent-font);
-  font-size: calc(15px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-dock {
-  padding: 6px 6px 8px;
-  background: #1d1d1b;
-  border-top: 2px solid var(--hivis);
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-dock-app {
-  padding: 6px 0;
-  border-radius: 6px;
-  font-size: calc(22px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-dock-app span {
-  font-size: calc(11px * var(--agent-font-scale, 1));
-  font-weight: 700;
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-dock-app.active {
-  background: var(--hivis);
-  color: #1a1a1a;
-  text-shadow: none;
-}
-
-.ctp-phone-app.skin-fieldConstruction .agent-wide-btn,
-.ctp-phone-app.skin-fieldConstruction .agent-card-action,
-.ctp-phone-app.skin-fieldConstruction .agent-quick-reply {
-  min-height: 32px;
-  border: 2px solid var(--hivis);
-  border-radius: 6px;
-  font-family: var(--agent-font);
-  font-size: calc(14px * var(--agent-font-scale, 1));
-  font-weight: 700;
-}
-
-.ctp-phone-app.skin-fieldConstruction .window-resizable-handle {
-  border-top: 2px solid #7a6200;
-  background:
-    repeating-linear-gradient(90deg, #1a1a1a 0 2px, transparent 2px 5px) center / 36px 4px no-repeat,
-    var(--hivis);
-}
-
-.ctp-phone-app.skin-fieldConstruction .window-resizable-handle i {
-  color: #1a1a1a;
-}
 
 /* ---------------- Med ---------------- */
 
@@ -205,7 +18,7 @@
   --agent-magenta-rgb: 34, 96, 170;
   --agent-yellow-rgb: 170, 80, 0;
   --agent-text: #1b222b;
-  --agent-muted: #677180;
+  --agent-muted: #626c7a;
   --agent-font: "Inter", "Segoe UI", sans-serif;
   color-scheme: light;
   border: 2px solid #c9ced6;
@@ -224,7 +37,7 @@
 }
 
 .ctp-phone-app.skin-fieldMed .window-header::before {
-  content: "\271A";
+  content: "\271A" / "";
   margin-right: 6px;
   color: var(--red);
   font-size: calc(14px * var(--agent-font-scale, 1));
@@ -450,7 +263,7 @@
 }
 
 .ctp-phone-app.skin-fieldTech .agent-statusbar::after {
-  content: "NODE NC-14 · RX -71dB · BATT 82% · FW 3.2.9";
+  content: "NODE NC-14 · RX -71dB · BATT 82% · FW 3.2.9" / "";
   grid-column: 1 / -1;
   color: var(--agent-muted);
   font-size: calc(8px * var(--agent-font-scale, 1));
@@ -466,7 +279,7 @@
 
 .ctp-phone-app.skin-fieldTech .agent-inbox-name::before,
 .ctp-phone-app.skin-fieldTech .agent-thread-name::before {
-  content: "> ";
+  content: "> " / "";
   color: var(--agent-cyan);
 }
 
@@ -508,17 +321,6 @@
   background:
     repeating-linear-gradient(90deg, #9aa1a8 0 2px, transparent 2px 5px) center / 36px 4px no-repeat,
     #3d4247;
-}
-
-/* The Home button: a big rubber key (Construction), a red cross (Med), a screw-head (Tech). */
-.ctp-phone-app.skin-fieldConstruction .agent-home-button {
-  width: 64px;
-  height: 30px;
-  border: 2px solid #1a1a1a;
-  border-radius: 8px;
-  background: var(--hivis);
-  color: #1a1a1a;
-  font-size: calc(16px * var(--agent-font-scale, 1));
 }
 
 .ctp-phone-app.skin-fieldMed .agent-home-button {

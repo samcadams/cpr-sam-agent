@@ -1,0 +1,250 @@
+/*
+ * Combat Cabb: the app's page (apps/cabb/page.js, apps/cabb/cabb.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-cabb-logo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0 6px;
+  margin: 4px 0 8px;
+  padding: 8px 10px 6px;
+  border-radius: 6px;
+  background:
+    repeating-linear-gradient(90deg, #111 0 8px, #f5c400 8px 16px) top / 100% 5px no-repeat,
+    repeating-linear-gradient(90deg, #f5c400 0 8px, #111 8px 16px) bottom / 100% 5px no-repeat,
+    #f5c400;
+  color: #111;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+/* As the page's header: across the top, above the scrolling page. */
+.ctp-phone-app .agent-cabb-bar {
+  flex: none;
+  margin: 0;
+  border-radius: 0;
+}
+
+.ctp-phone-app .agent-cabb-logo small.agent-cabb-owner {
+  margin-top: 2px;
+  letter-spacing: 1px;
+  text-transform: none;
+  font-weight: normal;
+}
+
+.ctp-phone-app .agent-cabb-logo span {
+  font-size: calc(13px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-cabb-logo b {
+  font-size: calc(22px * var(--agent-font-scale, 1));
+  font-style: italic;
+}
+
+.ctp-phone-app .agent-cabb-logo small {
+  flex-basis: 100%;
+  text-align: center;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* The map (the Map app's NavMap) and its buttons: see _cabbAttach. */
+.ctp-phone-app .agent-cabb-mapbox {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.ctp-phone-app .agent-cabb-zoom {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ctp-phone-app .agent-cabb-zoom button {
+  width: 24px;
+  height: 24px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 22px;
+  border: 1px solid rgba(245, 196, 0, 0.6);
+  border-radius: 4px;
+  background: rgba(12, 12, 16, 0.85);
+  color: #f5c400;
+  font-size: 11px;
+}
+
+.ctp-phone-app .agent-cabb-zoom button:hover,
+.ctp-phone-app .agent-cabb-zoom button:focus-visible {
+  background: #f5c400;
+  color: #111;
+}
+
+/* The Map app's map (apps/map/map.css .agent-navmap), at phone width. */
+.ctp-phone-app .agent-navmap.agent-cabb-navmap {
+  position: relative;
+  inset: auto;
+  height: 260px;
+  border: 1px solid rgba(245, 196, 0, 0.5);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* Cabb's marks on the Map's pins: zones ringed red, the pickup green, the drop-off yellow. */
+/* The trip: a real cyan (Cabb's page turns the phone's cyan yellow, and yellow drowns in the picture's roads). */
+.ctp-phone-app .agent-cabb-navmap .agent-navmap-routeline {
+  --route-rgb: 0, 229, 255;
+}
+
+.ctp-phone-app .agent-navmap-pin.cabb-zone .agent-navmap-dot {
+  box-shadow: 0 0 0 3px #ff3b3b, 0 0 0 5px #fff;
+}
+
+.ctp-phone-app .agent-navmap-pin.cabb-from .agent-navmap-dot {
+  box-shadow: 0 0 0 4px #00e0a0;
+}
+
+.ctp-phone-app .agent-navmap-pin.cabb-to .agent-navmap-dot {
+  box-shadow: 0 0 0 4px #f5c400;
+}
+
+.ctp-phone-app .agent-cabb-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: -4px 0 8px;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-cabb-key {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: #9aa0b4;
+  vertical-align: -1px;
+}
+
+.ctp-phone-app .agent-cabb-key.zone {
+  background: #ff3b3b;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.ctp-phone-app .agent-cabb-key.from {
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 0 0 3px #00e0a0;
+}
+
+.ctp-phone-app .agent-cabb-key.to {
+  background: #f5c400;
+}
+
+.ctp-phone-app .agent-cabb-key.route {
+  width: 14px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgb(0, 229, 255);
+  box-shadow: 0 0 4px rgb(0, 229, 255);
+  vertical-align: 1px;
+}
+
+.ctp-phone-app .agent-cabb-quote {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-left: 4px solid #f5c400;
+  background: rgba(245, 196, 0, 0.1);
+}
+
+.ctp-phone-app .agent-cabb-quote b {
+  color: #f5c400;
+  font-size: calc(20px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-cabb-quote small {
+  flex-basis: 100%;
+  color: #ff6b6b;
+}
+
+.ctp-phone-app .agent-cabb-quote b s {
+  opacity: 0.55;
+  font-size: 0.7em;
+}
+
+.ctp-phone-app .agent-cabb-quote small.agent-cabb-free {
+  color: #7be08a;
+}
+
+.ctp-phone-app .agent-cabb-quote small.agent-cabb-credit-note {
+  color: inherit;
+  opacity: 0.75;
+}
+
+.ctp-phone-app button.agent-wide-btn.agent-cabb-call {
+  background: #f5c400;
+  color: #111;
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-cabb-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0 10px;
+  padding: 12px;
+  border: 2px solid #f5c400;
+  background: rgba(245, 196, 0, 0.12);
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-cabb-status small {
+  text-transform: none;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-cabb-status.status-enroute {
+  animation: ctp-cabb-pulse 1.6s ease-in-out infinite;
+}
+
+.ctp-phone-app .agent-cabb-eta {
+  float: right;
+  color: #f5c400;
+  font-family: "Share Tech Mono", monospace;
+}
+
+@keyframes ctp-cabb-pulse {
+  50% { background: rgba(245, 196, 0, 0.25); }
+}
+
+/* GM: the place tapped on the map, at the top of the list. */
+.ctp-phone-app .agent-cabb-place.picked {
+  outline: 2px solid #f5c400;
+  outline-offset: -2px;
+  background: rgba(245, 196, 0, 0.15);
+}
+
+.ctp-phone-app .agent-cabb-place.picked b::before {
+  content: "\f3c5"; /* location-dot */
+  margin-right: 5px;
+  color: #f5c400;
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro";
+  font-weight: 900;
+}
+
+.ctp-phone-app .agent-cabb-place .agent-dropdown {
+  flex: none;
+  min-width: 110px;
+}

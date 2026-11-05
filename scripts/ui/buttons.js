@@ -1,11 +1,13 @@
 import { AgentPhone } from "./phone/AgentPhone.js";
+import { Director } from "./director/Director.js";
+import { directorTakesCalls } from "./director/state.js";
 import { MODULE_ID } from "../config.js";
 import { phoneSubject } from "../model/agent.js";
 import { commsOn, noSignalSince } from "../model/features.js";
 import { store } from "../store.js";
 
 /*
- * The floating Agent and GM Phone buttons: draggable, with unread badges and a ringing state.
+ * The floating Agent, GM Phone and Director buttons: draggable, with unread badges and a ringing state.
  */
 
 class FloatingButton {
@@ -20,7 +22,14 @@ class FloatingButton {
     el.className = "ctp-float-button";
     el.title = this.title;
     el.hidden = true;
-    el.innerHTML = `<i class="fas ${this.icon}"></i><span class="ctp-badge" hidden></span>`;
+    el.innerHTML = `<i class="fas ${this.icon}" aria-hidden="true"></i><span class="ctp-badge" hidden></span>`;
+    Object.assign(el, { role: "button", tabIndex: 0 });
+    el.setAttribute("aria-label", this.title);
+    el.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      this.onClick();
+    });
     document.body.append(el);
     this.el = el;
 
@@ -73,6 +82,7 @@ class FloatingButton {
     const badge = el.querySelector(".ctp-badge");
     badge.textContent = unread > 99 ? "99+" : String(unread);
     badge.hidden = !unread;
+    el.setAttribute("aria-label", unread ? `${el.title}, ${badge.textContent} unread` : el.title);
     el.classList.toggle("offline", offline);
     el.classList.toggle("ringing", ringing);
   }
@@ -94,6 +104,15 @@ export const GmButton = new FloatingButton({
   setting: "gmButtonPosition",
   offset: 56,
   onClick: () => AgentPhone.toggle("console")
+});
+
+export const DirectorButton = new FloatingButton({
+  id: "ctp-director-button",
+  icon: "fa-display",
+  title: "Director",
+  setting: "directorButtonPosition",
+  offset: 112,
+  onClick: () => Director.toggle()
 });
 
 /**
@@ -118,7 +137,9 @@ export function updateButtons() {
   });
 
   if (game.user.isGM) {
-    GmButton.update({ visible: true, unread: comms ? store.totalUnread() : 0, offline: !store.online, ringing: incoming });
+    const director = directorTakesCalls(); // calls ring on the Director instead
+    GmButton.update({ visible: true, unread: comms ? store.totalUnread() : 0, offline: !store.online, ringing: incoming && !director });
+    DirectorButton.update({ visible: true, offline: !store.online, ringing: incoming && director });
   }
 
   // The token phone closes when the Agent is put away (unless a call is up on it).

@@ -1,0 +1,1 @@
+- Gacha duplicates work like Genshin Impact's: each spare raises a collectible's level, C1 to C6, shown on the shelf and on a duplicate pull. Selling or giving a spare away lowers it, and the sell button says so. Spares past C6 sell for 2.5 times the price.

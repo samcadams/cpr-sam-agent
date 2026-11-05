@@ -1,0 +1,2 @@
+- Trauma Team opens on MedScan (now the first tab; tapping the app again goes back to it).
+- Trauma Team: with no coverage (or a lapsed plan), the panic button asks the player to pay for a plan first; once paid, Dispatch takes the call.

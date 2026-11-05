@@ -1,0 +1,323 @@
+/*
+ * Ziggurat Pool: the app's page (apps/pool/page.js, apps/pool/pool.hbs, pool-card.hbs),
+ * the app-package card in conversations (templates/phone/parts/message.hbs), and the install animation
+ * on the home screen. Built from the phone's colour variables, so every skin carries over.
+ */
+
+.ctp-phone-app .agent-pool-tabs {
+  flex: none;
+}
+
+.ctp-phone-app .agent-pool-note {
+  margin: 4px 2px 8px;
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-pool-offline {
+  margin: 4px 0 8px;
+  padding: 6px 8px;
+  border: 1px solid rgba(var(--agent-magenta-rgb), 0.5);
+  border-radius: 6px;
+  color: var(--agent-magenta);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-pool-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ctp-phone-app .agent-pool-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  border-radius: 10px;
+  background: rgba(var(--agent-cyan-rgb), 0.05);
+}
+
+.ctp-phone-app .agent-pool-cards.compact .agent-pool-card {
+  align-items: center;
+  padding: 5px 8px;
+}
+
+.ctp-phone-app .agent-pool-cards.compact .agent-pool-card p {
+  display: none;
+}
+
+.ctp-phone-app .agent-pool-card.soon { border-style: dashed; }
+/* Only the words fade: a see-through icon shows the screen behind it. */
+.ctp-phone-app .agent-pool-card.soon > :not(.agent-pool-icon) { opacity: 0.75; }
+
+/* An app's icon: its home-screen tile (.agent-app-tile + .agent-home-icon, styles/phone/app-pages.css), smaller. */
+.ctp-phone-app .agent-pool-icon {
+  flex: none;
+  display: flex;
+}
+
+.ctp-phone-app .agent-pool-icon .agent-home-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: calc(17px * var(--agent-font-scale, 1));
+}
+
+/* A listing's full-colour picture (pool.listings[].img) is the whole tile. */
+.ctp-phone-app .agent-pool-icon.agent-app-tile .agent-home-icon.picture {
+  overflow: hidden;
+  border-color: transparent;
+  background: none;
+}
+.ctp-phone-app .agent-pool-icon .agent-home-icon.picture > img,
+.ctp-phone-app .agent-pool-listing-img {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+.ctp-phone-app .agent-pool-listing-img { flex: none; width: 22px; height: 22px; border-radius: 5px; }
+
+.ctp-phone-app .agent-pool-icon.small .agent-home-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-pool-card-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-pool-card-main small {
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-pool-card-main p {
+  margin: 2px 0 0;
+}
+
+.ctp-phone-app .agent-pool-buy {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.ctp-phone-app .agent-pool-buy button {
+  min-width: 72px;
+  border-radius: 999px;
+}
+
+/* On your Agent: Open and the uninstall bin side by side. */
+.ctp-phone-app .agent-pool-cards.compact .agent-pool-buy {
+  flex-direction: row;
+  gap: 6px;
+}
+
+.ctp-phone-app .agent-pool-remove {
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-pool-remove:hover {
+  color: var(--agent-magenta);
+}
+
+/* The faux download after Get / Buy / Subscribe (page.js DOWNLOAD_MS): a bar that fills, then the app moves
+   to On your Agent. The inline delay keeps it filling across redraws. */
+.ctp-phone-app .agent-pool-progress {
+  display: block;
+  height: 4px;
+  margin-top: 4px;
+  border-radius: 2px;
+  background: rgba(var(--agent-cyan-rgb), 0.15);
+  overflow: hidden;
+}
+
+.ctp-phone-app .agent-pool-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--agent-cyan);
+  box-shadow: 0 0 6px rgba(var(--agent-cyan-rgb), 0.7);
+  animation: agent-pool-download linear both;
+}
+
+@keyframes agent-pool-download {
+  0% { width: 0; }
+  20% { width: 12%; }
+  55% { width: 61%; }
+  70% { width: 66%; }
+  100% { width: 100%; }
+}
+
+.ctp-phone-app .agent-pool-dl {
+  min-width: 72px;
+  text-align: center;
+  color: var(--agent-cyan);
+}
+
+.ctp-phone-app .agent-pool-buy small,
+.ctp-phone-app .agent-pool-tag {
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ctp-phone-app .agent-app-item.lapsed b {
+  color: var(--agent-magenta);
+}
+
+/* A lapsed subscription's lock screen. */
+.ctp-phone-app .agent-pool-lock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 12px;
+  text-align: center;
+  position: relative;
+}
+
+.ctp-phone-app .agent-pool-lock .agent-pool-icon {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+.ctp-phone-app .agent-pool-lock .agent-pool-icon .agent-home-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  font-size: calc(28px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-pool-lock-glyph {
+  margin-top: -22px;
+  margin-left: 48px;
+  color: var(--agent-magenta);
+}
+
+.ctp-phone-app .agent-pool-lock h3 {
+  margin: 0;
+  border: none;
+}
+
+/* The GM's page. */
+.ctp-phone-app .agent-pool-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin-top: 4px;
+}
+
+.ctp-phone-app .agent-pool-fields input[type="text"] {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-pool-fields > .agent-dropdown {
+  flex: 1 0 110px;
+}
+
+.ctp-phone-app .agent-pool-num {
+  flex: 0 0 64px;
+  width: 64px;
+}
+
+.ctp-phone-app .agent-pool-entry.off {
+  opacity: 0.6;
+}
+
+.ctp-phone-app .agent-pool-add {
+  margin: 6px 0 12px;
+}
+
+.ctp-phone-app .agent-pool-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 3px 0;
+}
+
+.ctp-phone-app .agent-pool-chip {
+  padding: 1px 6px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.35);
+  border-radius: 999px;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-pool-chip.lapsed,
+.ctp-phone-app .agent-pool-sub.lapsed {
+  border-color: rgba(var(--agent-magenta-rgb), 0.6);
+  color: var(--agent-magenta);
+}
+
+.ctp-phone-app .agent-pool-sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-pool-sub.due span:first-child {
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-pool-sub-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* An app package in a conversation (a Fixer's sideload). */
+.ctp-phone-app .agent-pkg {
+  padding: 4px 0;
+}
+
+.ctp-phone-app .agent-pkg.declined {
+  opacity: 0.6;
+}
+
+/* An app just installed drops onto the home screen (not with reduced motion; ui/a11y.js). */
+.ctp-phone-app .agent-home-app.agent-installing .agent-home-icon {
+  animation: agent-pool-install 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+
+@keyframes agent-pool-install {
+  0% { transform: scale(0.2); opacity: 0; filter: brightness(2); }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); filter: none; }
+}
+
+/* Subscriptions rows: the name takes the room, the buttons stay their own size (the phone's buttons are full
+   width by default). */
+.ctp-phone-app .agent-pool-subs .agent-app-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-pool-subs button {
+  flex: none;
+  width: auto;
+  min-width: 64px;
+  padding: 2px 12px;
+  border-radius: 999px;
+}
+
+.ctp-phone-app .agent-pool-subs small {
+  display: block;
+  color: var(--agent-muted);
+}

@@ -1,0 +1,21 @@
+{
+  "_id": "cpragentRecipe06",
+  "_key": "!macros!cpragentRecipe06",
+  "name": "Garden news, with Reputation",
+  "type": "script",
+  "scope": "global",
+  "img": "icons/svg/book.svg",
+  "command": "// Recipe from API.md. GM only. News for the job the crew just finished, with Reputation for each of them.\n// Change \"V\" and \"Judy\" to your characters.\nconst agent = game.modules.get(\"cpr-sam-agent\").api;\nawait agent.garden.post({\n  as: \"@network54\", text: \"Shootout at the Arasaka docks leaves three dead.\", outcome: \"Viral\",\n  rep: [{ actor: \"V\", delta: 1, reason: \"Arasaka docks\" }, { actor: \"Judy\", delta: 1, reason: \"Arasaka docks\" }]\n});\nawait agent.garden.queue([\"anyone else hear that?\", \"the docks are crawling with NCPD\", \"@network54 | Update: suspects fled north\"], { every: 3, jitter: 1 });",
+  "author": null,
+  "folder": null,
+  "sort": 600000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "12.343",
+    "systemId": "cyberpunk-red-core",
+    "systemVersion": "0.92.4"
+  }
+}

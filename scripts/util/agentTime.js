@@ -55,8 +55,21 @@ const partsOf = (d, utc) => ({
   month: d.toLocaleDateString([], { month: "long", ...(utc ? { timeZone: "UTC" } : {}) })
 });
 
-/** @returns {{time: string, date: string|null}} */
-export function agentTimestamp() {
+/**
+ * Whether the phones' clock follows world time (`game.time.worldTime`): Simple Calendar (Automatic or
+ * Simple Calendar), or SmallTime (Automatic). Otherwise it's the real clock.
+ */
+export function worldClock(clock = clockSettings()) {
+  if ((clock.source === "auto" || clock.source === "calendar") && simpleCalendar()) return true;
+  return clock.source === "auto" && !!game.modules.get("smalltime")?.active;
+}
+
+/**
+ * The phones' time and date now, or at `at` (seconds: world time when worldClock(), else real
+ * seconds since 1970; the Garden's posts carry one).
+ * @returns {{time: string, date: string|null}}
+ */
+export function agentTimestamp(at = null) {
   const twelveHour = smallTimeIs12h();
   const clock = clockSettings();
 
@@ -64,28 +77,43 @@ export function agentTimestamp() {
   if (sc) {
     try {
       // Use the month's full configured name, not its abbreviation.
-      const d = sc.timestampToDate(sc.timestamp());
+      const d = sc.timestampToDate(at ?? sc.timestamp());
       const year = `${d.display.yearPrefix ?? ""}${d.display.year}${d.display.yearPostfix ?? ""}`;
       return {
         time: formatClock(d.hour, d.minute, twelveHour),
         date: formatDate(d.display.monthName, d.display.day, year, clock.dayPrefix)
       };
     } catch (err) {
-      console.warn("cpr-slopagent | Simple Calendar time lookup failed, falling back to world time.", err);
+      console.warn("cpr-sam-agent | Simple Calendar time lookup failed, falling back to world time.", err);
     }
   }
 
   if (clock.source === "auto" && game.modules.get("smalltime")?.active) {
-    const seconds = ((game.time.worldTime % 86400) + 86400) % 86400;
+    const seconds = (((at ?? game.time.worldTime) % 86400) + 86400) % 86400;
     const totalMinutes = Math.floor(seconds / 60);
     return { time: formatClock(Math.floor(totalMinutes / 60), totalMinutes % 60, twelveHour), date: null };
   }
 
   const custom = clock.source === "custom";
-  const now = new Date(Date.now() + (custom ? clock.offset : 0));
+  const now = new Date((at === null ? Date.now() : at * 1000) + (custom ? clock.offset : 0));
   const t = partsOf(now, custom);
-  const d = !custom && clock.dateOffset !== null ? partsOf(new Date(now.getTime() + clock.dateOffset * DAY_MS), false) : t;
+  // By calendar days, not 24-hour steps: across a daylight saving change those land an hour off,
+  // a day early just after midnight.
+  const shifted = () => {
+    const n = new Date(now);
+    n.setDate(n.getDate() + clock.dateOffset);
+    return partsOf(n, false);
+  };
+  const d = !custom && clock.dateOffset !== null ? shifted() : t;
   return { time: formatClock(t.hours, t.minutes, twelveHour), date: formatDate(d.month, d.day, d.year, clock.dayPrefix) };
+}
+
+/**
+ * The in-world day, as a key that changes at in-world midnight (Roach Race's day passes): the phones'
+ * date, or the world time's day count when the clock shows no date (SmallTime).
+ */
+export function agentDay() {
+  return agentTimestamp().date ?? `World day ${Math.floor((game.time?.worldTime ?? 0) / 86400)}`;
 }
 
 /* ---------------- Setting the clock (Control) ---------------- */

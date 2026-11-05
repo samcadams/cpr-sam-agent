@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- 107.3 Morro Rock Radio: the Garden avatar of the Weather app's daily post (original art). -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff5a1f"/>
+      <stop offset="0.55" stop-color="#c2185b"/>
+      <stop offset="1" stop-color="#2a0b3d"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="#120818"/>
+  <circle cx="128" cy="118" r="92" fill="url(#sky)"/>
+  <g fill="none" stroke="#ffd54a" stroke-width="7" stroke-linecap="round">
+    <path d="M150 64 a34 34 0 0 1 0 48"/>
+    <path d="M166 50 a54 54 0 0 1 0 76"/>
+    <path d="M182 36 a74 74 0 0 1 0 104"/>
+  </g>
+  <path d="M36 168 L70 120 L88 92 Q104 70 120 86 L140 112 L162 132 L196 150 L220 168 Z" fill="#14060f"/>
+  <rect x="36" y="166" width="184" height="12" fill="#14060f"/>
+  <text x="128" y="214" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif" font-size="46" fill="#ffd54a" letter-spacing="2">107.3</text>
+  <text x="128" y="240" text-anchor="middle" font-family="'Arial Black', Arial, sans-serif" font-size="17" font-weight="900" fill="#ff8a65" letter-spacing="3">MORRO ROCK</text>
+</svg>

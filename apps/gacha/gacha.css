@@ -1,0 +1,610 @@
+/*
+ * Gacha: the app's page (apps/gacha/page.js, apps/gacha/gacha.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-gacha-machine {
+  position: relative;
+  width: 150px;
+  margin: 8px auto 6px;
+}
+
+.ctp-phone-app .agent-gacha-dome {
+  position: relative;
+  height: 120px;
+  border: 3px solid #d6d9e4;
+  border-radius: 75px 75px 10px 10px;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05) 60%), #1b1430;
+  overflow: hidden;
+}
+
+.ctp-phone-app .agent-gacha-dome i {
+  position: absolute;
+  bottom: calc(6px + (var(--n) * 7px));
+  left: calc(12px + (var(--n) * 23px));
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(var(--c) 50%, #f4f4f4 50%);
+  box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.ctp-phone-app .agent-gacha-slot {
+  margin-top: -2px;
+  padding: 10px 0;
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(#c8102e, #8a0a1f);
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-gacha-machine.pulling .agent-gacha-dome {
+  animation: ctp-gacha-shake 0.25s ease-in-out infinite;
+}
+
+.ctp-phone-app .agent-gacha-machine.pulling .agent-gacha-dome i {
+  animation: ctp-gacha-tumble 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes ctp-gacha-shake {
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+@keyframes ctp-gacha-tumble {
+  to { transform: translate(6px, -40px) rotate(180deg); }
+}
+
+.ctp-phone-app button.agent-wide-btn.agent-gacha-pull {
+  background: #ffb020;
+  color: #1a1000;
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-gacha-odds {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 10px;
+}
+
+.ctp-phone-app .agent-gacha-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 8px 0;
+  padding: 14px 10px;
+  border: 2px solid var(--rarity);
+  border-radius: 10px;
+  background: radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--rarity) 30%, transparent), transparent 70%);
+  text-align: center;
+  animation: ctp-gacha-pop 0.5s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+
+.ctp-phone-app .agent-gacha-reveal > i {
+  font-size: calc(44px * var(--agent-font-scale, 1));
+  color: var(--rarity);
+  filter: drop-shadow(0 0 8px var(--rarity));
+}
+
+.ctp-phone-app .agent-gacha-reveal small {
+  color: var(--rarity);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-gacha-reveal b {
+  font-size: calc(16px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-gacha-reveal p {
+  margin: 0;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-gacha-reveal.rarity-legendary {
+  animation: ctp-gacha-pop 0.5s cubic-bezier(0.2, 1.5, 0.4, 1), ctp-gacha-glow 1.5s ease-in-out 0.5s infinite alternate;
+}
+
+@keyframes ctp-gacha-pop {
+  from { transform: scale(0.4); opacity: 0; }
+}
+
+@keyframes ctp-gacha-glow {
+  to { box-shadow: 0 0 22px var(--rarity); }
+}
+
+.ctp-phone-app .agent-gacha-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.ctp-phone-app .agent-gacha-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px 6px;
+  border: 1px solid var(--rarity);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--rarity) 10%, transparent);
+  cursor: pointer;
+  text-align: center;
+}
+
+/* The rarity in stars, so it doesn't rest on the tile's colour alone. */
+.ctp-phone-app .agent-gacha-stars {
+  color: var(--rarity);
+  font-size: calc(8px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.ctp-phone-app .agent-gacha-shelf-empty {
+  grid-column: 1 / -1;
+}
+
+/* A rarity's colour as a dot before its name (the name itself stays in the readable text colour). */
+.ctp-phone-app .agent-rarity-dot {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-right: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 50%;
+  background: var(--rarity);
+  vertical-align: baseline;
+}
+
+.ctp-phone-app .agent-gacha-tile.open {
+  box-shadow: 0 0 10px var(--rarity);
+}
+
+.ctp-phone-app .agent-gacha-tile > i {
+  font-size: calc(24px * var(--agent-font-scale, 1));
+  color: var(--rarity);
+}
+
+.ctp-phone-app .agent-gacha-tile b {
+  position: absolute;
+  top: 2px;
+  right: 5px;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-gacha-tile span {
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  line-height: 1.15;
+}
+
+/* A collectible's picture, in place of its icon (bigger than the icon, to be seen). */
+.ctp-phone-app img.agent-gacha-art {
+  display: block;
+  object-fit: contain;
+  border: none;
+  border-radius: 6px;
+}
+
+.ctp-phone-app img.agent-gacha-art.agent-app-item-icon {
+  width: 18px;
+  height: 18px;
+  padding-top: 0;
+  margin-top: 2px;
+}
+
+.ctp-phone-app .agent-gacha-reveal > img.agent-gacha-art {
+  width: calc(112px * var(--agent-font-scale, 1));
+  height: calc(112px * var(--agent-font-scale, 1));
+  filter: drop-shadow(0 0 8px var(--rarity));
+}
+
+.ctp-phone-app .agent-gacha-tile > img.agent-gacha-art {
+  width: calc(48px * var(--agent-font-scale, 1));
+  height: calc(48px * var(--agent-font-scale, 1));
+  filter: drop-shadow(0 0 3px var(--rarity));
+}
+
+/* zCreds: the wallet over the Pull button, and the bundles to buy. */
+.ctp-phone-app .agent-gacha-wallet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: calc(16px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app .agent-gacha-wallet i {
+  color: #ffb020;
+}
+
+.ctp-phone-app button.agent-wide-btn.agent-gacha-pull[aria-disabled="true"] {
+  filter: grayscale(0.8) brightness(0.7);
+}
+
+.ctp-phone-app .agent-gacha-bundles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.ctp-phone-app .agent-gacha-bundle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 4px;
+  border: 1px solid #ffb020;
+  border-radius: 8px;
+  background: rgba(255, 176, 32, 0.08);
+  color: var(--agent-text);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-gacha-bundle:hover {
+  background: rgba(255, 176, 32, 0.2);
+}
+
+.ctp-phone-app .agent-gacha-bundle.best {
+  border-width: 2px;
+  background: rgba(255, 176, 32, 0.18);
+  box-shadow: 0 0 8px rgba(255, 176, 32, 0.5);
+}
+
+.ctp-phone-app .agent-gacha-bundle em {
+  color: #ffb020;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  font-style: normal;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-gacha-bundle b {
+  color: #ffb020;
+}
+
+.ctp-phone-app .agent-gacha-bundle small {
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-gacha-bundle-row input {
+  width: 64px;
+  flex: none;
+}
+
+.ctp-phone-app .agent-gacha-new {
+  color: #ffb020;
+  font-weight: bold;
+}
+
+/* Favourites: pinned across the top of the shelf. */
+.ctp-phone-app .agent-gacha-favs {
+  margin-bottom: 4px;
+}
+
+.ctp-phone-app .agent-gacha-tile > i.agent-gacha-pin {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  color: var(--agent-text);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+}
+
+/*
+ * The pull (apps/gacha/pull.js): over the whole phone window, outside what a redraw replaces. --c is the
+ * capsule's colour, climbing through the rarities.
+ */
+.ctp-phone-app > .ctp-gacha-show {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--c) 25%, #05060a), #000 75%), #000;
+  color: #fff;
+  font-family: var(--agent-font, sans-serif);
+  cursor: wait;
+  outline: none;
+  animation: ctp-gs-in 0.3s ease-out;
+  transition: opacity 0.35s, background 0.4s;
+}
+
+.ctp-gacha-show.out {
+  opacity: 0;
+}
+
+.ctp-gacha-show .ctp-gs-rays {
+  position: absolute;
+  inset: -50%;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--c) 55%, transparent) 0deg 8deg, transparent 8deg 22deg);
+  opacity: 0;
+  animation: ctp-gs-spin 6s linear infinite;
+  transition: opacity 0.4s;
+}
+
+.ctp-gacha-show.s1 .ctp-gs-rays { opacity: 0.12; }
+.ctp-gacha-show.s2 .ctp-gs-rays { opacity: 0.25; animation-duration: 3s; }
+.ctp-gacha-show.s3 .ctp-gs-rays { opacity: 0.4; animation-duration: 1.5s; }
+.ctp-gacha-show.reveal .ctp-gs-rays { opacity: 0.6; animation-duration: 4s; }
+.ctp-gacha-show.fizzle .ctp-gs-rays { opacity: 0; }
+
+.ctp-gacha-show .ctp-gs-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 220px;
+}
+
+/* The capsule: a coloured top, a white bottom, a seam and a shine. */
+.ctp-gacha-show .ctp-gs-capsule {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  filter: drop-shadow(0 0 14px var(--c));
+  transform: translateY(-400px);
+  transition: filter 0.3s;
+}
+
+.ctp-gacha-show .ctp-gs-capsule i {
+  position: absolute;
+  left: 0;
+  width: 120px;
+  transition: transform 0.45s cubic-bezier(0.3, 1.4, 0.6, 1), opacity 0.45s, background 0.3s;
+}
+
+.ctp-gacha-show .ctp-gs-top {
+  top: 0;
+  height: 60px;
+  border-radius: 60px 60px 0 0;
+  background: radial-gradient(circle at 35% 30%, #fff8, transparent 40%), var(--c);
+}
+
+.ctp-gacha-show .ctp-gs-bottom {
+  top: 60px;
+  height: 60px;
+  border-radius: 0 0 60px 60px;
+  background: linear-gradient(#e8e8ee, #9a9aa8);
+}
+
+.ctp-gacha-show .ctp-gs-band {
+  top: 56px;
+  z-index: 1;
+  height: 8px;
+  background: #111;
+}
+
+.ctp-gacha-show .ctp-gs-shine {
+  top: 14px;
+  left: 22px !important;
+  z-index: 2;
+  width: 22px !important;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.8;
+  transform: rotate(-30deg);
+}
+
+.ctp-gacha-show.drop .ctp-gs-capsule {
+  animation: ctp-gs-drop 0.9s cubic-bezier(0.3, 0, 0.4, 1) forwards;
+}
+
+.ctp-gacha-show.s1 .ctp-gs-capsule { transform: none; animation: ctp-gs-shake 0.32s ease-in-out infinite; --amp: 4deg; --move: 1px; }
+.ctp-gacha-show.s2 .ctp-gs-capsule { animation-duration: 0.18s; --amp: 9deg; --move: 3px; }
+.ctp-gacha-show.s3 .ctp-gs-capsule { animation-duration: 0.1s; --amp: 15deg; --move: 6px; }
+.ctp-gacha-show.s3 { animation: ctp-gs-quake 0.12s linear infinite; }
+
+/* Each step up a rarity: a pulse, and a flash. */
+.ctp-gacha-show.step .ctp-gs-capsule {
+  filter: drop-shadow(0 0 30px var(--c)) brightness(1.4);
+}
+
+.ctp-gacha-show.step .ctp-gs-flash {
+  animation: ctp-gs-flash 0.5s ease-out;
+}
+
+/* The crack: the halves fly apart, everything goes white. */
+.ctp-gacha-show.crack { animation: none; }
+.ctp-gacha-show.crack .ctp-gs-capsule { animation: none; transform: none; }
+.ctp-gacha-show.crack .ctp-gs-top,
+.ctp-gacha-show.crack .ctp-gs-band,
+.ctp-gacha-show.crack .ctp-gs-shine { transform: translate(-70px, -160px) rotate(-70deg); opacity: 0; }
+.ctp-gacha-show.crack .ctp-gs-bottom { transform: translate(60px, 180px) rotate(50deg); opacity: 0; }
+.ctp-gacha-show.crack .ctp-gs-flash { animation: ctp-gs-flash 0.9s ease-out; --flash: 1; }
+
+.ctp-gacha-show .ctp-gs-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, #fff, var(--c));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* What came out. */
+.ctp-gacha-show .ctp-gs-item {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+}
+
+.ctp-gacha-show.reveal .ctp-gs-item {
+  display: flex;
+}
+
+.ctp-gacha-show .ctp-gs-item > i,
+.ctp-gacha-show .ctp-gs-item > img {
+  width: 96px;
+  height: 96px;
+  font-size: 80px;
+  line-height: 96px;
+  color: var(--c);
+  object-fit: contain;
+  border: none;
+  filter: drop-shadow(0 0 18px var(--c));
+  animation: ctp-gs-slam 0.6s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.ctp-gacha-show .ctp-gs-item > img {
+  width: 160px;
+  height: 160px;
+  border-radius: 8px;
+}
+
+.ctp-gacha-show .ctp-gs-item small {
+  color: var(--c);
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  animation: ctp-gs-rise 0.4s 0.3s both;
+}
+
+.ctp-gacha-show .ctp-gs-item b {
+  max-width: 260px;
+  font-size: 20px;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px var(--c);
+  animation: ctp-gs-rise 0.4s 0.45s both;
+}
+
+.ctp-gacha-show .ctp-gs-stars {
+  color: var(--c);
+  letter-spacing: 4px;
+  animation: ctp-gs-rise 0.4s 0.6s both;
+}
+
+.ctp-gacha-show .ctp-gs-new,
+.ctp-gacha-show .ctp-gs-dupe {
+  margin-top: 4px;
+  padding: 1px 10px;
+  border-radius: 4px;
+  font-style: normal;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: ctp-gs-stamp 0.4s 0.8s both;
+}
+
+.ctp-gacha-show .ctp-gs-new { background: #ffb020; color: #1a1000; }
+.ctp-gacha-show .ctp-gs-dupe { border: 1px solid #fff6; color: #fffa; }
+
+/* Legendary: gold everything, and the words shimmer. */
+.ctp-gacha-show.rarity-legendary {
+  background: radial-gradient(circle at 50% 42%, #7a5410, #3a2400 60%, #000), #000;
+}
+
+.ctp-gacha-show.rarity-legendary .ctp-gs-line {
+  background: linear-gradient(90deg, #fff, #ffb020, #fff, #ffb020);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: ctp-gs-shimmer 1.2s linear infinite;
+}
+
+/* Confetti. */
+.ctp-gacha-show .ctp-gs-burst {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+}
+
+.ctp-gacha-show .ctp-gs-burst i {
+  position: absolute;
+  width: 6px;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--c);
+  opacity: 0;
+  animation: ctp-gs-confetti var(--t) ease-out forwards;
+}
+
+.ctp-gacha-show .ctp-gs-burst i:nth-child(3n) { background: #fff; }
+
+.ctp-gacha-show .ctp-gs-line {
+  position: absolute;
+  bottom: 14%;
+  left: 12px;
+  right: 12px;
+  min-height: 1.3em;
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-align: center;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--c);
+}
+
+.ctp-gacha-show .ctp-gs-line.pop {
+  animation: ctp-gs-pop 0.35s cubic-bezier(0.2, 1.8, 0.5, 1);
+}
+
+/* Nothing came: the capsule sags off, grey. */
+.ctp-gacha-show.fizzle .ctp-gs-capsule {
+  animation: none;
+  filter: grayscale(1) brightness(0.6);
+  transform: translateY(40px) rotate(80deg);
+  transition: transform 1s ease-in, filter 0.5s;
+}
+
+.ctp-gacha-show.fizzle { animation: none; }
+
+@keyframes ctp-gs-in { from { opacity: 0; } }
+@keyframes ctp-gs-spin { to { transform: rotate(360deg); } }
+@keyframes ctp-gs-drop {
+  0% { transform: translateY(-400px); }
+  60% { transform: translateY(0); }
+  75% { transform: translateY(-40px) scaleY(1.05); }
+  88% { transform: translateY(0) scaleY(0.92) scaleX(1.06); }
+  100% { transform: none; }
+}
+@keyframes ctp-gs-shake {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(var(--amp)) translateX(var(--move)); }
+  75% { transform: rotate(calc(var(--amp) * -1)) translateX(calc(var(--move) * -1)); }
+}
+@keyframes ctp-gs-quake {
+  0%, 100% { transform: none; }
+  25% { transform: translate(2px, -1px); }
+  50% { transform: translate(-2px, 1px); }
+  75% { transform: translate(1px, 2px); }
+}
+@keyframes ctp-gs-flash { from { opacity: var(--flash, 0.5); } to { opacity: 0; } }
+@keyframes ctp-gs-slam { from { transform: scale(3) rotate(-15deg); opacity: 0; filter: blur(8px); } }
+@keyframes ctp-gs-rise { from { transform: translateY(12px); opacity: 0; } }
+@keyframes ctp-gs-stamp { from { transform: scale(2.5) rotate(-12deg); opacity: 0; } }
+@keyframes ctp-gs-pop { from { transform: scale(1.6); opacity: 0; } }
+@keyframes ctp-gs-shimmer { to { background-position: 300% 0; } }
+@keyframes ctp-gs-confetti {
+  0% { transform: rotate(var(--a)) translateY(0); opacity: 1; }
+  100% { transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) rotate(400deg); opacity: 0; }
+}
+
+/* Reduced motion: the same steps, faded in and out; nothing shakes, spins, slams or flashes. */
+.ctp-gacha-show.reduce,
+.ctp-gacha-show.reduce * {
+  animation-name: ctp-gs-in !important;
+  animation-iteration-count: 1 !important;
+}
+
+.ctp-gacha-show.reduce .ctp-gs-capsule { transform: none !important; }
+.ctp-gacha-show.reduce .ctp-gs-flash { display: none; }
+.ctp-gacha-show.reduce.crack .ctp-gs-capsule { opacity: 0; transition: opacity 0.4s; }

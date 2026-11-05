@@ -1,0 +1,1 @@
+- Phone ads: the slide-in animation's stylesheet was cut off mid-rule; it's complete again.

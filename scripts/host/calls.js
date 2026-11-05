@@ -5,6 +5,7 @@ import { findContact, getContacts } from "../model/contacts.js";
 import { noSignalSince } from "../model/features.js";
 import { canActFor, redactCall } from "../model/permissions.js";
 import { callLines } from "../model/services.js";
+import { memberSound } from "../model/sounds.js";
 import { contactMember, isGroup, isService, npcMember, pcKey, pcMember } from "../model/threads.js";
 import { formatDuration } from "../util/text.js";
 
@@ -248,7 +249,7 @@ export const methods = {
     }, RING_TIMEOUT_MS));
 
     if (!worldRings.has(key) && game.settings.get(MODULE_ID, "ringAtToken")) {
-      const id = this._worldSound(p, game.settings.get(MODULE_ID, "ringtone"), { loop: true });
+      const id = this._worldSound(p, memberSound(p, "ring"), { loop: true });
       if (id) worldRings.set(key, id);
     }
   },

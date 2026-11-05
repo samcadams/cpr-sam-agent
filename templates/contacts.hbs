@@ -13,7 +13,7 @@
   <ol class="ctp-contacts-list">
     {{#each contacts}}
       <li class="ctp-contact" data-index="{{index}}">
-        <img class="ctp-contact-img" src="{{img}}" title="Change image">
+        <img class="ctp-contact-img" src="{{img}}" title="Change image" alt="Change image" role="button" tabindex="0">
         <input type="text" class="ctp-contact-name" value="{{name}}">
         <a class="ctp-contact-call{{#if noCall}} active{{/if}}" title="{{#if noCall}}Texts only: let the player call{{else}}Stop the player calling (texts only){{/if}}"><i class="fas fa-phone-slash"></i></a>
         <a class="ctp-contact-block{{#if blocked}} active{{/if}}" title="{{#if blocked}}Unblock{{else}}Block{{/if}} this number"><i class="fas fa-ban"></i></a>

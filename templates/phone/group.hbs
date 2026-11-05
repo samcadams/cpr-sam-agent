@@ -5,6 +5,9 @@
     <div class="agent-thread-name">{{group.name}}</div>
     <div class="agent-thread-sub">{{group.subtitle}}</div>
   </div>
+  {{#if group.canShare}}
+    <a class="agent-icon-btn" data-action="share-start" title="Share texts to chat"><i class="fas fa-share-from-square"></i></a>
+  {{/if}}
   {{#if group.canCall}}
     <a class="agent-icon-btn" data-action="call" title="Group call"><i class="{{@root.appearance.icons.call}}"></i></a>
   {{/if}}
@@ -13,10 +16,17 @@
 
 <div class="agent-messages">
   {{#each group.messages}}
-    {{> agent-message canReact=@root.group.canReact}}
+    {{> agent-message canReact=@root.group.canReact sharing=@root.group.sharing}}
   {{else}}
     <div class="agent-empty">No messages yet.</div>
   {{/each}}
 </div>
 
-{{> agent-compose placeholder=group.placeholder canSend=group.canSend}}
+{{#with group.sharing}}
+  <div class="agent-share-bar" role="group" aria-label="Share texts to chat">
+    <span class="agent-share-count" aria-live="polite">{{#if count}}{{count}} of {{max}} texts{{else}}Tap texts to share (up to {{max}}){{/if}}</span>
+    <a class="agent-share-cancel" data-action="share-cancel">Cancel</a>
+    {{#if canPost}}<a class="agent-share-post" data-action="share-post"><i class="fas fa-share-from-square"></i> Post to chat</a>{{/if}}
+  </div>
+{{else}}{{> agent-compose placeholder=group.placeholder canSend=group.canSend}}
+{{/with}}

@@ -140,7 +140,7 @@
 
 .ctp-phone-app.skin-classic .agent-inbox-name::before,
 .ctp-phone-app.skin-classic .agent-thread-name::before {
-  content: "// ";
+  content: "// " / ""; /* decoration: screen readers skip it */
   color: var(--agent-magenta);
 }
 

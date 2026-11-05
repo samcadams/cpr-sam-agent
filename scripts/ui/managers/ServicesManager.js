@@ -1,6 +1,7 @@
 import { DEFAULT_CONTACT_IMG, MODULE_ID, TEMPLATES } from "../../config.js";
 import { playerCharacters } from "../../model/contacts.js";
 import { getServices } from "../../model/services.js";
+import { describeControls } from "../a11y.js";
 
 /*
  * GM window for the service contacts (request buttons, phone lines, texting, who can use them).
@@ -49,6 +50,7 @@ export class ServicesManager extends Application {
 
   activateListeners(html) {
     super.activateListeners(html);
+    describeControls(html[0]);
     const indexOf = el => Number(el.closest("[data-index]").dataset.index);
     const edit = (el, fn, rerender = false) => {
       const services = getServices();

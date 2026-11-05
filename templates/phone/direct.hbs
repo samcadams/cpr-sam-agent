@@ -12,6 +12,9 @@
       <div class="agent-thread-sub">{{#if thread.subtitle}}{{thread.subtitle}}{{else if thread.renamed}}{{thread.renamed}} <i class="fas fa-chevron-right"></i>{{else}}{{thread.cardLabel}} <i class="fas fa-chevron-right"></i>{{/if}}</div>
     </div>
   </a>
+  {{#if thread.canShare}}
+    <a class="agent-icon-btn" data-action="share-start" title="Share texts to chat"><i class="fas fa-share-from-square"></i></a>
+  {{/if}}
   {{#if thread.canCall}}
     <a class="agent-icon-btn" data-action="call" title="Call"><i class="{{@root.appearance.icons.call}}"></i></a>
   {{/if}}
@@ -19,11 +22,18 @@
 
 <div class="agent-messages">
   {{#each thread.messages}}
-    {{> agent-message canReact=@root.thread.canReact}}
+    {{> agent-message canReact=@root.thread.canReact sharing=@root.thread.sharing}}
   {{else}}
     <div class="agent-empty">No messages yet.</div>
   {{/each}}
 </div>
 
 {{#if thread.unreachable}}<div class="agent-unreachable">This number cannot be reached.</div>{{/if}}
-{{> agent-compose placeholder=thread.placeholder canSend=thread.canSend}}
+{{#with thread.sharing}}
+  <div class="agent-share-bar" role="group" aria-label="Share texts to chat">
+    <span class="agent-share-count" aria-live="polite">{{#if count}}{{count}} of {{max}} texts{{else}}Tap texts to share (up to {{max}}){{/if}}</span>
+    <a class="agent-share-cancel" data-action="share-cancel">Cancel</a>
+    {{#if canPost}}<a class="agent-share-post" data-action="share-post"><i class="fas fa-share-from-square"></i> Post to chat</a>{{/if}}
+  </div>
+{{else}}{{> agent-compose placeholder=thread.placeholder canSend=thread.canSend}}
+{{/with}}

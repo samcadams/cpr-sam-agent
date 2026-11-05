@@ -1,6 +1,7 @@
 import { approveRequestDialog, contactRequestDialog } from "../../dialogs/forms.js";
 import { ContactsManager } from "../../managers/ContactsManager.js";
 import { ServicesManager } from "../../managers/ServicesManager.js";
+import { commsOn } from "../../../model/features.js";
 import { appearance } from "../../../model/appearance.js";
 import { getAlias, getContacts, getNote, noteKey, playerCharacters } from "../../../model/contacts.js";
 import { servicesFor } from "../../../model/services.js";
@@ -28,7 +29,7 @@ export const actions = {
     this._requestContact();
   },
   "request-approve"({ requestId }) {
-    this._approveRequest(requestId);
+    approveContactRequest(requestId);
   },
   "request-deny"({ requestId }) {
     store.request("request-resolve", { requestId, approve: false });
@@ -100,7 +101,8 @@ export const methods = {
       }
       if (!gm) {
         data.pending = store.visibleRequests().filter(r => r.actorId === ctx.actorId);
-        data.canRequest = this.online;
+        // Communications off: the host refuses requests, so the button goes rather than promise one.
+        data.canRequest = this.online && commsOn();
       }
     }
 
@@ -116,28 +118,6 @@ export const methods = {
     return data;
   },
 
-  /**
-   * GM: approve a contact request, optionally correcting the name or linking it to an existing
-   * sheet (the closest-named actor is preselected, e.g. when the player misspelled it).
-   */
-  async _approveRequest(requestId) {
-    const request = store.requests.get(requestId);
-    if (!request) return;
-    const owner = game.actors.get(request.actorId);
-    const candidates = game.actors
-      .filter(a => a !== owner && a.type !== "container")
-      .map(a => ({ actor: a, name: displayName(a), score: similarity(request.name, displayName(a)) }))
-      .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
-    // Preselect the closest-named sheet, e.g. when the player misspelled it.
-    const best = candidates[0]?.score >= 0.6 ? candidates[0].actor : null;
-    const result = await approveRequestDialog({
-      owner: owner ? displayName(owner) : "?",
-      request,
-      candidates: candidates.map(({ actor, name }) => ({ id: actor.id, name, selected: actor === best }))
-    });
-    if (result) store.request("request-resolve", { requestId, approve: true, ...result });
-  },
-
   /** Player: ask the GM to add a number to this character's contacts. */
   async _requestContact() {
     const ctx = this.context();
@@ -149,3 +129,25 @@ export const methods = {
     }
   }
 };
+
+/**
+ * GM: approve a contact request, optionally correcting the name or linking it to an existing
+ * sheet (the closest-named actor is preselected, e.g. when the player misspelled it). Also the Director's.
+ */
+export async function approveContactRequest(requestId) {
+  const request = store.requests.get(requestId);
+  if (!request) return;
+  const owner = game.actors.get(request.actorId);
+  const candidates = game.actors
+    .filter(a => a !== owner && a.type !== "container")
+    .map(a => ({ actor: a, name: displayName(a), score: similarity(request.name, displayName(a)) }))
+    .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+  // Preselect the closest-named sheet, e.g. when the player misspelled it.
+  const best = candidates[0]?.score >= 0.6 ? candidates[0].actor : null;
+  const result = await approveRequestDialog({
+    owner: owner ? displayName(owner) : "?",
+    request,
+    candidates: candidates.map(({ actor, name }) => ({ id: actor.id, name, selected: actor === best }))
+  });
+  if (result) store.request("request-resolve", { requestId, approve: true, ...result });
+}

@@ -1,0 +1,1 @@
+- The Garden: random citizens made with the module's own face pictures now get a first name that fits the face (a man's picture gets a man's name, a woman's a woman's). Your own picture folders work as before, with names picked from the full list. The new name lists are in Garden → Control with the others.

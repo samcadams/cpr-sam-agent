@@ -1,0 +1,64 @@
+/*
+ * Flappy Chrome (the chrome pigeon): the app's page (apps/pigeon/page.js, apps/pigeon/pigeon.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-pigeon {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background: #05000f;
+}
+
+/* Its size is set in apps/pigeon/page.js (the field's shape, within limits). */
+.ctp-phone-app .agent-pigeon-canvas {
+  display: block;
+  flex: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.ctp-phone-app .agent-pigeon-board .agent-app-item {
+  align-items: center;
+}
+
+.ctp-phone-app .agent-pigeon-rank {
+  width: 1.6em;
+  text-align: right;
+  margin-right: 6px;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-pigeon-score {
+  font-weight: bold;
+  color: var(--agent-yellow);
+  margin-left: 6px;
+}
+
+.ctp-phone-app .agent-pigeon-num {
+  width: 4.5em;
+  flex: none;
+}
+
+/* Maelstrom Heat pips, in the GM's list (the canvas draws its own). */
+.ctp-phone-app .agent-pigeon-heat {
+  display: flex;
+  gap: 3px;
+  margin: 0 6px;
+}
+
+.ctp-phone-app .agent-pigeon-heat i {
+  width: 6px;
+  height: 10px;
+  background: rgba(var(--agent-magenta-rgb), 0.25);
+}
+
+.ctp-phone-app .agent-pigeon-heat i.on {
+  background: var(--agent-magenta);
+}

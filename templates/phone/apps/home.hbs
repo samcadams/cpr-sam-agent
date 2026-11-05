@@ -1,4 +1,4 @@
-{{!-- The home screen (ui/phone/pages/home.js): the apps not on the dock, or (home-screen navigation) every app. --}}
+{{!-- The home screen (ui/phone/pages/home.js): the apps not on the dock, or (home-screen navigation) every app. Drag to arrange. --}}
 {{#if home.screen}}
   <div class="agent-info agent-homescreen">
     <div class="agent-homescreen-clock">
@@ -7,7 +7,7 @@
     </div>
     <div class="agent-home">
       {{#each home.apps}}
-        <a class="agent-home-app app-{{id}}" data-action="app" data-app="{{id}}" title="{{blurb}}">
+        <a class="agent-home-app app-{{id}}{{#if fresh}} agent-installing{{/if}}" data-action="app" data-app="{{id}}" title="{{blurb}}" draggable="true" aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight" aria-description="Drag, or Alt and an arrow key, to move it">
           <span class="agent-home-icon"><i class="{{icon}}"></i>{{#if badge}}<b class="agent-dock-badge">{{badge}}</b>{{/if}}{{#if dot}}<b class="agent-dock-dot"></b>{{/if}}</span>
           <span class="agent-home-name">{{name}}</span>
         </a>
@@ -21,7 +21,7 @@
   <div class="agent-info">
     <div class="agent-home">
       {{#each home.apps}}
-        <a class="agent-home-app app-{{id}}" data-action="app" data-app="{{id}}" title="{{blurb}}">
+        <a class="agent-home-app app-{{id}}{{#if fresh}} agent-installing{{/if}}" data-action="app" data-app="{{id}}" title="{{blurb}}" draggable="true" aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight" aria-description="Drag, or Alt and an arrow key, to move it">
           <span class="agent-home-icon"><i class="{{icon}}"></i>{{#if badge}}<b class="agent-dock-badge">{{badge}}</b>{{/if}}{{#if dot}}<b class="agent-dock-dot"></b>{{/if}}</span>
           <span class="agent-home-name">{{name}}</span>
         </a>

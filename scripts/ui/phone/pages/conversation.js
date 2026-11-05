@@ -1,7 +1,9 @@
 import { dropdown } from "./dropdown.js";
-import { datedMessages, jobCard, reactionChips } from "../messages.js";
+import { cbkInviteCard, datedMessages, jobCard, pkgCard, reactionChips } from "../messages.js";
 import { pickMembers } from "../../dialogs/pickMembers.js";
 import { MODULE_ID } from "../../../config.js";
+import { feature } from "../../../model/features.js";
+import { MAX_SHARE, shareFits } from "../../../model/share.js";
 import { findContact, getAlias, getContacts, getNote, noteKey, setContactOptions, setNote } from "../../../model/contacts.js";
 import { moneyCard } from "../../../model/money.js";
 import { callLines, getService } from "../../../model/services.js";
@@ -81,6 +83,21 @@ export const actions = {
   "group-delete"() {
     this._deleteGroup();
   },
+  /** "Share to chat": pick an unbroken run of texts, then post it (model/share.js). */
+  "share-start"() {
+    this.share = { key: this.draftKey, from: null, to: null };
+    this.render();
+  },
+  "share-cancel"() {
+    this.share = null;
+    this.render();
+  },
+  "share-pick"({ messageId }) {
+    this._sharePick(messageId);
+  },
+  "share-post"() {
+    this._sharePost();
+  },
   "service-action"({ actionId }) {
     store.request("service-action", { actorId: this.view.actorId, serviceId: this.view.serviceId, actionId });
   }
@@ -106,6 +123,83 @@ export const dropdowns = {
 };
 
 export const methods = {
+  /** The open conversation's thread and the messages this phone shows, while picking texts to share. */
+  _shareSource() {
+    const ctx = this.context();
+    const v = this.view;
+    if (!ctx || !this.share || this.share.key !== this.draftKey) return null;
+    const thread = v?.kind === "direct" ? this.resolveDirect() : v?.kind === "group" ? store.threads.get(v.groupId) : null;
+    if (!thread) return null;
+    return { ctx, thread, messages: this.cleared(ctx, thread).messages };
+  },
+
+  /** Is this phone picking texts to share in the open conversation? Returns the picked ids, by message. */
+  _sharePicked(messages) {
+    if (!this.share || this.share.key !== this.draftKey) return null;
+    const { from, to } = this.share;
+    const start = messages.findIndex(m => m.id === from);
+    const end = messages.findIndex(m => m.id === to);
+    const picked = new Set(start >= 0 && end >= start ? messages.slice(start, end + 1).map(m => m.id) : []);
+    return { picked, count: messages.filter(m => picked.has(m.id) && !m.system).length };
+  },
+
+  /**
+   * Tap a text: the first one starts the run; one outside it stretches the run to it; one inside it
+   * shortens the run to end there. Tapping either end drops it (the only one clears the run).
+   */
+  _sharePick(id) {
+    const src = this._shareSource();
+    if (!src) return;
+    const list = src.messages;
+    const i = list.findIndex(m => m.id === id);
+    if (i < 0 || list[i].system) return;
+    let { from, to } = this.share;
+    const start = list.findIndex(m => m.id === from);
+    const end = list.findIndex(m => m.id === to);
+    if (start < 0 || end < 0) from = to = id;
+    else if (i < start) from = id;
+    else if (i > end) to = id;
+    else if (start === end) from = to = null;
+    else if (i === start) from = list.slice(start + 1).find(m => !m.system)?.id ?? null;
+    else if (i === end) to = list.slice(0, end).findLast(m => !m.system)?.id ?? null;
+    else to = id;
+    const a = list.findIndex(m => m.id === from);
+    const b = list.findIndex(m => m.id === to);
+    if (a >= 0 && b >= a && !shareFits(list.slice(a, b + 1))) {
+      ui.notifications.warn(`You can share up to ${MAX_SHARE} texts at a time.`);
+      return;
+    }
+    this.share = { ...this.share, from, to };
+    this.render();
+  },
+
+  _sharePost() {
+    const src = this._shareSource();
+    if (!src?.thread || !this.share.from) return;
+    const { ctx, thread } = src;
+    const group = isGroup(thread);
+    store.request("share-texts", {
+      threadId: thread.id,
+      actorId: ctx.perspective === "pc" ? ctx.actorId : null,
+      as: group && ctx.perspective === "gm" ? this.groupSpeaker(ctx, thread) : null,
+      from: this.share.from,
+      to: this.share.to,
+      theme: ctx.settings.theme
+    });
+    this.share = null;
+    this.render();
+  },
+
+  /** The share bar and button, for a conversation's page data. */
+  _shareData(thread, messages) {
+    const sharing = this._sharePicked(messages);
+    return {
+      canShare: !!thread && feature("shareTexts") && messages.some(m => !m.system) && !sharing,
+      sharing: sharing ? { count: sharing.count, max: MAX_SHARE, canPost: sharing.count > 0 } : null,
+      picked: sharing?.picked ?? null
+    };
+  },
+
   directData(ctx) {
     const actor = game.actors.get(this.view.actorId);
     if (!actor) return null;
@@ -130,13 +224,17 @@ export const methods = {
     // GM: "Set as Viewed" sits under the player's newest message until the contact has seen it.
     const lastPc = raw.filter(m => m.from === "pc" && !m.system).at(-1);
     const canSetViewed = gm && this.online && !!lastPc && lastPc.ts > (thread?.viewed ?? 0);
+    const share = this._shareData(thread, raw);
     const messages = datedMessages(raw, (m, i) => ({
+      picked: !!share.picked?.has(m.id),
       mine: this.mineDirect(ctx, m),
       viewed: i === viewedIndex,
       setViewed: canSetViewed && m === lastPc,
       reactions: reactionChips(m, myKey),
       money: moneyCard(m, this.mineDirect(ctx, m), canAct),
-      job: jobCard(m, canAct && ctx.perspective === "pc")
+      job: jobCard(m, canAct && ctx.perspective === "pc"),
+      pkg: pkgCard(m, canAct && ctx.perspective === "pc"),
+      cbk: cbkInviteCard(m, canAct && ctx.perspective === "pc")
     }));
 
     // The page is headed with the other side: the contact on a player's phone, the PC on the GM's
@@ -163,7 +261,9 @@ export const methods = {
       unreachable,
       canCall: canSend && this.canStartCall && !(noCall && !gm),
       canSend,
-      canReact: this.online && !!thread,
+      canReact: this.online && !!thread && !share.sharing,
+      canShare: share.canShare,
+      sharing: share.sharing,
       placeholder: unreachable ? "This number cannot be reached." : this.online ? "Text message" : "No signal"
     };
   },
@@ -182,9 +282,12 @@ export const methods = {
     // Everyone's name is in their colour. On the GM Phone, the GM's own NPCs are named too when
     // there's more than one, so it can tell which of them said what.
     const nameMine = gm && npcs.length > 1;
-    const messages = datedMessages(this.cleared(ctx, group).messages, m => {
+    const raw = this.cleared(ctx, group).messages;
+    const share = this._shareData(group, raw);
+    const messages = datedMessages(raw, m => {
       const mine = !m.system && this.mineGroup(ctx, m);
       return {
+        picked: !!share.picked?.has(m.id),
         text: m.system && m.call && m.name ? `${m.name} · ${m.text}` : m.text,
         mine,
         sender: !m.system && (!mine || nameMine) ? m.name : null,
@@ -219,7 +322,9 @@ export const methods = {
       actingAs,
       canCall: canSend && this.canStartCall,
       canSend,
-      canReact: canSend,
+      canReact: canSend && !share.sharing,
+      canShare: share.canShare && (gm || !!as),
+      sharing: share.sharing,
       placeholder
     };
   },

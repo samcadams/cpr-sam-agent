@@ -1,0 +1,170 @@
+{{!-- Weather (apps/weather/page.js). Cards: today, the 10-day strip (tap a day), the rules; players: their checks; the GM: the picked day's tools, Apply & hazards, checks, options. --}}
+{{> agent-app-bar weather.bar}}
+<div class="agent-info agent-app agent-wx{{#if weather.gm}} agent-wx-gm{{/if}}">
+  {{#with weather}}
+    {{#if empty}}
+      <p class="agent-empty">No forecast yet. {{#if gm}}The forecast is rolled by the active GM's client.{{else}}Waiting for Night City Weather.{{/if}}</p>
+    {{else}}
+      {{#if offline}}<p class="agent-wx-offline"><i class="fas fa-signal"></i> No signal: this is the last forecast your Agent downloaded.</p>{{/if}}
+
+      {{!-- Today --}}
+      <section class="agent-wx-card agent-wx-today wx-{{today.temp}}{{#if today.strange}} strange{{/if}}" data-wx-day="{{today.key}}" aria-label="Today's weather">
+        <div class="agent-wx-hero">
+          <i class="{{today.icon}} agent-wx-big" aria-hidden="true"></i>
+          <div class="agent-wx-now">
+            <small>{{today.label}}</small>
+            <b class="agent-wx-cond">{{today.cond}}</b>
+            <span class="agent-wx-temp">{{today.band}} · {{today.degrees}}</span>
+          </div>
+        </div>
+        {{#if today.duration}}<p class="agent-wx-meta"><i class="fas fa-hourglass-half"></i> {{today.duration}}{{#if today.event}} · {{today.event}}{{/if}}</p>{{/if}}
+        {{#if today.was}}<p class="agent-wx-meta">The {{today.was}} is over.</p>{{/if}}
+        {{#if today.missed}}<p class="agent-wx-meta"><span class="agent-wx-tag">The forecast got it wrong</span></p>{{/if}}
+        <p class="agent-wx-wacky">“{{today.wacky}}” <cite>Wacky, 107.3 Morro Rock Radio</cite></p>
+      </section>
+
+      {{!-- The next days, side by side --}}
+      <section class="agent-wx-card">
+        <div class="agent-wx-strip" role="list" aria-label="Forecast">
+          {{#each strip}}
+            <a class="agent-wx-tile wx-{{temp}}{{#if strange}} strange{{/if}}{{#if picked}} picked{{/if}}" role="listitem" data-action="wx-day" data-key="{{key}}" data-wx-day="{{key}}" title="{{label}}: {{cond}}, {{degrees}}">
+              <span class="agent-wx-tday">{{#if isToday}}Today{{else}}{{short}}{{/if}}</span>
+              <i class="{{icon}}" aria-hidden="true"></i>
+              <span class="agent-wx-tdeg">{{deg}}</span>
+              {{#if ../gm}}<span class="agent-wx-tflags">{{#if locked}}<i class="fas fa-lock"></i>{{/if}}{{#if real}}<i class="fas fa-eye"></i>{{/if}}</span>{{/if}}
+            </a>
+          {{/each}}
+        </div>
+        {{#unless picked.isToday}}
+          <p class="agent-wx-picked"><b>{{picked.label}}</b>: {{picked.cond}}, {{picked.degrees}}{{#if picked.duration}} · {{picked.duration}}{{/if}}</p>
+        {{/unless}}
+      </section>
+
+      {{!-- GM: the picked day's tools --}}
+      {{#if gm}}
+        <section class="agent-wx-card">
+          <h3 class="agent-wx-head" data-action="wx-fold" data-fold="day"><i class="fas fa-chevron-{{#if open.day}}down{{else}}right{{/if}}"></i> {{#if picked.isToday}}Today{{else}}{{picked.label}}{{/if}}
+            <small>{{#if picked.gm}}set by you{{else if picked.carry}}the run goes on{{else}}rolled{{/if}}{{#if picked.locked}} · locked{{/if}}</small></h3>
+          {{#if open.day}}
+            {{#if picked.real}}<p class="agent-wx-meta"><i class="fas fa-eye"></i> Really: {{picked.real.cond}}, {{picked.real.degrees}} (the forecast is wrong)</p>{{/if}}
+            <div class="agent-wx-tools">
+              <a data-action="wx-reroll" data-key="{{picked.key}}" data-part="all"><i class="fas fa-dice"></i><span>Roll</span></a>
+              <a data-action="wx-reroll" data-key="{{picked.key}}" data-part="temp"><i class="fas fa-temperature-half"></i><span>Temp</span></a>
+              <a data-action="wx-reroll" data-key="{{picked.key}}" data-part="cond"><i class="fas fa-cloud"></i><span>Condition</span></a>
+              <a data-action="wx-edit" data-key="{{picked.key}}"{{#if editing}} class="active"{{/if}}><i class="fas fa-pen"></i><span>Set</span></a>
+              <a data-action="wx-lock" data-key="{{picked.key}}" data-locked="{{picked.locked}}"{{#if picked.locked}} class="active"{{/if}}><i class="fas fa-{{#if picked.locked}}lock{{else}}lock-open{{/if}}"></i><span>{{#if picked.locked}}Locked{{else}}Lock{{/if}}</span></a>
+              {{#if hasEvent}}<a data-action="wx-end"><i class="fas fa-forward"></i><span>End now</span></a>{{/if}}
+            </div>
+            {{#if editing}}{{> agent-wx-edit edit}}{{/if}}
+          {{/if}}
+        </section>
+      {{/if}}
+
+      {{!-- The rules (not on a day with no effect, unless there's something about the character to show) --}}
+      {{#if showRules}}
+      <section class="agent-wx-card">
+        <h3 class="agent-wx-head" data-action="wx-fold" data-fold="rules"><i class="fas fa-chevron-{{#if open.rules}}down{{else}}right{{/if}}"></i> <i class="{{today.rules.icon}}"></i> {{today.rules.name}}: the rules{{#if today.rules.page}} <small>NCW p. {{today.rules.page}}</small>{{/if}}</h3>
+        {{#if open.rules}}
+          <ul class="agent-wx-rules">
+            {{#each today.rules.lines}}<li>{{this}}</li>{{/each}}
+          </ul>
+        {{/if}}
+        {{#unless gm}}
+          {{#if applied}}<p class="agent-wx-meta"><i class="fas fa-person-rays"></i> On you: <b>{{applied}}</b>. Its penalty is a situational modifier in your roll dialog.</p>{{/if}}
+          {{#if gear.length}}<p class="agent-wx-meta"><i class="fas fa-umbrella"></i> You've got: {{#each gear}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</p>{{/if}}
+        {{/unless}}
+      </section>
+      {{/if}}
+
+      {{!-- Players: their checks --}}
+      {{#unless gm}}
+        {{#if checks.length}}
+          <section class="agent-wx-card agent-wx-alert">
+            <h3 class="agent-wx-head"><i class="fas fa-lungs"></i> Checks</h3>
+            {{#each checks}}
+              <div class="agent-wx-check" data-wx-check="{{id}}">
+                <b>{{cond}}: DV{{dv}} Resist Torture/Drugs</b>
+                {{#if result}}
+                  <small>{{total}}{{#if detail}} ({{detail}}){{/if}}: {{#if pass}}you shrug it off.{{else}}you breathe it in. The GM rolls the damage.{{/if}}</small>
+                {{else}}
+                  <small>Fail and it's {{dice}} straight to HP.</small>
+                  <button type="button" data-action="wx-check" data-check-id="{{id}}"><i class="fas fa-dice-d10"></i> Roll</button>
+                {{/if}}
+              </div>
+            {{/each}}
+          </section>
+        {{/if}}
+      {{/unless}}
+
+      {{#if gm}}
+        {{!-- Apply & hazards --}}
+        <section class="agent-wx-card">
+          <h3 class="agent-wx-head" data-action="wx-fold" data-fold="apply"><i class="fas fa-chevron-{{#if open.apply}}down{{else}}right{{/if}}"></i> Apply today's weather
+            <small>{{#if applied}}on {{applied}} character{{#unless (eq applied 1)}}s{{/unless}}{{else}}not applied{{/if}}</small></h3>
+          {{#if open.apply}}
+            <div class="agent-setting-row">{{> agent-dropdown target}}</div>
+            <div class="agent-wx-tools two">
+              <a data-action="wx-apply" class="go"><i class="fas fa-check"></i><span>Apply</span></a>
+              <a data-action="wx-clear"><i class="fas fa-eraser"></i><span>Clear</span></a>
+            </div>
+            <p class="agent-wx-note">Penalties go on as roll-dialog options (off by default); the heat adds to armor penalties; a Blackout cuts the signal. It follows the weather and ends with it.</p>
+            {{#if people.length}}
+              <a class="agent-wx-sub" data-action="wx-fold" data-fold="people"><i class="fas fa-chevron-{{#if open.people}}down{{else}}right{{/if}}"></i> {{#if applied}}Who has it{{else}}Who'd get it{{/if}} ({{people.length}})</a>
+              {{#if open.people}}
+                <ul class="agent-wx-people">
+                  {{#each people}}<li><b>{{name}}</b>{{#if gear}} <small>{{gear}}</small>{{/if}}{{#if safe}} <span class="agent-wx-tag safe">protected</span>{{/if}}</li>{{/each}}
+                </ul>
+              {{/if}}
+            {{/if}}
+            {{#if hazards.length}}
+              <h4 class="agent-wx-subhead">Hazards</h4>
+              <ul class="agent-wx-hazards">
+                {{#each hazards}}
+                  <li><button type="button" data-action="wx-hazard" data-kind="{{kind}}"><i class="{{icon}}"></i> {{name}}</button><small>{{hint}}</small></li>
+                {{/each}}
+              </ul>
+            {{/if}}
+          {{/if}}
+        </section>
+
+        {{!-- Checks --}}
+        {{#if checks.length}}
+          <section class="agent-wx-card">
+            <h3 class="agent-wx-head"><i class="fas fa-lungs"></i> Checks</h3>
+            {{#each checks}}
+              <div class="agent-wx-check" data-wx-check="{{id}}">
+                <b>{{name}} <small>DV{{dv}}</small></b>
+                {{#if waiting}}
+                  <small>Waiting for their roll.</small>
+                  <button type="button" data-action="wx-check" data-check-id="{{id}}"><i class="fas fa-dice-d10"></i> Roll for them</button>
+                {{else}}
+                  <small>{{total}}: {{#if pass}}passed{{else}}failed{{/if}}{{#if damage}}, {{damage}} damage{{/if}}</small>
+                  {{#if fail}}
+                    <div class="agent-wx-tools two">
+                      <a class="go" data-action="wx-check-resolve" data-check-id="{{id}}" data-apply="true"><i class="fas fa-heart-crack"></i><span>Apply {{dice}}</span></a>
+                      <a data-action="wx-check-resolve" data-check-id="{{id}}" data-apply="false"><i class="fas fa-xmark"></i><span>Skip</span></a>
+                    </div>
+                  {{/if}}
+                {{/if}}
+              </div>
+            {{/each}}
+          </section>
+        {{/if}}
+
+        {{!-- Options --}}
+        <section class="agent-wx-card">
+          <h3 class="agent-wx-head" data-action="wx-fold" data-fold="options"><i class="fas fa-chevron-{{#if open.options}}down{{else}}right{{/if}}"></i> Options & radio</h3>
+          {{#if open.options}}
+            <label class="agent-radio"><input type="checkbox" data-action="wx-option" data-option="wrong" {{#if options.wrong}}checked{{/if}}> Forecasts can be wrong</label>
+            {{#if options.wrong}}<div class="agent-setting-row"><span>Chance a day turns out different</span><input type="number" name="wxChance" min="0" max="100" step="5" value="{{options.wrongChance}}" aria-label="Chance a forecast is wrong, in percent"> %</div>{{/if}}
+            <label class="agent-radio"><input type="checkbox" data-action="wx-option" data-option="autoApply" {{#if options.autoApply}}checked{{/if}}> Apply new weather automatically (to the same characters)</label>
+            <label class="agent-radio"><input type="checkbox" data-action="wx-option" data-option="radio" {{#if options.radio}}checked{{/if}}> Morro Rock Radio posts the forecast in The Garden every morning</label>
+            <div class="agent-setting-row"><span>Temperatures in</span>{{> agent-dropdown options.units}}</div>
+            {{#if garden}}<button type="button" class="agent-wide-btn" data-action="wx-radio"><i class="fas fa-radio"></i> Post today's forecast in The Garden…</button>{{/if}}
+            <p class="agent-wx-note">{{today.season}} table. Night City Weather, R. Talsorian Games.</p>
+          {{/if}}
+        </section>
+      {{/if}}
+    {{/if}}
+  {{/with}}
+</div>

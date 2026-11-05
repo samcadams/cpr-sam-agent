@@ -1,0 +1,382 @@
+/*
+ * BREACH: the app's page (apps/breach/page.js, apps/breach/breach.hbs), in Cyberpunk 2077's
+ * Breach Protocol colours whatever the phone's skin: lime codes and frames on near-black, cyan for the code
+ * under the cursor, red for what failed. The phone lies on its side for it, as for the Map (pages/map.js
+ * LANDSCAPE; the rail and status bar rules are in apps/map.css). Upright (an Internal Agent, a tiny window)
+ * the panels stack. The line to pick from is outlined, not only coloured.
+ */
+
+/* No date bar under the status bar while BREACH is open (the Agent name and time stay): room for the grid. */
+.ctp-phone-app:has(.agent-breach-app) .agent-date { display: none; }
+
+/* -------------------------------------------- */
+/*  The palette, for every screen of the app    */
+/* -------------------------------------------- */
+
+.ctp-phone-app .agent-breach-app {
+  --bp-lime-rgb: 208, 237, 87;
+  --bp-lime: rgb(var(--bp-lime-rgb));
+  --bp-cyan-rgb: 94, 246, 255;
+  --bp-cyan: rgb(var(--bp-cyan-rgb));
+  --bp-red-rgb: 255, 92, 87;
+  --bp-red: rgb(var(--bp-red-rgb));
+  --bp-green: #1ded83;
+  --bp-bg: #0b0c10;
+  --bp-panel: #10121a;
+  --bp-dim: #6f7a4a;
+  --bp-font: "Rajdhani", "Barlow Condensed", "Arial Narrow", sans-serif;
+  /* The phone's own components inside take the same colours. */
+  --agent-cyan-rgb: var(--bp-lime-rgb);
+  --agent-magenta-rgb: var(--bp-red-rgb);
+  --agent-yellow-rgb: var(--bp-cyan-rgb);
+  --agent-text: #e9f2c8;
+  --agent-muted: var(--bp-dim);
+  --agent-good: var(--bp-green);
+  --agent-font: var(--bp-font);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  color: var(--agent-text);
+  font-family: var(--bp-font);
+  background:
+    repeating-linear-gradient(0deg, rgba(var(--bp-lime-rgb), 0.025) 0 1px, transparent 1px 4px),
+    radial-gradient(ellipse at 30% 0%, #161b12, var(--bp-bg) 70%);
+}
+
+/* The app bar and the phone's wide buttons, which the skins colour directly. */
+.ctp-phone-app .agent-breach-app .agent-app-bar {
+  background: linear-gradient(90deg, rgba(var(--bp-lime-rgb), 0.14), transparent 60%);
+  border-bottom: 1px solid rgba(var(--bp-lime-rgb), 0.45);
+  font-family: var(--bp-font);
+}
+.ctp-phone-app .agent-breach-app .agent-app-bar .agent-inbox-name {
+  color: var(--bp-lime);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 8px rgba(var(--bp-lime-rgb), 0.4);
+}
+.ctp-phone-app .agent-breach-app .agent-app-bar .agent-inbox-name::before { color: var(--bp-red); }
+.ctp-phone-app .agent-breach-app .agent-app-bar :is(.agent-inbox-name i, .agent-inbox-owner) { color: var(--bp-lime); }
+.ctp-phone-app .agent-breach-app .agent-wide-btn {
+  font-family: var(--bp-font);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bp-lime);
+  background: rgba(var(--bp-lime-rgb), 0.06);
+  border: 1px solid var(--bp-lime);
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+}
+.ctp-phone-app .agent-breach-app .agent-wide-btn:is(:hover, :focus-visible) { background: var(--bp-lime); color: #12140a; }
+
+.ctp-phone-app .agent-breach-app .agent-info-label {
+  color: var(--bp-lime);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Two columns on its side (the lobby, the GM's page); one upright. */
+.ctp-phone-app .agent-breach-app .bp-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 18px;
+  align-items: start;
+}
+.ctp-phone-app:not(.agent-landscape) .agent-breach-app .bp-cols { grid-template-columns: minmax(0, 1fr); }
+.ctp-phone-app .agent-breach-app .agent-info { overflow-y: auto; }
+
+/* -------------------------------------------- */
+/*  The grid screen                             */
+/* -------------------------------------------- */
+
+.ctp-phone-app .agent-breach-app .bp-screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 10px;
+  overflow: hidden;
+}
+
+/* Top: BREACH TIME REMAINING and its box, the target on the right. */
+.ctp-phone-app .bp-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ctp-phone-app .bp-timer {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 2px 10px;
+}
+.ctp-phone-app .bp-timer-label {
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--bp-lime);
+}
+.ctp-phone-app .bp-timer-box {
+  min-width: 4.2em;
+  padding: 1px 8px;
+  border: 1px solid var(--bp-lime);
+  font-size: calc(20px * var(--agent-font-scale, 1));
+  font-weight: 700;
+  text-align: center;
+  color: var(--bp-lime);
+  font-variant-numeric: tabular-nums;
+}
+.ctp-phone-app .bp-timebar {
+  grid-column: 1 / -1;
+  height: 4px;
+  background: rgba(var(--bp-lime-rgb), 0.15);
+}
+.ctp-phone-app .bp-timebar i {
+  display: block;
+  height: 100%;
+  width: var(--left, 100%);
+  background: var(--bp-lime);
+  box-shadow: 0 0 6px rgba(var(--bp-lime-rgb), 0.6);
+}
+.ctp-phone-app .bp-screen.hurry :is(.bp-timer-label, .bp-timer-box) { color: var(--bp-red); border-color: var(--bp-red); }
+.ctp-phone-app .bp-screen.hurry .bp-timebar i { background: var(--bp-red); box-shadow: 0 0 6px rgba(var(--bp-red-rgb), 0.6); }
+
+.ctp-phone-app .bp-target { display: flex; flex-direction: column; align-items: flex-end; text-align: right; min-width: 0; }
+.ctp-phone-app .bp-target b { font-size: calc(15px * var(--agent-font-scale, 1)); letter-spacing: 0.06em; text-transform: uppercase; }
+.ctp-phone-app .bp-target small { color: var(--bp-dim); letter-spacing: 0.1em; }
+
+/* Body: the matrix on the left, buffer and daemons on the right. */
+.ctp-phone-app .bp-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.ctp-phone-app:not(.agent-landscape) .bp-body { grid-template-columns: minmax(0, 1fr); overflow-y: auto; }
+
+.ctp-phone-app .bp-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid rgba(var(--bp-lime-rgb), 0.55);
+  background: rgba(16, 18, 26, 0.85);
+  /* 2077's clipped corner. */
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+}
+.ctp-phone-app .bp-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 3px 10px 3px 0;
+  background: var(--bp-lime);
+  color: #12140a;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  border: none;
+}
+.ctp-phone-app .bp-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7em;
+  align-self: stretch;
+  background: #12140a;
+  color: var(--bp-lime);
+}
+
+.ctp-phone-app .bp-line {
+  margin: 0;
+  padding: 4px 10px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  letter-spacing: 0.1em;
+  color: var(--bp-dim);
+  text-transform: uppercase;
+}
+.ctp-phone-app .bp-screen.paused .bp-line { color: var(--bp-cyan); }
+
+/* The matrix: as tall as the panel allows. */
+.ctp-phone-app .bp-matrix {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--size, 6), minmax(0, 1fr));
+  grid-auto-rows: minmax(1.9em, 1fr);
+  gap: 2px;
+  padding: 2px 8px 8px;
+}
+.ctp-phone-app .bp-matrix .agent-breach-row { display: contents; }
+.ctp-phone-app .bp-matrix .agent-breach-cell {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  line-height: 1;
+  font-family: var(--bp-font);
+  font-weight: 700;
+  font-size: calc(17px * var(--agent-font-scale, 1));
+  letter-spacing: 0.06em;
+  color: var(--bp-lime);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  text-shadow: none;
+  cursor: default;
+}
+.ctp-phone-app .bp-matrix .agent-breach-cell:disabled { opacity: 0.4; background: transparent; border-color: transparent; }
+.ctp-phone-app .bp-matrix .agent-breach-cell.used { color: var(--bp-dim); opacity: 0.45; }
+/* The line to pick from: a band behind it, and a frame round each code you may take. */
+.ctp-phone-app .bp-matrix .agent-breach-cell.on-line { background: rgba(var(--bp-lime-rgb), 0.1); opacity: 1; }
+.ctp-phone-app .bp-matrix .agent-breach-cell.open { cursor: pointer; border-color: rgba(var(--bp-lime-rgb), 0.3); }
+.ctp-phone-app .bp-matrix .agent-breach-cell.open:hover,
+.ctp-phone-app .bp-matrix .agent-breach-cell.open:focus-visible {
+  color: var(--bp-cyan);
+  border-color: var(--bp-cyan);
+  outline: 1px solid var(--bp-cyan);
+  outline-offset: -3px;
+  background: rgba(var(--bp-cyan-rgb), 0.08);
+  text-shadow: 0 0 6px rgba(var(--bp-cyan-rgb), 0.7);
+}
+/* The line a pick would open next (hover or focus), as 2077's crosshair. */
+.ctp-phone-app .bp-matrix .agent-breach-cell.next:not(.on-line) { background: rgba(var(--bp-cyan-rgb), 0.07); opacity: 0.85; }
+.ctp-phone-app .bp-screen.paused .bp-matrix { filter: grayscale(1) brightness(0.8); }
+
+/* The right-hand column. */
+.ctp-phone-app .bp-side {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.ctp-phone-app .bp-buffer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px 10px;
+}
+.ctp-phone-app .bp-buffer .agent-breach-slot {
+  width: 2.6em;
+  height: 2em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed rgba(var(--bp-lime-rgb), 0.5);
+  font-weight: 700;
+  color: var(--bp-lime);
+}
+.ctp-phone-app .bp-buffer .agent-breach-slot.filled { border-style: solid; background: rgba(var(--bp-lime-rgb), 0.12); }
+
+.ctp-phone-app .bp-daemons { list-style: none; margin: 0; padding: 6px 8px 8px; display: flex; flex-direction: column; gap: 4px; }
+.ctp-phone-app .bp-daemons .agent-breach-daemon {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px 12px;
+  padding: 4px 8px;
+  border: 1px solid rgba(var(--bp-lime-rgb), 0.18);
+}
+.ctp-phone-app .bp-daemons .agent-breach-codes { display: inline-flex; gap: 8px; font-weight: 700; color: var(--bp-dim); }
+.ctp-phone-app .bp-daemons .agent-breach-codes .lit { color: var(--bp-cyan); text-shadow: 0 0 5px rgba(var(--bp-cyan-rgb), 0.6); }
+.ctp-phone-app .bp-daemons .agent-breach-dname { font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.ctp-phone-app .bp-daemons .agent-sr-label { grid-column: 1 / -1; color: var(--bp-dim); font-size: 11px; }
+.ctp-phone-app .bp-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; padding: 1px 6px; }
+.ctp-phone-app .bp-daemons .state-done { border-color: var(--bp-green); background: rgba(29, 237, 131, 0.1); }
+.ctp-phone-app .bp-daemons .state-done :is(.agent-breach-codes, .agent-breach-dname) { color: var(--bp-green); text-shadow: none; }
+.ctp-phone-app .bp-daemons .state-done .bp-tag { background: var(--bp-green); color: #04140b; }
+.ctp-phone-app .bp-daemons .state-failed { border-color: rgba(var(--bp-red-rgb), 0.6); background: rgba(var(--bp-red-rgb), 0.07); }
+.ctp-phone-app .bp-daemons .state-failed :is(.agent-breach-codes, .agent-breach-dname) { color: var(--bp-red); opacity: 0.8; }
+.ctp-phone-app .bp-daemons .state-failed .agent-breach-dname { text-decoration: line-through; }
+.ctp-phone-app .bp-daemons .state-failed .bp-tag { background: var(--bp-red); color: #1a0505; }
+
+/* The result, at the top of the right-hand column. */
+.ctp-phone-app .bp-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  text-align: center;
+  border: 1px solid var(--bp-green);
+  background: rgba(29, 237, 131, 0.08);
+}
+.ctp-phone-app .bp-result b { font-size: calc(20px * var(--agent-font-scale, 1)); letter-spacing: 0.16em; color: var(--bp-green); }
+.ctp-phone-app .bp-result small { color: var(--agent-text); opacity: 0.75; letter-spacing: 0.05em; }
+.ctp-phone-app .bp-result.bad { border-color: var(--bp-red); background: rgba(var(--bp-red-rgb), 0.08); }
+.ctp-phone-app .bp-result.bad b { color: var(--bp-red); }
+
+/* Buttons in the 2077 frame. */
+.ctp-phone-app .bp-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: auto; }
+.ctp-phone-app .bp-result .bp-actions { justify-content: center; margin-top: 4px; }
+.ctp-phone-app .agent-breach-app .bp-btn {
+  width: auto;
+  flex: none;
+  margin: 0;
+  padding: 4px 14px;
+  min-height: 0;
+  height: auto;
+  line-height: 1.4;
+  font-family: var(--bp-font);
+  font-weight: 700;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #12140a;
+  background: var(--bp-lime);
+  border: 1px solid var(--bp-lime);
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+.ctp-phone-app .agent-breach-app .bp-btn.ghost { background: transparent; color: var(--bp-lime); }
+.ctp-phone-app .agent-breach-app .bp-btn.bad { background: transparent; color: var(--bp-red); border-color: var(--bp-red); }
+.ctp-phone-app .agent-breach-app .bp-btn:is(:hover, :focus-visible) { filter: brightness(1.15); box-shadow: 0 0 8px rgba(var(--bp-lime-rgb), 0.5); }
+
+/* -------------------------------------------- */
+/*  The lobby, banners and the GM's page        */
+/* -------------------------------------------- */
+
+.ctp-phone-app .agent-breach-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px;
+  margin: 6px 0;
+  border: 1px solid rgba(var(--bp-lime-rgb), 0.6);
+  background: rgba(16, 18, 26, 0.85);
+  text-align: center;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+}
+.ctp-phone-app .agent-breach-banner > i { font-size: 26px; color: var(--bp-lime); }
+.ctp-phone-app .agent-breach-banner b { letter-spacing: 0.1em; text-transform: uppercase; }
+.ctp-phone-app .agent-breach-banner small { color: var(--bp-dim); }
+.ctp-phone-app .agent-breach-banner.bad { border-color: var(--bp-red); }
+.ctp-phone-app .agent-breach-banner.bad > i,
+.ctp-phone-app .agent-breach-banner.bad b { color: var(--bp-red); letter-spacing: 0.16em; }
+
+.ctp-phone-app .agent-breach-editor { display: flex; flex-direction: column; gap: 6px; }
+.ctp-phone-app .agent-breach-editor h4 { margin: 6px 0 0; font-size: 12px; letter-spacing: 0.08em; color: var(--bp-lime); text-transform: uppercase; }
+.ctp-phone-app .agent-breach-editor input[type="number"] { width: 5em; }
+.ctp-phone-app .agent-breach-daemon-edit { display: flex; flex-direction: column; gap: 3px; padding: 4px; border: 1px solid rgba(var(--bp-lime-rgb), 0.2); }
+.ctp-phone-app .agent-breach-daemon-edit .agent-setting-row { gap: 6px; }
+.ctp-phone-app .agent-breach-daemon-edit input[type="text"] { flex: 1; min-width: 0; }
+.ctp-phone-app .agent-breach-daemon-edit textarea { resize: vertical; min-height: 2.6em; }
+.ctp-phone-app .agent-breach-who { display: flex; flex-wrap: wrap; gap: 2px 10px; padding-left: 8px; }
+.ctp-phone-app .agent-breach-gm .agent-app-item.used { opacity: 0.6; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ctp-phone-app .bp-timebar i { transition: none; }
+}

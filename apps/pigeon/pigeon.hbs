@@ -1,0 +1,47 @@
+{{!-- Flappy Chrome (apps/pigeon/page.js). Players: the game fills the page, its leaderboard drawn inside. --}}
+{{> agent-app-bar pigeon.bar}}
+{{#if pigeon.gm}}
+  <div class="agent-info agent-app agent-pigeon-gm">
+    <h3 class="agent-info-label"><i class="fas fa-trophy"></i> Leaderboard</h3>
+    <ol class="agent-app-list agent-pigeon-board" data-short-list="pigeon-board">
+      {{#each pigeon.board}}
+        <li class="agent-app-item compact">
+          <span class="agent-pigeon-rank">{{rank}}</span>
+          <div class="agent-app-item-main"><b>{{name}}</b>{{#if who}} <small>({{who}})</small>{{/if}}{{#if fake}} <small>(made up)</small>{{/if}}</div>
+          <span class="agent-pigeon-score">{{score}}</span>
+          <a class="agent-icon-btn" data-action="pigeon-remove" data-id="{{id}}" title="Remove"><i class="fas fa-xmark"></i></a>
+        </li>
+      {{else}}
+        <li class="agent-empty">No scores yet.</li>
+      {{/each}}
+    </ol>
+    <h3 class="agent-info-label"><i class="fas fa-fire"></i> Maelstrom Heat</h3>
+    <ol class="agent-app-list agent-pigeon-board" data-short-list="pigeon-heat">
+      {{#each pigeon.heat}}
+        <li class="agent-app-item compact">
+          <div class="agent-app-item-main"><b>{{name}}</b></div>
+          <span class="agent-pigeon-heat" role="img" aria-label="Heat {{heat}} of 5">{{#each pips}}<i class="{{#if this}}on{{/if}}"></i>{{/each}}</span>
+          {{#if cool}}<a class="agent-icon-btn" data-action="pigeon-heat" data-id="{{actorId}}" data-by="-1" title="Cool down"><i class="fas fa-snowflake"></i></a>{{/if}}
+          {{#if hot}}<a class="agent-icon-btn" data-action="pigeon-heat" data-id="{{actorId}}" data-by="1" title="Heat up"><i class="fas fa-fire"></i></a>{{/if}}
+        </li>
+      {{else}}
+        <li class="agent-empty">Nobody has played yet.</li>
+      {{/each}}
+    </ol>
+    <button type="button" class="agent-wide-btn" data-action="pigeon-heat-reset"><i class="fas fa-snowflake"></i> Reset all Heat</button>
+    <h3 class="agent-info-label">Add to the board</h3>
+    <div class="agent-setting-row">
+      <input type="text" name="pigeonName" maxlength="24" placeholder="Name" aria-label="Name">
+      <input type="number" name="pigeonScore" min="0" max="999" value="20" class="agent-pigeon-num" aria-label="Score">
+      <a class="agent-icon-btn" data-action="pigeon-fake" title="Add"><i class="fas fa-plus"></i></a>
+    </div>
+    <button type="button" class="agent-wide-btn" data-action="pigeon-fill"><i class="fas fa-shuffle"></i> Fill with randoms</button>
+    <button type="button" class="agent-wide-btn" data-action="pigeon-reset"><i class="fas fa-trash"></i> Clear the board</button>
+  </div>
+{{else}}
+  <div class="agent-pigeon">
+    {{!-- The canvas describes itself (aria-label), and how a run ends is read out (see _pigeonSay). --}}
+    <canvas class="agent-pigeon-canvas" role="img" aria-label="Flappy Chrome"></canvas>
+    <p class="agent-sr-only" aria-live="polite" data-pigeon-say></p>
+  </div>
+{{/if}}

@@ -74,7 +74,7 @@
 }
 
 .ctp-phone-app .window-header a {
-  color: var(--agent-muted);
+  color: var(--agent-text);
   letter-spacing: normal;
 }
 
@@ -153,6 +153,24 @@
 .ctp-phone-app .agent-signal i:nth-child(3) { height: 7px; }
 
 .ctp-phone-app .agent-signal i:nth-child(4) { height: 10px; opacity: 0.35; }
+
+/*
+ * A battery next to the bars, like the status bar on Black Chrome's CBK screens (drawn here, so every skin
+ * gets it without new markup). Internal Agents run on you, not a battery; the Field Agent: Tech prints its own.
+ */
+.ctp-phone-app:not(.skin-hud, .skin-fieldTech) .agent-signal:not(.offline)::after {
+  content: "";
+  align-self: center;
+  width: 13px;
+  height: 7px;
+  margin-left: 5px;
+  padding: 1px;
+  border: 1px solid var(--agent-cyan);
+  border-right-width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--agent-cyan) 75%, transparent 75%) content-box;
+  opacity: 0.85;
+}
 
 .ctp-phone-app .agent-signal.offline {
   height: auto;
@@ -444,6 +462,7 @@
 .ctp-phone-app .agent-dock-app {
   position: relative;
   flex: 1;
+  min-width: 0; /* each app keeps its own slot, however big the text */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -454,9 +473,15 @@
   font-size: calc(16px * var(--agent-font-scale, 1));
 }
 
+/* Big text: the spacing tightens, and a label that still doesn't fit ends in "…" (the full name is
+   its tooltip, and what screen readers say). */
 .ctp-phone-app .agent-dock-app span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: calc(9px * var(--agent-font-scale, 1));
-  letter-spacing: 1px;
+  letter-spacing: calc(1px * clamp(0, 2 - var(--agent-font-scale, 1), 1));
   text-transform: uppercase;
 }
 

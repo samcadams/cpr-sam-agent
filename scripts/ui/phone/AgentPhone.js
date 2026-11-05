@@ -1,55 +1,28 @@
-import * as inbox from "./pages/inbox.js";
-import * as conversation from "./pages/conversation.js";
-import * as compose from "./pages/compose.js";
-import * as contacts from "./pages/contacts.js";
-import * as quests from "./pages/quests.js";
-import * as settings from "./pages/settings.js";
-import * as call from "./pages/call.js";
-import * as control from "./pages/control.js";
-import * as card from "./pages/card.js";
-import * as dropdown from "./pages/dropdown.js";
-import * as lock from "./pages/lock.js";
-import * as blood from "./pages/blood.js";
-import * as home from "./pages/home.js";
-import * as agentApp from "./pages/agentApp.js";
-import * as bangme from "./pages/bangme.js";
-import * as trauma from "./pages/trauma.js";
-import * as alex from "./pages/alex.js";
-import * as watchbox from "./pages/watchbox.js";
-import * as garden from "./pages/garden.js";
-import * as appSettings from "./pages/appSettings.js";
-import { DROPDOWNS } from "./pages/dropdown.js";
+import { ACTIONS, INPUTS, installPages, PHONE_HOOKS } from "./core/pages.js";
+import { clickOnEnter, describeControls } from "../a11y.js";
+import { APP_IDS, APP_MANIFEST, appDataKey, appPartial } from "../../apps/manifest.js";
 import { MODULE_ID, TEMPLATES } from "../../config.js";
-import { adLines, getPhoneSettings, INTERNAL_THEME, isSilenced, phoneLook, phoneSubject, setPhoneSettings, SKINS, woundState } from "../../model/agent.js";
-import { agentName, APPS, appsOn, COMMS_APPS, DEFAULT_DOCK, dockSplit, phoneApps } from "../../model/apps.js";
+import { getPhoneSettings, INTERNAL_THEME, isSilenced, phoneLook, phoneSubject, setPhoneSettings, SKINS } from "../../model/agent.js";
+import { agentName, APPS, appsOn, COMMS_APPS } from "../../model/apps.js";
 import { appearance } from "../../model/appearance.js";
 import { canSendImages, commsOn, feature, noSignalSince } from "../../model/features.js";
 import { currencyLabel } from "../../model/money.js";
-import { isGroup, isService, pcKey, threadKey } from "../../model/threads.js";
 import { store } from "../../store.js";
 import { agentTimestamp } from "../../util/agentTime.js";
 import { formatDuration } from "../../util/text.js";
+import { directorTakesCalls } from "../director/state.js";
 
 /** From this width the Messages app shows the conversation list beside the open conversation. */
 export const SPLIT_WIDTH = 600;
 
-/** Lists whose scroll position survives a redraw (see _render). */
-const SCROLLERS = ".agent-inbox, .agent-info, .agent-messages, .agent-gm-calls, .agent-lock-list";
-
-/** How long a BrainGen ad stays up, and one pass of the Double Agent's ticker (styles/skins/double.css). */
-const AD_MS = 150_000;
-const TICKER_MS = 12_000;
-
-/** The apps' pages: app id → [the data method, the template's data key] (see pages/). */
+/** The apps' pages: app id → [the data method, the template's data key] (see pages/ and apps/manifest.js). */
 const APP_PAGES = {
   home: ["homeData", "home"],
-  agent: ["agentAppData", "agentApp"],
-  bangme: ["bangmeData", "bangme"],
-  trauma: ["traumaData", "trauma"],
-  alex: ["alexData", "alex"],
-  watchbox: ["watchboxData", "watchbox"],
-  garden: ["gardenData", "garden"]
+  ...Object.fromEntries(APP_IDS.map(id => [id, [`${appDataKey(id)}Data`, appDataKey(id)]]))
 };
+
+/** The change flags (store._changed) some apps redraw on (apps/manifest.js `refreshOn`). */
+const APP_REFRESH = new Set(Object.values(APP_MANIFEST).flatMap(app => app.refreshOn ?? []));
 
 /**
  * Two phones share this class:
@@ -59,6 +32,8 @@ const APP_PAGES = {
 export class AgentPhone extends Application {
   static token = null;
   static console = null;
+  /** Jobs popped out of the phone into their own windows, by quest id (see ui/JobPopout.js). */
+  static popouts = new Map();
 
   static get(mode) {
     if (mode === "console") return (this.console ??= new this("console"));
@@ -66,7 +41,7 @@ export class AgentPhone extends Application {
   }
 
   static all() {
-    return [this.token, this.console].filter(Boolean);
+    return [this.token, this.console, ...AgentPhone.popouts.values()].filter(Boolean);
   }
 
   /** The phone buttons: put it away, or take it out (onto its lock screen, if it has one). */
@@ -95,8 +70,8 @@ export class AgentPhone extends Application {
     phone.render(true);
   }
 
-  constructor(mode) {
-    super({ id: mode === "console" ? "ctp-gm-phone" : "ctp-phone" });
+  constructor(mode, options = {}) {
+    super({ id: mode === "console" ? "ctp-gm-phone" : "ctp-phone", ...options });
     this.mode = mode;
     this.inbox = "all"; // GM: whose phone, "all" or a PC id
     this.persona = null; // GM: who the GM is acting as, null (anyone) or { name, actorId? }
@@ -148,12 +123,19 @@ export class AgentPhone extends Application {
   /** Does this change touch what's on screen? Only thread, request and job changes can be skipped. */
   affectedBy(change = {}) {
     const ctx = this._ctx;
-    if (!ctx || change.all || this.locked) return true;
+    if (!ctx || change.all || this.locked || this.shadeOpen) return true;
     if (change.requests) return this.app === "contacts";
     if (change.quests) return this.app === "quests" || !!this.view; // job cards in conversations
-    // The apps' data: their pages, and an armed WatchBox (which takes over a player's phone).
-    if (change.apps) return this.app in APP_PAGES || this._watching !== !!this.watching(ctx);
-    if (change.garden) return this.app === "garden";
+    // An app installed or taken away (Ziggurat Pool): the dock and home screen change wherever the phone is.
+    if (change.apps && this._installedKey !== this._installedKeyOf(ctx)) return true;
+    // The apps' data: their pages, and whatever else an app shows (an armed WatchBox takes over a player's phone).
+    // (an open app may say its page doesn't show what changed: an alert arriving while the Map is open)
+    if (change.apps) {
+      if (this.app in APP_PAGES && !PHONE_HOOKS.keep.some(hook => hook.call(this, change, ctx))) return true;
+      return PHONE_HOOKS.affected.some(hook => hook.call(this, change, ctx));
+    }
+    const flags = Object.keys(change).filter(flag => APP_REFRESH.has(flag));
+    if (flags.length) return flags.some(flag => APP_MANIFEST[this.app]?.refreshOn?.includes(flag));
     if (!change.threadId) return true;
     if (this.app !== "messages") return false;
     const id = change.threadId;
@@ -171,6 +153,11 @@ export class AgentPhone extends Application {
     const el = this.element?.[0];
     if (!el) return false;
     if (el.querySelector(".agent-dropdown-menu:not([hidden]), .agent-emoji-picker:not([hidden])")) return true;
+    // Text is selected (to copy): a redraw would throw the selection away.
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed && el.contains(sel.anchorNode)) return true;
+    // An app mid-something a redraw would lose: a game's run (its canvas), the Map being dragged.
+    if (PHONE_HOOKS.busy.some(hook => hook.call(this))) return true;
     const active = document.activeElement;
     if (!active || !el.contains(active)) return false;
     // The message box, searches and one-line boxes that send on Enter ([data-live]) redraw right away
@@ -186,50 +173,10 @@ export class AgentPhone extends Application {
     this._redraw();
   }
 
-  /** Update only the dock (its unread badges) without redrawing the page. */
-  _patchDock() {
-    const root = this.element?.[0];
-    if (!root || !this._ctx) return;
-    if (this.homeNavigation(this._ctx)) {
-      // Home-screen navigation: just the Home button's badge.
-      const badge = this.homeButtonData(this._ctx).badge;
-      const el = root.querySelector(".agent-home-button .agent-dock-badge");
-      if (el) el.textContent = badge;
-      else if (badge) return this._redraw();
-      if (el && !badge) el.remove();
-      return;
-    }
-    const el = root.querySelector(".agent-dock");
-    const partial = globalThis.Handlebars?.partials?.["agent-dock"];
-    if (!el || typeof partial !== "function") return;
-    el.outerHTML = partial({ dock: this.dockData(this._ctx), appearance: appearance() });
-  }
-
   /** Which page is showing, so a redraw of the same page can keep its scroll positions. */
   get _pageKey() {
     const v = this.view;
     return [this.app, this.locked, this.questId, v?.kind, v?.threadId ?? v?.groupId ?? v?.serviceId ?? v?.contact].join("|");
-  }
-
-  /** Scroll positions of the page's lists, and whether each was at the bottom. */
-  _saveScroll() {
-    const el = this.element?.[0];
-    if (!el) return null;
-    const lists = [...el.querySelectorAll(SCROLLERS)].map(l => ({ top: l.scrollTop, bottom: l.scrollHeight - l.scrollTop - l.clientHeight < 40 }));
-    return { key: this._pageKey, lists };
-  }
-
-  /**
-   * Put the lists back where they were. Conversations stay pinned to the newest message if they were
-   * there (or the page is new), and otherwise stay where the user was reading.
-   */
-  _restoreScroll(saved, html) {
-    const same = saved?.key === this._pageKey;
-    html.querySelectorAll(SCROLLERS).forEach((list, i) => {
-      const was = same ? saved.lists[i] : null;
-      if (list.matches(".agent-messages") && (!was || was.bottom)) list.scrollTop = list.scrollHeight;
-      else if (was) list.scrollTop = was.top;
-    });
   }
 
   static get defaultOptions() {
@@ -262,7 +209,7 @@ export class AgentPhone extends Application {
 
   /** Whether this window shows this user's calls. */
   get handlesCalls() {
-    return this.isGM ? this.mode === "console" : this.mode === "token";
+    return this.isGM ? this.mode === "console" && !directorTakesCalls() : this.mode === "token";
   }
 
   /**
@@ -293,104 +240,9 @@ export class AgentPhone extends Application {
     };
   }
 
-  viewFor(thread) {
-    if (isGroup(thread)) return { kind: "group", groupId: thread.id };
-    if (isService(thread)) return { kind: "service", actorId: thread.actorId, serviceId: thread.serviceId };
-    return { kind: "direct", threadId: thread.id, actorId: thread.actorId, contact: thread.contact, hidden: !!thread.hideId };
-  }
-
-  resolveDirect(view = this.view) {
-    if (view.threadId && store.threads.has(view.threadId)) return store.threads.get(view.threadId);
-    return store.findThread(view.actorId, view.contact, !!view.hidden);
-  }
-
-  mineDirect(ctx, m) {
-    return ctx.perspective === "pc" ? m.from === "pc" : m.from === "contact";
-  }
-
-  mineGroup(ctx, m) {
-    if (ctx.perspective === "pc") return m.from === pcKey(ctx.actorId);
-    return m.from.startsWith("n:");
-  }
-
-  /**
-   * Who this phone speaks as in a group, or null. The GM: the NPC last chosen for this group (saved
-   * on the user, so it survives reloads), else the NPC it's acting as, else the group's first NPC.
-   */
-  groupSpeaker(ctx, group) {
-    if (ctx.perspective === "pc") return group.members.some(m => m.key === pcKey(ctx.actorId)) ? pcKey(ctx.actorId) : null;
-    const npcs = group.members.filter(m => !m.actorId);
-    const chosen = game.user.getFlag(MODULE_ID, "speakAs")?.[group.id];
-    const persona = this.persona?.name.toLowerCase();
-    return (npcs.find(m => m.key === chosen) ?? npcs.find(m => m.name.toLowerCase() === persona) ?? npcs[0])?.key ?? null;
-  }
-
   /** Players can't start a second call; they can only add people to the one they're on. */
   get canStartCall() {
     return this.online && commsOn() && (this.isGM || !store.myCall());
-  }
-
-  /** The thread as this phone sees it: messages from before a "delete" are hidden. */
-  cleared(ctx, thread) {
-    if (!thread) return thread;
-    const since = ctx.settings.cleared?.find(c => c.key === threadKey(thread))?.ts ?? 0;
-    if (!since) return thread;
-    return {
-      ...thread,
-      messages: thread.messages.filter(m => m.ts > since),
-      lastReaction: thread.lastReaction?.ts > since ? thread.lastReaction : null
-    };
-  }
-
-  /**
-   * The dock: the apps the phone's owner put on it (Settings → Dock), each with its badge, and the
-   * Apps button for everything else. Badges: unread messages, contact requests (GM), a dot when jobs
-   * changed since you last looked, and what's waiting in each app.
-   */
-  dockData(ctx) {
-    const { dock, home } = this.dockSplit(ctx);
-    const item = app => ({ ...app, active: this.app === app.id, ...this.dockBadge(ctx, app.id) });
-    return {
-      items: dock.map(item),
-      home: this.app === "home" || home.some(a => a.id === this.app),
-      apps: home.reduce((n, a) => n + (this.dockBadge(ctx, a.id).badge || 0), 0)
-    };
-  }
-
-  /** This phone's apps, split between its dock and its home screen. */
-  dockSplit(ctx) {
-    const apps = phoneApps({ gm: ctx.perspective === "gm", internal: ctx.internal });
-    // Home-screen navigation: no dock, every app on the home screen.
-    if (this.homeNavigation(ctx)) return { dock: [], home: apps };
-    return dockSplit(apps, ctx.settings.dockApps ?? DEFAULT_DOCK);
-  }
-
-  /** Does this phone get around by its home screen and a Home button, instead of a dock? */
-  homeNavigation(ctx) {
-    return ctx?.settings.navigation === "home";
-  }
-
-  /** The Home button (home-screen navigation): lit on the home screen, with everything waiting in its badge. */
-  homeButtonData(ctx) {
-    const { home } = this.dockSplit(ctx);
-    return { active: this.app === "home", badge: home.reduce((n, a) => n + (this.dockBadge(ctx, a.id).badge || 0), 0) };
-  }
-
-  /** { badge } (a count) or { dot } for an app, wherever it shows. */
-  dockBadge(ctx, id) {
-    const gm = ctx.perspective === "gm";
-    switch (id) {
-      case "contacts":
-        return { badge: gm ? store.visibleRequests().length : 0 };
-      case "messages":
-        return { badge: gm ? store.totalUnread() : store.totalUnread(store.threadsFor(ctx.actorId), game.user, ctx.actorId) };
-      case "quests": {
-        const seen = game.settings.get(MODULE_ID, "questsSeen") ?? 0;
-        return { dot: this.app !== "quests" && this.questList(ctx).some(q => (q.updated ?? 0) > seen) };
-      }
-      default:
-        return { badge: id in APPS ? this.appBadge(ctx, id) : 0 };
-    }
   }
 
   /** Can this phone reach the network: a GM is online, and (a PC's phone) it has signal. */
@@ -400,62 +252,30 @@ export class AgentPhone extends Application {
 
   getData() {
     const data = this._pageData();
+    data.screen = this._screen(data);
+    this.shadeData(this._ctx, data); // the notification center (core/shade.js)
     this._skinExtras(data, this._ctx);
     return data;
   }
 
   /**
-   * What some skins add around the page (see SKINS): the Double Agent's lid screen, the Med Field
-   * Agent's vitals, BrainGen's ads.
+   * The app whose page is on screen, for its own backdrop (data-screen, styles/phone/app-pages.css). None
+   * for the Apps page, calls, the lock screen and the GM's own pages.
    */
-  _skinExtras(data, ctx) {
-    const skin = SKINS[ctx?.look.skin];
-    if (!skin) return;
-    if (skin.topScreen) data.topScreen = this._topScreen(data, ctx);
-    if (skin.vitals) data.vitals = this._vitals(ctx);
-    if (skin.ads) data.ad = this._currentAd();
-  }
-
-  /**
-   * BrainGen's ad: the same line stays up across pages, and a new one slides in every couple of
-   * minutes (or when the GM changes the list).
-   */
-  _currentAd() {
-    const lines = adLines();
-    const now = Date.now();
-    const fresh = !this._ad || now > this._ad.until || !lines.includes(this._ad.text);
-    if (fresh) this._ad = { text: lines[Math.floor(Math.random() * lines.length)], until: now + AD_MS };
-    return { text: this._ad.text, fresh };
-  }
-
-  /** The lid screen: the clock, and the call or the newest message (display only). */
-  _topScreen(data, ctx) {
-    const top = { time: data.time, date: data.date };
-    if (data.call) {
-      const incoming = !!data.page.incoming;
-      return { ...top, label: incoming ? "INCOMING CALL" : "ON CALL", name: incoming ? data.call.caller.name : data.call.title, text: "" };
-    }
-    if (!commsOn()) return { ...top, label: "", name: "", text: "" };
-    const rows = this.inboxRows(ctx);
-    const newest = rows.filter(r => r.ts).sort((a, b) => b.ts - a.ts)[0];
-    const unread = rows.reduce((n, r) => n + (Number(r.unread) || 0), 0);
-    if (!newest) return { ...top, label: "NO MESSAGES", name: "", text: "" };
-    return { ...top, label: unread ? `${unread} NEW` : "LAST MESSAGE", name: newest.name, text: newest.preview };
-  }
-
-  /** The Med Field Agent's biomonitor strip: HP from the sheet, and a heart rate to match. */
-  _vitals(ctx) {
-    const hp = ctx.subject?.actor.system?.derivedStats?.hp;
-    if (!hp) return { hp: "--", bpm: "--", state: "ok", label: "NO BIOMONITOR" };
-    const state = woundState(ctx.subject.actor) ?? "ok";
-    const bpm = { ok: 72, serious: 128, mortal: 41 }[state];
-    const label = { ok: "STABLE", serious: "SERIOUSLY WOUNDED", mortal: "MORTALLY WOUNDED" }[state];
-    return { hp: `${hp.value}/${hp.max}`, bpm, state, label };
+  _screen(data) {
+    const p = data.page;
+    if (data.appPartial) return data.appPartial.replace(/^agent-app-/, "");
+    if (p.contacts) return "contacts";
+    if (p.quests || p.quest) return "quests";
+    if (p.settings) return "settings";
+    if (p.inbox || p.direct || p.group || p.card || p.groupInfo || p.service) return "messages";
+    return null;
   }
 
   _pageData() {
     const ctx = this.context();
     this._ctx = ctx;
+    this._noteInstalls(ctx);
     const look = appearance();
     const { time, date } = agentTimestamp();
     const data = {
@@ -477,7 +297,7 @@ export class AgentPhone extends Application {
 
     // Calls take over the phone that handles them (none while Communications are off).
     if (this.isGM) {
-      if (commsOn() && this.gmCallsPage(data)) return data;
+      if (commsOn() && this.handlesCalls && this.gmCallsPage(data)) return data;
     } else {
       const role = this.handlesCalls && commsOn() ? store.myCall() : null;
       if (!role) this.callHidden = false;
@@ -494,11 +314,13 @@ export class AgentPhone extends Application {
       return data;
     }
 
-    // A different phone in hand: start from its home screen.
+    // A different phone in hand: start from its home screen. (Not on the first draw: a phone opened
+    // straight onto a conversation, from a text notification or the API, keeps it.)
     const key = ctx.subject?.key ?? "console";
     if (key !== this.subjectKey) {
+      const first = this.subjectKey === null;
       this.subjectKey = key;
-      this.view = null;
+      if (!first) this.view = null;
       this.questId = null;
       this.notesOpen = false;
     }
@@ -512,18 +334,14 @@ export class AgentPhone extends Application {
       this.locked = false;
     }
 
-    // An armed WatchBox is the whole phone (it's sitting in a room somewhere).
-    this._watching = !!this.watching(ctx);
-    if (this._watching) {
-      data.watchbox = this.watchboxData(ctx);
-      data.page.watchbox = true;
-      return data;
-    }
+    // An app that takes over the whole phone, whichever app is open (an armed WatchBox: the Agent is
+    // sitting in a room somewhere).
+    if (PHONE_HOOKS.takeover.some(hook => hook.call(this, ctx, data))) return data;
 
     // An app that's switched off, or not for this phone: back to the Apps page.
     const gmOnly = this.app === "control" && ctx.perspective !== "gm";
     const pcOnly = this.app === "settings" && ctx.perspective !== "pc";
-    const appOff = this.app in APPS && !appsOn(ctx.internal).some(a => a.id === this.app);
+    const appOff = this.app in APPS && !appsOn(ctx.internal, this.installedApps(ctx)).some(a => a.id === this.app);
     const commsOff = COMMS_APPS.includes(this.app) && !commsOn();
     if ((this.app === "quests" && !feature("jobs")) || gmOnly || pcOnly || appOff || commsOff) {
       this.app = "home";
@@ -553,10 +371,15 @@ export class AgentPhone extends Application {
       data.page.control = true;
       return data;
     }
+    // Another page in the open app's place (a lapsed Ziggurat Pool subscription: locked behind Renew).
+    if (PHONE_HOOKS.gate.some(hook => hook.call(this, ctx, data))) return data;
     if (this.app in APP_PAGES) {
       const [method, key] = APP_PAGES[this.app];
       data[key] = this[method](ctx);
       data.page[this.app] = true;
+      if (this.app in APP_MANIFEST) data.appPartial = appPartial(this.app);
+      // Black Chrome's "Requires CitiNet Access": say so over the page while this character has no signal.
+      if (ctx.noSignal && APP_MANIFEST[this.app]?.citinet) data.citinetOff = { name: appearance().names[this.app] ?? this.app };
       return data;
     }
     if (this.app === "contacts") {
@@ -645,7 +468,9 @@ export class AgentPhone extends Application {
     if (look.theme.startsWith(`${INTERNAL_THEME}-`)) html.classList.add(`theme-${INTERNAL_THEME}`);
     if (SKINS[look.skin]?.base) html.classList.add(`skin-${SKINS[look.skin].base}`);
     html.style.setProperty("--hud-alpha", game.settings.get(MODULE_ID, "hudOpacity"));
-    html.style.setProperty("--agent-font-scale", game.settings.get(MODULE_ID, "fontScale"));
+    const fontScale = game.settings.get(MODULE_ID, "fontScale");
+    html.style.setProperty("--agent-font-scale", fontScale);
+    html.classList.toggle("text-large", fontScale >= 1.25); // for skins with no room to grow (Burner's softkeys)
 
     // Tick call timers (and countdowns: Trauma Team's ETA, WatchBox) once a second without re-rendering.
     const timers = html.querySelectorAll("[data-started-at]");
@@ -673,10 +498,18 @@ export class AgentPhone extends Application {
       refocus.focus();
       refocus.setSelectionRange?.(refocus.value.length, refocus.value.length);
     }
-    this._revealAnswers(html);
+    describeControls(html);
+    // A page can ask for focus on something once it's drawn (Achieve!'s popup, and its badge after).
+    if (this._focusNext) {
+      html.querySelector(this._focusNext)?.focus();
+      this._focusNext = null;
+    }
+    // The window's title is left blank so each skin can draw its own header; screen readers still get a name.
+    this.element[0]?.querySelector(".window-title")?.setAttribute("aria-label", this.mode === "console" ? "GM phone" : "Agent phone");
+    // Each app's own work after a draw: attach a game's canvas or the Map (or stop them once left), reveal
+    // Ask Alex's new answers...
+    for (const hook of PHONE_HOOKS.render) hook.call(this, html);
     if (SKINS[look.skin]?.typeOut) this._typeOut(list);
-    // The Double Agent's ticker runs on one clock, so a redraw doesn't restart it.
-    for (const el of html.querySelectorAll(".agent-topscreen-ticker span")) el.style.animationDelay = `-${(Date.now() % TICKER_MS) / 1000}s`;
 
     const textarea = html.querySelector(".agent-compose textarea");
     if (textarea && !textarea.disabled) {
@@ -694,61 +527,8 @@ export class AgentPhone extends Application {
     else if (v?.kind === "service") store.markRead(store.findServiceThread(v.actorId, v.serviceId));
   }
 
-  /**
-   * Skins with typeOut: the newest message from the other side types out letter by letter, the first
-   * time it's on screen.
-   */
-  _typeOut(list) {
-    clearInterval(this._typing);
-    const msg = [...(list?.querySelectorAll(".agent-msg") ?? [])].at(-1);
-    const id = msg?.classList.contains("theirs") ? msg.dataset.messageId : null;
-    const el = msg?.querySelector(".agent-bubble-text");
-    if (!id || !el || this._typed.has(id)) return;
-    this._typed.add(id);
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    const full = el.textContent;
-    let shown = 0;
-    msg.classList.add("typing");
-    el.textContent = "";
-    this._typing = setInterval(() => {
-      shown = Math.min(full.length, shown + 2);
-      el.textContent = full.slice(0, shown);
-      if (shown >= full.length) {
-        clearInterval(this._typing);
-        msg.classList.remove("typing");
-      }
-    }, 25);
-  }
-
-  /**
-   * Ask Alex Anything's new answers appear word by word, like an AI writing them, the first time
-   * this phone shows them.
-   */
-  _revealAnswers(html) {
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    this._revealed ??= new Set();
-    for (const el of html.querySelectorAll("[data-reveal]")) {
-      const id = el.dataset.reveal;
-      if (this._revealed.has(id)) continue;
-      this._revealed.add(id);
-      if (reduce) continue;
-      const words = el.textContent.split(/(\s+)/);
-      let shown = 0;
-      el.textContent = "";
-      el.classList.add("revealing");
-      const timer = setInterval(() => {
-        shown = Math.min(words.length, shown + 2);
-        el.textContent = words.slice(0, shown).join("");
-        if (shown >= words.length || !el.isConnected) {
-          clearInterval(timer);
-          el.textContent = words.join("");
-          el.classList.remove("revealing");
-        }
-      }, 70);
-    }
-  }
-
   async close(options) {
+    for (const hook of PHONE_HOOKS.close) hook.call(this);
     clearInterval(this._timer);
     clearInterval(this._typing);
     await super.close(options);
@@ -770,8 +550,16 @@ export class AgentPhone extends Application {
     Hooks.callAll(`${MODULE_ID}.phoneState`, this);
   }
 
-  /** A wide window shows the conversation list beside the conversation: redraw when that changes. */
+  /**
+   * A wide window shows the conversation list beside the conversation: redraw when that changes. An app can
+   * keep the window from shrinking below what it needs (Flappy Chrome's game; Foundry's own minimum is far smaller).
+   */
   setPosition(position) {
+    const min = PHONE_HOOKS.minSize.map(hook => hook.call(this)).find(Boolean);
+    if (min && position) {
+      if (position.width) position.width = Math.max(position.width, min.width);
+      if (position.height) position.height = Math.max(position.height, min.height);
+    }
     const result = super.setPosition(position);
     const wide = (this.position?.width ?? 0) >= SPLIT_WIDTH;
     if (this.rendered && this._wide !== undefined && wide !== this._wide) {
@@ -789,6 +577,9 @@ export class AgentPhone extends Application {
     super.activateListeners(html);
     // A held redraw runs once focus leaves the field the user was typing in.
     html.on("focusout", () => setTimeout(() => this._flush(), 0));
+    // ...and one held while text was selected runs when the selection is let go.
+    html.on("pointerup", () => setTimeout(() => this._flush(), 0));
+    clickOnEnter(html[0]);
     html.on("click", "[data-action]", event => {
       const action = ACTIONS.get(event.currentTarget.dataset.action);
       action?.call(this, event.currentTarget.dataset, event);
@@ -814,50 +605,6 @@ export class AgentPhone extends Application {
   }
 }
 
-/** The phone's own actions: switching apps from the dock. */
-const dock = {
-  actions: {
-    app({ app }) {
-      // The Apps button again: back to the app you came from (with a dock; the Home button stays home).
-      if (app === "home" && this.app === "home" && !this.homeNavigation(this._ctx)) app = this.lastApp ?? "home";
-      else if (app === "home") this.lastApp = this.app;
-      this.appSettings = null;
-      if (this.app === app) {
-        // Tapping the current app goes back to its home screen.
-        if (app === "quests") this.questId = null;
-        else if (app === "messages") this.view = null;
-        else if (app === "garden") this.gardenPost = this.gardenAccount = null;
-      }
-      this.app = app;
-      this.render();
-    }
-  }
-};
-
-/*
- * The phone's pages. Each exports `methods` (installed onto AgentPhone), `actions` (data-action name →
- * handler(dataset, event)), `inputs` (selector → { event: handler(event) }) and `dropdowns` (name →
- * handler(value), see pages/dropdown.js), all run with `this` = the phone.
- */
-const PAGES = {
-  dock, dropdown, lock, blood, inbox, conversation, card, compose, contacts, quests, settings, call, control,
-  home, agentApp, bangme, trauma, alex, watchbox, garden, appSettings
-};
-export const ACTIONS = new Map();
-const INPUTS = [];
-
-for (const [page, { methods = {}, actions = {}, inputs = {}, dropdowns = {} }] of Object.entries(PAGES)) {
-  for (const name of Object.keys(methods)) {
-    if (name in AgentPhone.prototype) throw new Error(`ui/phone/pages/${page}.js: "${name}" is already defined`);
-  }
-  Object.assign(AgentPhone.prototype, methods);
-  for (const [name, handler] of Object.entries(actions)) {
-    if (ACTIONS.has(name)) throw new Error(`ui/phone/pages/${page}.js: action "${name}" is already defined`);
-    ACTIONS.set(name, handler);
-  }
-  INPUTS.push(...Object.entries(inputs));
-  for (const [name, handler] of Object.entries(dropdowns)) {
-    if (DROPDOWNS.has(name)) throw new Error(`ui/phone/pages/${page}.js: dropdown "${name}" is already defined`);
-    DROPDOWNS.set(name, handler);
-  }
-}
+// The phone's parts and pages, and each app's page (core/pages.js).
+installPages(AgentPhone);
+export { ACTIONS };

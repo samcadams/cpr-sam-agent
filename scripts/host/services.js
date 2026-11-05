@@ -1,8 +1,7 @@
-import { cleanImage, cleanLocation, gm, MAX_LENGTH } from "./validate.js";
+import { cleanImage, cleanLocation, gm, textParts } from "./validate.js";
 import { canUsePhone } from "../model/agent.js";
 import { getService, serviceAvailable } from "../model/services.js";
 import { isService } from "../model/threads.js";
-import { clean } from "../util/text.js";
 
 /*
  * Host: service contacts (button presses, free text, the GM's replies).
@@ -59,14 +58,13 @@ export const methods = {
   /** A player typing to a text-conversation service. */
   _onServiceSend(user, { actorId, serviceId, text, location, image }) {
     const { actor, service } = this._playerService(user, actorId, serviceId) ?? {};
-    text = clean(text, MAX_LENGTH);
+    const parts = textParts(text);
     location = cleanLocation(location);
     image = cleanImage(image, user);
-    if (!service?.chat || (!text && !location && !image)) return;
+    if (!service?.chat || (!parts[0] && !location && !image)) return;
     const thread = this._serviceThread(actor, service);
-    const message = this._message("pc", text, { userId: user.id, location, image });
-    thread.messages.push(message);
-    thread.lastRead.owner = message.ts;
+    thread.messages.push(...this._textMessages("pc", parts, { userId: user.id, location, image }));
+    thread.lastRead.owner = thread.messages.at(-1).ts;
     this.save();
     this._push(thread, true);
   },
@@ -79,14 +77,13 @@ export const methods = {
       const service = getService(serviceId);
       if (actor && service) thread = this._serviceThread(actor, service);
     }
-    text = clean(text, MAX_LENGTH);
+    const parts = textParts(text);
     location = cleanLocation(location);
     image = cleanImage(image, user);
     job = this._jobOffer(user, job);
-    if (!isService(thread) || (!text && !location && !image && !job)) return;
-    const message = this._message("service", text, { userId: user.id, location, image, job });
-    thread.messages.push(message);
-    thread.lastRead.gm = message.ts;
+    if (!isService(thread) || (!parts[0] && !location && !image && !job)) return;
+    thread.messages.push(...this._textMessages("service", parts, { userId: user.id, location, image, job }));
+    thread.lastRead.gm = thread.messages.at(-1).ts;
     this.save();
     this._push(thread, true);
     this._ding({ actorId: thread.actorId });

@@ -1,0 +1,7 @@
+{{!-- One clipping in a list (apps/screamsheet/page.js clipRow): tap to read it in its own window. --}}
+<a class="agent-scream-row outlet-{{outletKey}}{{#if unread}} unread{{/if}}" data-action="scream-open" data-id="{{id}}" aria-label="{{headline}}{{#if unread}}, unread{{/if}}">
+  <span class="agent-scream-outlet">{{outlet}}{{#if desk}} · {{desk}}{{/if}}</span>
+  <b class="agent-scream-head">{{headline}}</b>
+  {{#if snippet}}<span class="agent-scream-snip">{{snippet}}</span>{{/if}}
+  <span class="agent-scream-meta">{{#if date}}{{date}}{{/if}}{{#if dv}} · <span class="agent-scream-depth">{{depth}}</span>{{/if}}{{#if unread}} · <b>New</b>{{/if}}</span>
+</a>

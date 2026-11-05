@@ -1,0 +1,276 @@
+/*
+ * Trauma Team: the app's page (apps/trauma/page.js, apps/trauma/trauma.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-tt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #e9eef5, #c7d2e0);
+  color: #0d1a2a;
+}
+
+.ctp-phone-app .agent-tt-card.lapsed {
+  background: repeating-linear-gradient(-45deg, #e9eef5 0 10px, #f3d6d6 10px 20px);
+}
+
+.ctp-phone-app .agent-tt-logo {
+  color: #b00d28;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+/* As the page's header: across the top, above the scrolling page. */
+.ctp-phone-app .agent-tt-bar {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 10px 6px;
+  background: linear-gradient(135deg, #e9eef5, #c7d2e0);
+  border-bottom: 3px solid #b00d28;
+  font-size: calc(15px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-tt-bar small.agent-tt-owner {
+  margin-top: 2px;
+  color: #0d1a2a;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  font-weight: normal;
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app .agent-tt-tier {
+  font-size: calc(20px * var(--agent-font-scale, 1));
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-tt-id {
+  font-family: "Share Tech Mono", monospace;
+  letter-spacing: 2px;
+}
+
+.ctp-phone-app .agent-tt-card small {
+  color: #445;
+}
+
+.ctp-phone-app .agent-tt-panic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 6px auto 10px;
+  padding: 14px;
+  width: 150px;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  justify-content: center;
+  background: radial-gradient(circle at 40% 35%, #e8434f, #c8102e 60%);
+  box-shadow: 0 0 0 4px rgba(200, 16, 46, 0.3), 0 6px 18px rgba(200, 16, 46, 0.5);
+  color: #fff;
+  font-size: calc(30px * var(--agent-font-scale, 1));
+  text-align: center;
+}
+
+.ctp-phone-app .agent-tt-panic span {
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-tt-panic:hover {
+  box-shadow: 0 0 0 6px rgba(200, 16, 46, 0.45), 0 6px 22px rgba(200, 16, 46, 0.7);
+}
+
+.ctp-phone-app .agent-tt-dispatch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 6px 0 10px;
+  padding: 12px;
+  border: 2px solid #c8102e;
+  background: rgba(200, 16, 46, 0.15);
+  color: var(--agent-text);
+  font-size: calc(14px * var(--agent-font-scale, 1));
+  text-transform: uppercase;
+  animation: ctp-tt-alert 1.2s ease-in-out infinite;
+}
+
+@keyframes ctp-tt-alert {
+  50% { background: rgba(200, 16, 46, 0.3); }
+}
+
+.ctp-phone-app .agent-tt-eta {
+  font-family: "Share Tech Mono", monospace;
+  font-size: calc(22px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-tt-call.status-pending {
+  background: rgba(200, 16, 46, 0.12);
+}
+
+/* "Dispatch in [5] Minutes Rounds" */
+.ctp-phone-app .agent-tt-dispatch-row {
+  align-items: center;
+}
+
+.ctp-phone-app .agent-tt-dispatch-in {
+  flex: none;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-tt-dispatch-row input[name="eta"] {
+  width: 48px;
+  flex: none;
+}
+
+.ctp-phone-app .agent-trauma .agent-setting-row input[type="number"] {
+  width: 56px;
+  flex: none;
+}
+
+/* Coverage | MedScan tabs. */
+.ctp-phone-app .agent-tt-tabs {
+  margin: 0 0 8px;
+}
+
+/* MedScan (medscan.hbs): the store card until it's bought. */
+.ctp-phone-app .agent-ms-store {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 8px;
+  padding: 14px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #e9eef5, #c7d2e0);
+  color: #0d1a2a;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-ms-store img,
+.ctp-phone-app .agent-ms-head img,
+.ctp-phone-app .agent-ms-icon {
+  width: 64px;
+  height: 64px;
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+/* Without the content folder's picture: the app's glyph on Trauma Team red. */
+.ctp-phone-app .agent-ms-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  background: #b00d28;
+  color: #fff;
+  font-size: 30px;
+}
+
+.ctp-phone-app .agent-ms-store b {
+  font-size: calc(15px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-ms-store small {
+  color: #445;
+}
+
+.ctp-phone-app .agent-ms-store p {
+  margin: 4px 0;
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-ms-store .agent-info-note {
+  color: #0d1a2a;
+}
+
+.ctp-phone-app .agent-ms-store .agent-wide-btn {
+  background: #b00d28;
+  color: #fff;
+  border-color: #b00d28;
+}
+
+.ctp-phone-app .agent-ms-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+}
+
+.ctp-phone-app .agent-ms-head :is(img, .agent-ms-icon) {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+}
+.ctp-phone-app .agent-ms-head .agent-ms-icon { font-size: 19px; }
+
+.ctp-phone-app .agent-ms-head div {
+  display: flex;
+  flex-direction: column;
+}
+
+.ctp-phone-app .agent-ms-price {
+  color: var(--agent-magenta);
+  font-weight: bold;
+}
+
+/* The consult on the line. */
+.ctp-phone-app .agent-ms-live {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0;
+  padding: 12px;
+  border: 2px solid #b00d28;
+  border-radius: 8px;
+  background: rgba(176, 13, 40, 0.12);
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-ms-live > i {
+  font-size: calc(26px * var(--agent-font-scale, 1));
+  color: #c8102e;
+}
+
+.ctp-phone-app .agent-ms-live > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ctp-phone-app .agent-ms-live.pending {
+  animation: ctp-tt-alert 1.2s ease-in-out infinite;
+}
+
+.ctp-phone-app .agent-ms-bonus {
+  font-family: "Share Tech Mono", monospace;
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-ms-bonus small {
+  display: block;
+  font-family: var(--agent-font);
+  font-weight: normal;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-ms-call.pending {
+  background: rgba(200, 16, 46, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctp-phone-app .agent-ms-live.pending {
+    animation: none;
+  }
+}

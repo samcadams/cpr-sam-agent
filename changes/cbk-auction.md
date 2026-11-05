@@ -1,0 +1,1 @@
+- CBK auctions: the GM can put a Super Luxury listing up for auction on a live market. Bidders show as numbers, the next bid is at least 10% or 100eb over the last, and the high bid is held from the bidder's account (back at once when they're outbid). Sold! gives the high bidder a pick-up receipt; Cancel or the market closing gives the hold back.

@@ -1,0 +1,253 @@
+{{!-- NCPD Crime Database (apps/ncpd/page.js). --}}
+{{> agent-app-bar ncpd.bar}}
+{{!-- The GM's record form: a lookup's draft, or a record in the Archive (id "archive"). --}}
+{{#*inline "ncpd-record-form"}}
+  <input type="text" data-ncpd-field="record.name" data-id="{{id}}" value="{{name}}" placeholder="Name on file" aria-label="Name on file">
+  <input type="text" data-ncpd-field="record.aliases" data-id="{{id}}" value="{{aliasesText}}" placeholder="Aliases, comma separated" aria-label="Aliases">
+  <div class="agent-ncpd-row">
+    <label class="agent-ncpd-label">Match <input type="text" data-ncpd-field="record.match" data-id="{{id}}" value="{{match}}" list="ncpd-matches" aria-label="Photo match"></label>
+    <input type="text" data-ncpd-field="record.affiliation" data-id="{{id}}" value="{{affiliation}}" placeholder="Affiliation (gang, corp…)" aria-label="Affiliation">
+  </div>
+  <div class="agent-ncpd-cautions">{{#each cautions}}<label class="agent-ncpd-chip"><input type="checkbox" data-ncpd-field="record.cautions" data-caution="{{name}}" data-id="{{../id}}" {{#if on}}checked{{/if}}> {{name}}</label>{{/each}}</div>
+
+  <div class="agent-ncpd-record-label">Priors</div>
+  {{#each priors}}
+    <div class="agent-ncpd-row agent-ncpd-line">
+      <input type="text" data-ncpd-field="record.priors.{{@index}}.charge" data-id="{{../id}}" value="{{charge}}" list="ncpd-charges" placeholder="Charge" aria-label="Charge">
+      <input type="text" class="short" data-ncpd-field="record.priors.{{@index}}.year" data-id="{{../id}}" value="{{year}}" placeholder="Year" aria-label="Year">
+      <input type="text" data-ncpd-field="record.priors.{{@index}}.disposition" data-id="{{../id}}" value="{{disposition}}" list="ncpd-dispositions" placeholder="Disposition" aria-label="Disposition">
+      <input type="text" data-ncpd-field="record.priors.{{@index}}.sentence" data-id="{{../id}}" value="{{sentence}}" list="ncpd-sentences" placeholder="Sentence" aria-label="Sentence">
+      <a data-action="ncpd-row-remove" data-id="{{../id}}" data-list="priors" data-index="{{@index}}" title="Remove"><i class="fas fa-xmark"></i></a>
+    </div>
+  {{/each}}
+  <a class="agent-ncpd-add" data-action="ncpd-row-add" data-id="{{id}}" data-list="priors"><i class="fas fa-plus"></i> Prior</a>
+
+  <div class="agent-ncpd-record-label">Active warrants</div>
+  {{#each warrants}}
+    <div class="agent-ncpd-row agent-ncpd-line">
+      <input type="text" data-ncpd-field="record.warrants.{{@index}}.charge" data-id="{{../id}}" value="{{charge}}" list="ncpd-charges" placeholder="Charge" aria-label="Charge">
+      <input type="text" data-ncpd-field="record.warrants.{{@index}}.issuer" data-id="{{../id}}" value="{{issuer}}" list="ncpd-issuers" placeholder="Issued by" aria-label="Issued by">
+      <input type="text" class="short" data-ncpd-field="record.warrants.{{@index}}.issued" data-id="{{../id}}" value="{{issued}}" placeholder="Date" aria-label="Date issued">
+      <a data-action="ncpd-row-remove" data-id="{{../id}}" data-list="warrants" data-index="{{@index}}" title="Remove"><i class="fas fa-xmark"></i></a>
+    </div>
+  {{/each}}
+  <a class="agent-ncpd-add" data-action="ncpd-row-add" data-id="{{id}}" data-list="warrants"><i class="fas fa-plus"></i> Warrant</a>
+
+  <div class="agent-ncpd-record-label">Bounties</div>
+  {{#each bounties}}
+    <div class="agent-ncpd-row agent-ncpd-line">
+      <input type="number" class="short" data-ncpd-field="record.bounties.{{@index}}.amount" data-id="{{../id}}" value="{{amount}}" min="0" aria-label="Amount (eb)">
+      <input type="text" data-ncpd-field="record.bounties.{{@index}}.issuer" data-id="{{../id}}" value="{{issuer}}" list="ncpd-issuers" placeholder="Posted by" aria-label="Posted by">
+      <input type="text" data-ncpd-field="record.bounties.{{@index}}.terms" data-id="{{../id}}" value="{{terms}}" list="ncpd-terms" placeholder="Terms" aria-label="Terms">
+      <input type="text" data-ncpd-field="record.bounties.{{@index}}.reason" data-id="{{../id}}" value="{{reason}}" list="ncpd-charges" placeholder="Wanted for" aria-label="Wanted for">
+      <a data-action="ncpd-job" data-id="{{../id}}" data-index="{{@index}}" title="Add to Jobs (hidden until you show it)"><i class="fas fa-list-check"></i></a>
+      <a data-action="ncpd-row-remove" data-id="{{../id}}" data-list="bounties" data-index="{{@index}}" title="Remove"><i class="fas fa-xmark"></i></a>
+    </div>
+  {{/each}}
+  <a class="agent-ncpd-add" data-action="ncpd-row-add" data-id="{{id}}" data-list="bounties"><i class="fas fa-plus"></i> Bounty</a>
+
+  <textarea data-ncpd-field="record.notes" data-id="{{id}}" rows="2" placeholder="Other public notes (last known address, known associates…)" aria-label="Public notes">{{notes}}</textarea>
+{{/inline}}
+{{#if ncpd.gm}}
+  <div class="agent-info agent-app agent-ncpd">
+    <h3 class="agent-info-label">Lookups in progress</h3>
+    <ol class="agent-app-list">
+      {{#each ncpd.pending}}
+        <li class="agent-app-item agent-ncpd-lookup" data-lookup="{{id}}">
+          <div class="agent-app-item-main">
+            <div class="agent-app-item-top"><b>{{who}}</b> <small>{{num}}</small><span class="agent-row-time{{#if overdue}} agent-ncpd-due{{/if}}">{{dueLabel}}</span></div>
+            <div class="agent-ncpd-shot">
+              <img src="{{img}}" alt="The photo" class="agent-ncpd-photo">
+              <div>
+                {{#if caption}}<div class="agent-ncpd-caption">"{{caption}}"</div>{{/if}}
+                {{#if subject}}
+                  <small>Subject: <a data-action="ncpd-open-actor" data-actor-id="{{subject.id}}"><i class="fas fa-user"></i> {{subject.name}}</a>{{#if tokenName}} <em>(token "{{tokenName}}")</em>{{/if}}</small>
+                {{else}}
+                  <small>{{#if tokenName}}Token "{{tokenName}}", no actor.{{else}}A picture: link who it shows.{{/if}}</small>
+                {{/if}}
+                <div class="agent-ncpd-row">
+                  <input type="text" name="ncpdLink" data-id="{{id}}" list="ncpd-actors" placeholder="Actor name" aria-label="Who is in the picture" value="{{subject.name}}">
+                  <a data-action="ncpd-link" data-id="{{id}}"><i class="fas fa-link"></i> Link</a>
+                </div>
+              </div>
+            </div>
+            <div class="agent-ncpd-roll">
+              {{#if ask}}
+                <i class="fas fa-camera"></i> Waiting for a new shot: {{ask.skill}}, DV {{ask.dv}}…
+              {{else}}
+                <i class="fas fa-dice-d10"></i> {{skill}} <b>{{roll.total}}</b> vs {{#if opposed}}{{opposed.skill}} <b>{{opposed.total}}</b>{{else}}DV {{dv}}{{/if}}:
+                {{#if usable}}<span class="agent-ncpd-ok">usable shot</span>{{else}}<span class="agent-ncpd-bad">unusable shot</span>{{/if}}
+                {{#if roll.detail}}<small>({{roll.detail}})</small>{{/if}}
+              {{/if}}
+            </div>
+            <div class="agent-ncpd-row">
+              <input type="number" name="ncpdDv" data-id="{{id}}" value="{{dv}}" min="1" max="40" aria-label="DV"><a data-action="ncpd-dv" data-id="{{id}}" title="Set the DV (a moving target, darkness, distance)">Set DV</a>
+              {{#if subject}}<input type="text" name="ncpdOppose" data-id="{{id}}" value="{{@root.ncpd.picks.oppose}}" list="ncpd-skills" aria-label="The subject's skill"><a data-action="ncpd-oppose" data-id="{{id}}" title="Roll the subject's skill against the shot (whispered)">Oppose</a>{{/if}}
+            </div>
+            <div class="agent-ncpd-row">
+              <input type="text" name="ncpdAskSkill" data-id="{{id}}" value="{{skill}}" list="ncpd-skills" aria-label="Skill for a new shot">
+              <input type="number" name="ncpdAskDv" data-id="{{id}}" value="{{dv}}" min="1" max="40" aria-label="DV for a new shot"><a data-action="ncpd-ask" data-id="{{id}}"><i class="fas fa-camera-rotate"></i> New shot</a>
+            </div>
+
+            <fieldset class="agent-ncpd-result">
+              <legend>Results</legend>
+              <div class="agent-ncpd-row">
+                {{#each @root.ncpd.picks.results}}<label class="agent-radio"><input type="radio" name="ncpdKind-{{../id}}" value="{{value}}" data-ncpd-field="kind" data-id="{{../id}}" {{#if (eq value ../draft.kind)}}checked{{/if}}> {{label}}</label>{{/each}}
+              </div>
+              {{#if draft.isInconclusive}}
+                <input type="text" data-ncpd-field="reason" data-id="{{id}}" value="{{draft.reason}}" list="ncpd-reasons" aria-label="Why it's inconclusive">
+              {{/if}}
+              {{#if draft.isRecord}}
+                {{#if draft.fromSaved}}<small class="agent-ncpd-note"><i class="fas fa-folder-open"></i> Started from the record on file.</small>{{/if}}
+                {{#if hasSaved}}
+                  <div class="agent-ncpd-row">
+                    <input type="text" name="ncpdSaved" data-id="{{id}}" list="ncpd-saved" placeholder="Name, alias or affiliation on file" aria-label="A record on file">
+                    <a data-action="ncpd-use-saved" data-id="{{id}}"><i class="fas fa-folder-open"></i> Use saved</a>
+                  </div>
+                {{/if}}
+                {{> ncpd-record-form draft.record id=id}}
+                <label class="agent-radio"><input type="checkbox" data-ncpd-field="save" data-id="{{id}}" {{#if draft.save}}checked{{/if}}> Keep in the archive{{#if subject}} (linked to {{subject.name}}){{/if}}</label>
+              {{/if}}
+              <label class="agent-radio"><input type="checkbox" data-ncpd-field="flagged" data-id="{{id}}" {{#if draft.flagged}}checked{{/if}}> NCPD flags this lookup <small>(the player isn't told)</small></label>
+            </fieldset>
+            <div class="agent-money-actions">
+              <a class="pay" data-action="ncpd-deliver" data-id="{{id}}"><i class="fas fa-paper-plane"></i> {{#if overdue}}Deliver{{else}}Deliver now{{/if}}</a>
+              <a class="decline" data-action="ncpd-delete" data-id="{{id}}"><i class="fas fa-trash"></i> Delete</a>
+            </div>
+          </div>
+        </li>
+      {{else}}
+        <li class="agent-empty">No lookups waiting.</li>
+      {{/each}}
+    </ol>
+    {{#if ncpd.delivered.length}}
+      <h3 class="agent-info-label">Delivered</h3>
+      <ol class="agent-app-list" data-short-list="ncpd-delivered">
+        {{#each ncpd.delivered}}
+          <li class="agent-app-item compact"><div class="agent-app-item-main"><b>{{who}}</b> <small>{{num}} · {{ago}}</small>{{#if flagged}} <i class="fas fa-flag agent-ncpd-bad" title="NCPD flagged this lookup"></i>{{/if}}<small>{{line}}</small></div>
+            <a class="agent-ncpd-flag{{#if flagged}} on{{/if}}" data-action="ncpd-flag" data-id="{{id}}" role="switch" aria-checked="{{#if flagged}}true{{else}}false{{/if}}" title="{{#if flagged}}Unflag: NCPD didn't notice{{else}}NCPD flags this lookup (the player isn't told){{/if}}"><i class="{{#if flagged}}fas{{else}}far{{/if}} fa-flag"></i></a></li>
+        {{/each}}
+      </ol>
+    {{/if}}
+    <details class="agent-section" data-section="ncpdSaved" {{#if ncpd.open.ncpdSaved}}open{{/if}}>
+      <summary>Archive ({{ncpd.saved.length}})</summary>
+      <p class="agent-info-note">NCPD's records you've kept: a lookup starts from the one linked to its subject's actor, or with its name. Players never see the archive.</p>
+      {{#with ncpd.archive.open}}
+        <fieldset class="agent-ncpd-result agent-ncpd-archive-edit">
+          <legend>{{#if isNew}}New record{{else}}Edit record{{/if}}</legend>
+          {{> ncpd-record-form record id="archive"}}
+          <input type="text" name="ncpdArchiveActor" value="{{actor}}" list="ncpd-actors" placeholder="Linked actor (optional)" aria-label="Linked actor">
+          <div class="agent-money-actions">
+            <a class="pay" data-action="ncpd-archive-save"><i class="fas fa-floppy-disk"></i> Save</a>
+            <a class="decline" data-action="ncpd-archive-cancel">Cancel</a>
+          </div>
+        </fieldset>
+      {{else}}
+        <div class="agent-ncpd-row">
+          <input type="search" name="ncpdSearch" value="{{ncpd.archive.query}}" placeholder="Search name, alias, affiliation" aria-label="Search the archive" data-live autocomplete="off">
+          <a data-action="ncpd-archive-new"><i class="fas fa-plus"></i> New record</a>
+        </div>
+        <ol class="agent-app-list" data-short-list="ncpd-archive">
+          {{#each ncpd.archive.results}}
+            <li class="agent-app-item compact" data-record="{{id}}"><div class="agent-app-item-main"><b>{{name}}</b>{{#if aliasesText}} <small>a.k.a. {{aliasesText}}</small>{{/if}}<small>{{#if affiliation}}{{affiliation}} · {{/if}}{{#if actor}}<i class="fas fa-user"></i> {{actor}} · {{/if}}{{summary}}</small></div>
+              <a data-action="ncpd-archive-open" data-id="{{id}}" title="Open"><i class="fas fa-pen"></i></a>
+              <a data-action="ncpd-forget" data-id="{{id}}" title="Delete this record"><i class="fas fa-trash"></i></a></li>
+          {{else}}
+            <li class="agent-empty">{{#if ../ncpd.archive.query}}No match.{{else}}None yet.{{/if}}</li>
+          {{/each}}
+        </ol>
+      {{/with}}
+    </details>
+    <details class="agent-section" data-section="ncpdSetup" {{#if ncpd.open.ncpdSetup}}open{{/if}}>
+      <summary>Setup</summary>
+      <div class="agent-setting-row"><span>Results after (world minutes)</span><input type="number" min="0" data-ncpd-setting="minutes" value="{{ncpd.config.minutes}}"></div>
+      <div class="agent-setting-row"><span>Remind me (minutes before)</span><input type="number" min="0" data-ncpd-setting="warn" value="{{ncpd.config.warn}}"></div>
+      <div class="agent-setting-row"><span>Shot skill</span><input type="text" list="ncpd-skills" data-ncpd-setting="skill" value="{{ncpd.config.skill}}"></div>
+      <div class="agent-setting-row"><span>Shot DV</span><input type="number" min="1" max="40" data-ncpd-setting="dv" value="{{ncpd.config.dv}}"></div>
+      <label class="agent-radio"><input type="checkbox" data-ncpd-setting="nightCityOnly" {{#if ncpd.config.nightCityOnly}}checked{{/if}}> Only works in Night City scenes</label>
+      {{#if ncpd.config.nightCityOnly}}
+        <label class="agent-radio"><input type="checkbox" data-ncpd-setting="nightCityDefault" {{#if ncpd.config.nightCityDefault}}checked{{/if}}> Unmarked scenes are in Night City</label>
+        {{#if ncpd.scene}}<label class="agent-radio"><input type="checkbox" name="ncpdNightCity" {{#if ncpd.scene.nightCity}}checked{{/if}}> This scene ({{ncpd.scene.name}}) is in Night City</label>{{/if}}
+      {{/if}}
+      <p class="agent-info-note">Nothing is delivered by itself: you're told when results are nearly due and when they're due. Deliver whenever suits the scene.</p>
+    </details>
+    <datalist id="ncpd-charges">{{#each ncpd.picks.charges}}<option value="{{this}}">{{/each}}</datalist>
+    <datalist id="ncpd-sentences">{{#each ncpd.picks.sentences}}<option value="{{this}}">{{/each}}</datalist>
+    <datalist id="ncpd-issuers">{{#each ncpd.picks.issuers}}<option value="{{this}}">{{/each}}</datalist>
+    <datalist id="ncpd-skills">{{#each ncpd.picks.skills}}<option value="{{this}}">{{/each}}</datalist>
+    <datalist id="ncpd-dispositions">{{#each ncpd.picks.dispositions}}<option value="{{this}}">{{/each}}</datalist>
+    <datalist id="ncpd-terms">{{#each ncpd.picks.terms}}<option value="{{this}}">{{/each}}</datalist>
+    <datalist id="ncpd-matches">{{#each ncpd.picks.matches}}<option value="{{this}}">{{/each}}</datalist>
+    <datalist id="ncpd-reasons">{{#each ncpd.picks.reasons}}<option value="{{this}}">{{/each}}</datalist>
+    <datalist id="ncpd-saved">{{#each ncpd.saved}}<option value="{{name}}">{{aliasesText}}</option>{{/each}}</datalist>
+    <datalist id="ncpd-actors">{{#each ncpd.picks.actors}}<option value="{{this}}">{{/each}}</datalist>
+  </div>
+{{else if ncpd.snap}}
+  <div class="agent-info agent-app agent-ncpd">
+    <div class="agent-ncpd-banner"><i class="fas fa-camera"></i> New records request</div>
+    <h3 class="agent-info-label">Who?</h3>
+    <div class="agent-ncpd-tokens" role="listbox" aria-label="People in sight">
+      {{#each ncpd.snap.tokens}}
+        <a class="agent-ncpd-token{{#if picked}} picked{{/if}}" role="option" aria-selected="{{#if picked}}true{{else}}false{{/if}}" data-action="ncpd-pick" data-token-id="{{tokenId}}" title="{{#if name}}{{name}}{{else}}Unknown{{/if}}">
+          <img src="{{img}}" alt=""><span>{{#if name}}{{name}}{{else}}Unknown{{/if}}</span>
+        </a>
+      {{else}}
+        <p class="agent-info-note">Nobody in sight.</p>
+      {{/each}}
+    </div>
+    {{#if ncpd.snap.pictures}}<button type="button" class="agent-wide-btn" data-action="ncpd-picture"><i class="fas fa-image"></i> Use a picture instead</button>{{/if}}
+    {{#if ncpd.snap.pick}}{{#unless ncpd.snap.pick.tokenId}}<img class="agent-ncpd-photo big" src="{{ncpd.snap.pick.img}}" alt="The picture">{{/unless}}{{/if}}
+    <textarea name="ncpdCaption" rows="2" maxlength="300" placeholder="Caption (optional): where, when, what they were doing" aria-label="Caption">{{ncpd.snap.caption}}</textarea>
+    <p class="agent-info-note">NCPD needs a usable shot: {{ncpd.skill}}, DV {{ncpd.dv}}. Results within {{ncpd.hours}}. NCPD keeps the photo.</p>
+    <div class="agent-money-actions">
+      <a class="pay" data-action="ncpd-submit" {{#unless ncpd.online}}aria-disabled="true"{{/unless}}><i class="fas fa-camera"></i> Snap &amp; submit</a>
+      <a class="decline" data-action="ncpd-back">Cancel</a>
+    </div>
+  </div>
+{{else}}
+  <div class="agent-info agent-app agent-ncpd">
+    <div class="agent-ncpd-banner"><i class="fas fa-building-shield"></i> Public records <small>Night City Police Department</small></div>
+    <button type="button" class="agent-wide-btn" data-action="ncpd-new" {{#unless ncpd.online}}disabled{{/unless}}><i class="fas fa-camera"></i> New records request</button>
+    {{#unless ncpd.online}}<p class="agent-info-note">No CitiNet connection.</p>{{/unless}}
+    <ol class="agent-app-list" data-short-list="ncpd-lookups">
+      {{#each ncpd.lookups}}
+        <li class="agent-app-item agent-ncpd-lookup"{{#if pending}} data-keep{{/if}}>
+          <div class="agent-app-item-main">
+            <div class="agent-app-item-top"><b>Request #{{num}}</b><span class="agent-row-time">{{time}}</span></div>
+            <div class="agent-ncpd-shot">
+              <img src="{{img}}" alt="Your photo" class="agent-ncpd-photo">
+              <div>
+                {{#if seen}}<div>{{seen}}</div>{{/if}}
+                {{#if caption}}<div class="agent-ncpd-caption">"{{caption}}"</div>{{/if}}
+                {{#if pending}}
+                  {{#if ask}}
+                    <div>NCPD needs a better image: {{ask.skill}}, DV {{ask.dv}}.</div>
+                    <div class="agent-money-actions"><a class="pay" data-action="ncpd-roll" data-id="{{id}}"><i class="fas fa-dice-d10"></i> Roll {{ask.skill}}</a></div>
+                  {{else}}
+                    <div class="agent-ncpd-processing">Processing<span>.</span><span>.</span><span>.</span> <small>{{eta}}</small></div>
+                  {{/if}}
+                {{/if}}
+                {{#if none}}<div class="agent-ncpd-ok"><i class="fas fa-circle-check"></i> No record found.</div>{{/if}}
+                {{#if inconclusive}}<div class="agent-ncpd-bad"><i class="fas fa-circle-question"></i> Inconclusive: {{result.reason}}.</div>{{/if}}
+              </div>
+            </div>
+            {{#if record}}
+              <a class="agent-ncpd-record{{#if record.wanted}} wanted{{/if}}" data-action="ncpd-open" data-id="{{id}}" aria-label="Open the NCPD record{{#if record.name}} on {{record.name}}{{/if}}">
+                <div class="agent-ncpd-record-head"><i class="fas fa-building-shield"></i> NCPD public record{{#if record.wanted}}<span class="agent-ncpd-wanted">WANTED</span>{{/if}}</div>
+                <div class="agent-ncpd-record-name"><b>{{#if record.name}}{{record.name}}{{else}}Unnamed{{/if}}</b>{{#if record.aliasesText}} <small>a.k.a. {{record.aliasesText}}</small>{{/if}}</div>
+                <small class="agent-ncpd-record-meta">{{record.summary}}</small>
+                <div class="agent-ncpd-record-open">Open record <i class="fas fa-chevron-right"></i></div>
+              </a>
+            {{/if}}
+          </div>
+        </li>
+      {{else}}
+        <li class="agent-ncpd-hello">
+          <p>Snap a face, send it to NCPD, and get their public record within the hour: aliases, priors, active warrants and open bounties.</p>
+          <small>NCPD receives your photo and its metadata. Requires CitiNet access in Night City.</small>
+        </li>
+      {{/each}}
+    </ol>
+    {{#if ncpd.canClear}}<button type="button" class="agent-wide-btn" data-action="ncpd-clear"><i class="fas fa-broom"></i> Clear finished requests</button>{{/if}}
+  </div>
+{{/if}}

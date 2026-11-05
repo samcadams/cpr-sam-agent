@@ -17,7 +17,7 @@
 }
 
 /* On the light screens, blood soaks in rather than sitting on top. */
-.ctp-phone-app.skin-zine .agent-blood,
+
 .ctp-phone-app.skin-burner .agent-blood {
   mix-blend-mode: multiply;
 }
@@ -80,4 +80,44 @@
   .ctp-phone-app .agent-blood::after {
     animation: none !important;
   }
+}
+
+/* Sponsored content (a Sponsored Cybereye, any skin; skins.js _currentAd): an ad strip under the status bar. */
+.ctp-phone-app .agent-ad {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 2px;
+  padding: 3px 8px;
+  overflow: hidden;
+  border: 1px dashed rgba(var(--agent-yellow-rgb), 0.6);
+  background: rgba(var(--agent-yellow-rgb), 0.1);
+  color: var(--agent-yellow);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  position: relative;
+  z-index: 1;
+}
+
+/* A new ad slides in; the same one stays put from page to page. */
+.ctp-phone-app .agent-ad.fresh span {
+  animation: ctp-ad-in 0.6s ease-out;
+}
+
+.ctp-phone-app .agent-ad span {
+  display: inline-block;
+}
+
+.ctp-phone-app .agent-ad b {
+  flex: none;
+  padding: 0 4px;
+  background: var(--agent-yellow);
+  color: #000;
+  font-size: calc(8px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+}
+
+@keyframes ctp-ad-in {
+  from { transform: translateX(105%); }
+  to { transform: translateX(0); }
 }

@@ -1,0 +1,452 @@
+/*
+ * CBK (apps/cbk/page.js, cbk.hbs): Black Chrome's catalogue screens (pp. 10-14) on the Agent. The player's
+ * page is the book's own look whatever the skin: a white page, a red bar with the CBK logo and a round search
+ * button, "other categories" chips with a clipped corner in each category's colour, big category tiles, BUY
+ * NOW!!! in red, a grey bar at the bottom (back, receipts, next). The GM's pages stay in the phone's colours.
+ */
+
+/* Its home-screen tile: the CBK logo from the content folder (model/content.js), the whole tile (in the dock too), while the app keeps its default icon. */
+body.agent-art-cbk .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-cbk .agent-home-icon:has(> i.fa-receipt) {
+  border-color: transparent;
+  background: var(--agent-art-cbk) center / cover no-repeat;
+}
+body.agent-art-cbk .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-cbk .agent-home-icon > i.fa-receipt { visibility: hidden; }
+body.agent-art-cbk .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-cbk > i.fa-receipt {
+  display: inline-block;
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 0.3em;
+  background: var(--agent-art-cbk) center / cover no-repeat;
+}
+body.agent-art-cbk .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-cbk > i.fa-receipt::before { content: none; }
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-cbk { --app-rgb: 206, 45, 36; }
+
+/* ---------------- The player's page: the book's look ---------------- */
+
+.ctp-phone-app .agent-cbk:not(.agent-cbk-gm) {
+  --cbk-red: #ce2d24;
+  --cbk-ink: #161616;
+  --cbk-grey: #8a8a8a;
+  padding: 0 0 8px;
+  background: #fff;
+  color: var(--cbk-ink);
+  font-family: "Jost", "Futura", "Century Gothic", "Segoe UI", sans-serif;
+}
+
+.ctp-phone-app .agent-cbk-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  margin-top: 14px;
+  padding: 0 8px;
+  background: var(--cbk-red);
+}
+.ctp-phone-app .agent-cbk-logo {
+  height: 50px;
+  margin: -8px 0 -6px;
+  border: none;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.2));
+}
+.ctp-phone-app .agent-cbk-search {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.ctp-phone-app .agent-cbk-search input {
+  width: 100%;
+  height: 24px;
+  padding: 0 30px 0 8px;
+  border: 1px solid #d6d6d6;
+  border-radius: 0;
+  background: #fff;
+  color: var(--cbk-ink);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+.ctp-phone-app .agent-cbk-search i {
+  position: absolute;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--cbk-red);
+  font-size: 15px;
+  box-shadow: 0 0 0 2px var(--cbk-red);
+  pointer-events: none;
+}
+
+.ctp-phone-app .agent-cbk-market {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 10px 0;
+  font-weight: 600;
+}
+.ctp-phone-app .agent-cbk-market small { color: var(--cbk-grey); font-weight: normal; }
+.ctp-phone-app .agent-cbk-letter {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5em;
+  height: 1.5em;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--cbk-red, var(--agent-magenta));
+  color: #fff;
+  font-weight: bold;
+}
+
+/* "other categories": the chips with their clipped top-left corner. */
+.ctp-phone-app .agent-cbk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px 0;
+}
+.ctp-phone-app .agent-cbk-chips > span { margin-right: 2px; font-weight: 600; font-size: calc(11px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-cbk-chip {
+  padding: 1px 8px 1px 10px;
+  background: var(--cbk-cat);
+  color: #fff;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  font-weight: 600;
+  text-transform: uppercase;
+  clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px);
+  cursor: pointer;
+}
+.ctp-phone-app .agent-cbk-chip[style*="#f6a01a"] { color: #161616; }
+
+.ctp-phone-app .agent-cbk-crumb {
+  margin: 8px 10px 4px;
+  padding: 0 0 2px;
+  border: none;
+  border-bottom: 2px solid var(--cbk-ink);
+  color: var(--cbk-ink);
+  font-family: inherit;
+  font-size: calc(16px * var(--agent-font-scale, 1));
+  font-weight: 700;
+}
+
+/* Searching for database… */
+.ctp-phone-app .agent-cbk-searching {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 40px 18px;
+  text-align: center;
+}
+.ctp-phone-app .agent-cbk-searching small { color: var(--cbk-grey); }
+.ctp-phone-app .agent-cbk-radar {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border: 2px solid var(--cbk-red);
+  border-radius: 50%;
+  background: radial-gradient(circle, transparent 30%, rgba(206, 45, 36, 0.12) 31%, transparent 33%, transparent 62%, rgba(206, 45, 36, 0.12) 63%, transparent 65%);
+}
+.ctp-phone-app .agent-cbk-radar i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(rgba(206, 45, 36, 0.45), transparent 30%);
+  animation: ctp-cbk-sweep 2s linear infinite;
+}
+@keyframes ctp-cbk-sweep {
+  to { transform: rotate(360deg); }
+}
+
+.ctp-phone-app .agent-cbk-found { margin: 10px; color: var(--cbk-grey); }
+.ctp-phone-app .agent-cbk-database {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 8px 6px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  color: var(--cbk-ink);
+}
+.ctp-phone-app .agent-cbk-database span { display: flex; flex: 1; flex-direction: column; }
+.ctp-phone-app .agent-cbk-database small { color: var(--cbk-grey); }
+
+/* The categories: big coloured tiles, a picture and the name (Weapons spans the row, like the book). */
+.ctp-phone-app .agent-cbk-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px 8px 4px;
+}
+.ctp-phone-app .agent-cbk-tile {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 74px;
+  padding: 6px;
+  background: var(--cbk-cat);
+  color: #fff;
+  cursor: pointer;
+}
+.ctp-phone-app .agent-cbk-tile:last-child { grid-column: 1 / -1; }
+.ctp-phone-app .agent-cbk-tile img {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border: none;
+  border-radius: 8px;
+}
+.ctp-phone-app .agent-cbk-tile span {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  text-align: right;
+  font-weight: 600;
+  line-height: 1.1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.ctp-phone-app .agent-cbk-tile small { opacity: 0.85; font-weight: normal; font-size: calc(10px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-cbk-tile.empty { opacity: 0.45; }
+.ctp-phone-app .agent-cbk-rules { margin: 6px 10px; color: var(--cbk-grey); font-size: calc(11px * var(--agent-font-scale, 1)); }
+
+/* A category or search: rows. */
+.ctp-phone-app .agent-cbk-list { margin: 0; padding: 0 8px; list-style: none; }
+.ctp-phone-app .agent-cbk-list li { border-bottom: 1px solid #e6e6e6; }
+.ctp-phone-app .agent-cbk-list a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  color: var(--cbk-ink);
+  cursor: pointer;
+}
+.ctp-phone-app .agent-cbk-list img { flex: none; width: 40px; height: 40px; object-fit: contain; border: none; }
+.ctp-phone-app .agent-cbk-list-main { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.ctp-phone-app .agent-cbk-list-main b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctp-phone-app .agent-cbk-list-main small { color: var(--cbk-grey); }
+.ctp-phone-app .agent-cbk-list-price { display: flex; flex-direction: column; align-items: flex-end; font-weight: 700; white-space: nowrap; }
+.ctp-phone-app .agent-cbk-list-price small { color: var(--cbk-grey); font-weight: normal; font-style: italic; font-size: calc(9px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-cbk-list li.sold { opacity: 0.55; }
+.ctp-phone-app .agent-cbk-list em { color: var(--cbk-red); font-style: normal; font-size: calc(10px * var(--agent-font-scale, 1)); }
+
+/* A listing (p. 8): photo, name, Corp, price; BUY NOW!!! and the booth line under the photo; the pitch. */
+.ctp-phone-app .agent-cbk-card { padding: 4px 10px; }
+.ctp-phone-app .agent-cbk-card-top { display: flex; gap: 10px; }
+.ctp-phone-app .agent-cbk-photo {
+  flex: none;
+  width: 104px;
+  height: 104px;
+  object-fit: contain;
+  border: none;
+  cursor: pointer;
+}
+.ctp-phone-app .agent-cbk-card-head { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ctp-phone-app .agent-cbk-card-head h4 { margin: 0; border: none; color: var(--cbk-ink); font-family: inherit; font-size: calc(16px * var(--agent-font-scale, 1)); font-weight: 700; }
+.ctp-phone-app .agent-cbk-corp { color: var(--cbk-grey); }
+.ctp-phone-app .agent-cbk-price { font-style: italic; }
+.ctp-phone-app .agent-cbk-buy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 104px;
+  margin: 4px 0;
+}
+.ctp-phone-app button.agent-cbk-buynow {
+  width: 104px;
+  margin: 0;
+  padding: 3px 0;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  background: var(--cbk-red);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 0 1px var(--cbk-red), 0 2px 3px rgba(0, 0, 0, 0.25);
+}
+.ctp-phone-app button.agent-cbk-buynow:hover:not([disabled]) { filter: brightness(1.1); }
+.ctp-phone-app button.agent-cbk-buynow[disabled] { opacity: 0.45; }
+.ctp-phone-app .agent-cbk-sold {
+  padding: 2px 6px;
+  border: 2px solid var(--cbk-red);
+  color: var(--cbk-red);
+  font-weight: 800;
+  transform: rotate(-4deg);
+}
+.ctp-phone-app .agent-cbk-booth { color: var(--cbk-ink); font-style: italic; font-size: calc(10px * var(--agent-font-scale, 1)); line-height: 1.2; }
+.ctp-phone-app .agent-cbk-stock { color: var(--cbk-red); font-size: calc(10px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-cbk-pitch { margin: 4px 0; color: #333; line-height: 1.35; white-space: pre-line; }
+
+/* Receipts. */
+.ctp-phone-app .agent-cbk-receipt {
+  margin: 8px;
+  padding: 6px 8px;
+  border: 1px dashed #bbb;
+  background: #fafafa;
+  color: var(--cbk-ink, inherit);
+}
+.ctp-phone-app .agent-cbk-gm .agent-cbk-receipt { margin: 6px 0; border-color: rgba(var(--agent-cyan-rgb), 0.35); background: var(--agent-panel); color: inherit; }
+.ctp-phone-app .agent-cbk-receipt header { display: flex; align-items: center; gap: 6px; }
+.ctp-phone-app .agent-cbk-receipt p { margin: 2px 0; }
+.ctp-phone-app .agent-cbk-receipt small { display: block; color: var(--cbk-grey, var(--agent-muted)); }
+.ctp-phone-app .agent-cbk-code { font-family: monospace; letter-spacing: 1px; }
+.ctp-phone-app .agent-cbk-receipt-price { margin-left: auto; }
+.ctp-phone-app .agent-cbk-receipt-status { padding: 0 4px; border: 1px solid currentColor; border-radius: 3px; font-size: calc(9px * var(--agent-font-scale, 1)); text-transform: uppercase; }
+.ctp-phone-app .agent-cbk-receipt-status.paid { color: #c4541b; }
+.ctp-phone-app .agent-cbk-receipt-status.picked { color: #2c8a3b; }
+.ctp-phone-app .agent-cbk-receipt.picked, .ctp-phone-app .agent-cbk-receipt.refunded { opacity: 0.6; }
+.ctp-phone-app .agent-cbk:not(.agent-cbk-gm) button.agent-cbk-pickup { margin-top: 4px; border-color: var(--cbk-red); background: var(--cbk-red); color: #fff; }
+.ctp-phone-app .agent-cbk:not(.agent-cbk-gm) button.agent-cbk-pickup[disabled] { background: #ddd; border-color: #ccc; color: #777; }
+
+.ctp-phone-app .agent-cbk-fine { margin: 12px 10px 0; color: var(--cbk-grey); font-size: calc(9px * var(--agent-font-scale, 1)); font-style: italic; text-align: center; }
+
+/* The grey bar at the bottom: back, the cart (receipts waiting), next. */
+.ctp-phone-app .agent-cbk-nav {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 34px;
+  padding: 0 18px;
+  background: #8c8c8c;
+  position: relative;
+  z-index: 1;
+}
+.ctp-phone-app .agent-cbk-nav a { position: relative; color: #fff; font-size: 16px; cursor: pointer; }
+.ctp-phone-app .agent-cbk-nav a.disabled { opacity: 0.35; pointer-events: none; }
+.ctp-phone-app .agent-cbk-nav :is(.agent-cbk-cart, .agent-cbk-bell).active { color: #ffe0de; }
+.ctp-phone-app :is(.agent-cbk-cart, .agent-cbk-bell) b {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 15px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: #ce2d24;
+  color: #fff;
+  font-size: 10px;
+  text-align: center;
+}
+
+/* Flash sales: the old price struck through, a FLASH SALE tag. */
+.ctp-phone-app .agent-cbk :is(.agent-cbk-price, .agent-cbk-list-price) s { color: var(--cbk-grey); font-weight: normal; }
+.ctp-phone-app .agent-cbk-flash { color: var(--cbk-red); font-weight: bold; font-size: calc(11px * var(--agent-font-scale, 1)); }
+
+/* The market's Alerts: what its Fixer broadcast, newest first. */
+.ctp-phone-app .agent-cbk-alerts { margin: 6px 10px; padding: 0; list-style: none; }
+.ctp-phone-app .agent-cbk-alerts li { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid #ddd; color: var(--cbk-ink); }
+.ctp-phone-app .agent-cbk-alerts li > i { width: 1.2em; margin-top: 2px; color: var(--cbk-red); }
+.ctp-phone-app .agent-cbk-alerts li span { display: grid; gap: 1px; }
+.ctp-phone-app .agent-cbk-alerts li small { color: var(--cbk-grey); }
+.ctp-phone-app .agent-cbk-alerts li.ended { opacity: 0.6; }
+.ctp-phone-app .agent-cbk-alerts li.kind-raid b { color: var(--cbk-red); text-transform: uppercase; }
+
+/* ---------------- The GM's pages (the phone's own colours) ---------------- */
+
+/* The broadcast composer on a live market's card. */
+.ctp-phone-app .agent-cbk-bc-kinds { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.ctp-phone-app .agent-cbk-bc-kind { padding: 2px 8px; border: 1px solid currentColor; border-radius: 10px; font-size: 11px; cursor: pointer; opacity: 0.8; }
+.ctp-phone-app .agent-cbk-bc-kind.active { opacity: 1; font-weight: bold; background: rgba(var(--app-rgb, 206, 45, 36), 0.25); }
+.ctp-phone-app .agent-cbk-bc-form { display: grid; gap: 4px; margin-top: 6px; }
+.ctp-phone-app .agent-cbk-bc-form label { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 12px; }
+.ctp-phone-app .agent-cbk-bc-form label input { width: 5em; }
+.ctp-phone-app .agent-cbk-bc-sent { margin: 6px 0 0; padding: 0; list-style: none; font-size: 11px; }
+.ctp-phone-app .agent-cbk-bc-sent li { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.ctp-phone-app .agent-cbk-bc-sent li span { flex: 1; }
+.ctp-phone-app .agent-cbk-bc-sent li.ended { opacity: 0.55; }
+
+.ctp-phone-app .agent-cbk-gm-market {
+  margin: 6px 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--agent-panel);
+  box-shadow: inset 3px 0 0 var(--agent-muted);
+}
+.ctp-phone-app .agent-cbk-gm-market.live { box-shadow: inset 3px 0 0 #ce2d24; }
+.ctp-phone-app .agent-cbk-gm-market header { display: flex; align-items: center; gap: 6px; }
+.ctp-phone-app .agent-cbk-gm-name { display: flex; flex-direction: column; }
+.ctp-phone-app .agent-cbk-gm-name small { color: var(--agent-muted); }
+.ctp-phone-app .agent-cbk-gm .agent-btn-row { align-items: center; }
+.ctp-phone-app button.agent-cbk-golive.on { border-color: #ce2d24; background: #ce2d24; color: #fff; }
+.ctp-phone-app .agent-cbk-gm-fields { display: grid; grid-template-columns: 1fr 1fr 3em; gap: 4px; margin: 6px 0; }
+.ctp-phone-app .agent-cbk-gm-fields :is(input[data-field=where], textarea) { grid-column: 1 / -1; }
+.ctp-phone-app .agent-cbk-gm-inputs { display: flex; gap: 4px; margin-top: 2px; }
+.ctp-phone-app .agent-cbk-gm-inputs input { min-width: 0; height: 22px; padding: 0 4px; }
+.ctp-phone-app .agent-cbk-gm-inputs input[data-field=booths] { flex: 2; }
+.ctp-phone-app .agent-cbk-gm-inputs input[type=number] { flex: 1.3; text-align: right; }
+.ctp-phone-app .agent-cbk-gm-listings .unavailable { opacity: 0.55; }
+.ctp-phone-app .agent-cbk-gm-listings .agent-icon-btn.active { color: var(--agent-magenta); }
+.ctp-phone-app .agent-cbk-gm-listings .agent-avatar { object-fit: contain; }
+
+/* ---------------- Broadcasts on the phone (apps/cbk/broadcasts.js): a raid over the whole screen, the rest a little popup ---------------- */
+
+.ctp-phone-app .agent-cbk-popup {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  cursor: pointer;
+}
+.ctp-phone-app .agent-cbk-popup-box {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px;
+  text-align: center;
+}
+.ctp-phone-app .agent-cbk-popup-box > p { margin: 0; }
+.ctp-phone-app .agent-cbk-popup-dismiss { font-size: 12px; text-decoration: underline; }
+
+.ctp-phone-app .agent-cbk-popup.raid { background: rgba(150, 0, 0, 0.92); color: #fff; }
+.ctp-phone-app .agent-cbk-popup.raid.flashing { animation: agent-cbk-raid 0.9s steps(2, jump-none) infinite alternate; }
+@keyframes agent-cbk-raid {
+  from { background: rgba(150, 0, 0, 0.92); }
+  to { background: rgba(60, 0, 0, 0.95); }
+}
+.ctp-reduce-motion .agent-cbk-popup.raid.flashing { animation: none; }
+.ctp-phone-app .raid .agent-cbk-popup-box { border: 3px solid #fff; }
+.ctp-phone-app .raid .agent-cbk-popup-box > i { font-size: 48px; }
+.ctp-phone-app .raid .agent-cbk-popup-box > b { font-size: 24px; letter-spacing: 0.06em; }
+
+.ctp-phone-app .agent-cbk-popup.notice { background: rgba(0, 0, 0, 0.45); }
+.ctp-phone-app .notice .agent-cbk-popup-box { background: #fff; color: #111; border-top: 4px solid #ce2d24; border-radius: 6px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5); }
+.ctp-phone-app .notice .agent-cbk-popup-box > i { font-size: 24px; color: #ce2d24; }
+
+/* Apps sold through CBK: the app's own icon stands in for a photo. */
+.ctp-phone-app .agent-cbk .agent-cbk-appicon { display: grid; place-items: center; color: #fff; background: #0f8f8a; border-radius: 8px; }
+.ctp-phone-app .agent-cbk-list .agent-cbk-appicon { width: 36px; height: 36px; font-size: 18px; flex: none; }
+.ctp-phone-app .agent-cbk-card .agent-cbk-appicon { font-size: 42px; }
+.ctp-phone-app .agent-cbk-tile .agent-cbk-tile-icon { display: grid; flex: none; place-items: center; width: 56px; height: 56px; font-size: 40px; color: var(--cbk-cat); }
+
+/* Invites: Upcoming on the player's page, the card in a conversation, the GM's switches. */
+.ctp-phone-app .agent-cbk-upcoming { margin: 6px 10px; padding: 0; list-style: none; }
+.ctp-phone-app .agent-cbk-upcoming li { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
+.ctp-phone-app .agent-cbk-upcoming span { display: flex; flex-direction: column; }
+.ctp-phone-app .agent-cbk-upcoming small { color: var(--cbk-grey); }
+.ctp-phone-app .agent-cbk-invite input { width: 100%; margin: 4px 0; box-sizing: border-box; }
+.ctp-phone-app .agent-cbk-gm-switch { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+
+/* Message the Fixer. */
+.ctp-phone-app .agent-cbk-fixer { margin: 6px 10px; width: calc(100% - 20px); }
+
+/* Mister K's auction. */
+.ctp-phone-app .agent-cbk-auction { display: flex; flex-direction: column; gap: 3px; width: 100%; }
+.ctp-phone-app .agent-cbk-auction b { color: var(--cbk-red); }
+.ctp-phone-app .agent-cbk-auction small { color: var(--cbk-grey); }
+.ctp-phone-app .agent-cbk-auction input { width: 104px; }
+.ctp-phone-app .agent-cbk-gm-auction { margin-top: 6px; }
+
+/* Rex's game. */
+.ctp-phone-app .agent-cbk-rex { display: flex; flex-direction: column; gap: 2px; margin: 6px 0; }
+.ctp-phone-app .agent-cbk-rex small { color: var(--cbk-grey); }

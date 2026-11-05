@@ -1,5 +1,6 @@
 import { MODULE_ID } from "../config.js";
 import { isSilenced } from "../model/agent.js";
+import { phoneSound } from "../model/sounds.js";
 import { commsOn, noSignalSince } from "../model/features.js";
 import { store } from "../store.js";
 import { playSound } from "../util/audio.js";
@@ -26,7 +27,7 @@ export const CallAudio = {
     this.sound = null;
     if (!mode) return;
 
-    const src = game.settings.get(MODULE_ID, "ringtone");
+    const src = phoneSound(owner, "ring"); // this phone's ringtone, for its ringback too
     if (!src) return;
     const sound = await playSound(src, { volume: this.volume(), loop: true });
     if (this.mode === mode && !this.sound) this.sound = sound;

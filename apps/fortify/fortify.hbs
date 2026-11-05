@@ -1,0 +1,51 @@
+{{!-- 4Tify (apps/fortify/page.js). --}}
+{{> agent-app-bar fortify.bar}}
+{{#if fortify.gm}}
+  <div class="agent-info agent-app agent-fortify">
+    <p class="agent-info-note">Being within 1 m/yd for the 5 minutes is on the player's honour. Void a mark if they couldn't, or the cover is gone.</p>
+    {{#each fortify.people}}
+      <h3 class="agent-info-label">{{who}}</h3>
+      <ol class="agent-app-list">
+        {{#each marks}}
+          <li class="agent-app-item compact" data-mark="{{id}}">
+            <div class="agent-app-item-main"><span>Nearby cover</span><small>{{label}}{{#if eta}} · {{eta}}{{/if}}{{#if total}} · +{{total}}{{/if}}</small></div>
+            {{#if live}}<button type="button" data-action="fortify-void" data-id="{{id}}"><i class="fas fa-ban"></i> Void</button>{{/if}}
+          </li>
+        {{/each}}
+      </ol>
+    {{else}}
+      <p class="agent-info-note">No scans yet.</p>
+    {{/each}}
+  </div>
+{{else}}
+  <div class="agent-info agent-app agent-fortify">
+    <div class="agent-fortify-finder">
+      {{#if fortify.scanning}}
+        <div class="agent-fortify-ring" style="--scan: {{fortify.scanning.percent}}" data-scan-percent="{{fortify.scanning.percent}}"><b>{{fortify.scanning.percent}}%</b></div>
+        <p>Scanning your surroundings</p>
+        <small>{{fortify.scanning.eta}} of world time. Stay within 1 m/yd.</small>
+      {{else}}
+        <i class="fas fa-crosshairs"></i>
+        <button type="button" class="agent-wide-btn agent-fortify-scan" data-action="fortify-scan"><i class="fas fa-shield-halved"></i> Scan my surroundings</button>
+        <small>5 minutes, within 1 m/yd of the cover you're after. +1d6 on your next damage against it.</small>
+      {{/if}}
+    </div>
+    <h3 class="agent-info-label">Marks</h3>
+    <ol class="agent-app-list">
+      {{#each fortify.marks}}
+        <li class="agent-app-item compact{{#unless live}} closed{{/unless}}" data-mark="{{id}}">
+          <div class="agent-app-item-main"><span>Nearby cover</span><small>{{#if ready}}{{weakPoint}}{{else}}{{label}}{{#if total}} · +{{total}}{{/if}}{{/if}}</small></div>
+          {{#if ready}}<button type="button" data-action="fortify-use" data-id="{{id}}"><i class="fas fa-dice-d6"></i> Use mark</button>{{/if}}
+        </li>
+      {{else}}
+        <li class="agent-empty">No marks yet.</li>
+      {{/each}}
+    </ol>
+    <h3 class="agent-info-label">Home security</h3>
+    <div class="agent-fortify-home">
+      <b class="agent-fortify-grade">{{fortify.grade}}</b>
+      <ul>{{#each fortify.findings}}<li>{{this}}</li>{{/each}}</ul>
+    </div>
+    <p class="agent-info-note">By {{fortify.publisher}}.</p>
+  </div>
+{{/if}}

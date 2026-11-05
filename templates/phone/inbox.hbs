@@ -14,9 +14,7 @@
   {{#if canCompose}}
     <a class="agent-icon-btn" data-action="new-thread" title="New conversation"><i class="fas fa-pen-to-square"></i></a>
   {{/if}}
-  {{#if gmConsole}}
-    <a class="agent-icon-btn" data-action="app-settings" data-app="messages" title="Settings: photos, map pins, quick replies"><i class="fas fa-gear"></i></a>
-  {{/if}}
+  <a class="agent-icon-btn" data-action="app-settings" data-app="messages" title="Settings"><i class="fas fa-gear"></i></a>
 </div>
 
 {{#if pickers}}{{> agent-gm-pickers pickers}}{{/if}}
@@ -36,7 +34,7 @@
 
 <div class="agent-search">
   <i class="fas fa-magnifying-glass"></i>
-  <input type="search" name="search" value="{{search}}" placeholder="Search" autocomplete="off">
+  <input type="search" name="search" value="{{search}}" placeholder="Search" aria-label="Search messages" autocomplete="off">
 </div>
 
 <ol class="agent-inbox">

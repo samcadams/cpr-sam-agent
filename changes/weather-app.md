@@ -1,0 +1,5 @@
+- New app: **Weather** (off until the GM switches it on; free and preinstalled in the App Store). Night City Weather's tables: today with Wacky the weatherman's line, the rules card, and a 10-day forecast. Weather icons on the Calendar's days.
+- GM Phone → Weather Control: roll a day again (all, temperature or condition), set it by hand, lock it, schedule Strange Weather ahead (runs of days carry over), end today's Strange Weather early. Option: forecasts can be wrong.
+- Apply the weather to every player character, the characters on the active scene or the selected tokens: its penalties go in their roll dialog as situational modifiers (off by default), Hot and Heat Wave add to an existing armor penalty, and a Blackout cuts their signal. The effects follow the weather and end with it.
+- Hazard tools: ablate armor in Acid Rain, Resist Torture/Drugs checks on the players' phones (Poison, Biotoxin), Foreign Object, lightning and radiation rolls. Umbrellas, linings, filters and suits are recognised.
+- Morro Rock Radio can post the forecast in The Garden, by hand or every morning.

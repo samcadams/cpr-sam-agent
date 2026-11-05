@@ -1,0 +1,33 @@
+{{!-- The notification center, pulled down from the status bar (ui/phone/core/shade.js). --}}
+<section class="agent-shade{{#if opening}} opening{{/if}}" role="dialog" aria-label="Notifications">
+  <header class="agent-shade-head">
+    <b>Notifications</b>
+    {{#if items.length}}<a class="agent-shade-clear-all" data-action="shade-clear-all">Clear all</a>{{/if}}
+  </header>
+  <div class="agent-shade-list">
+    {{#each items}}
+      <article class="agent-shade-item kind-{{kind}}{{#if urgent}} urgent{{/if}}{{#if pending}} pending{{/if}}">
+        <a class="agent-shade-main" data-action="shade-open" data-key="{{key}}">
+          {{#if img}}<img class="agent-shade-img" src="{{img}}" alt="">{{else}}<span class="agent-shade-img"><i class="fa-solid {{icon}}"></i></span>{{/if}}
+          <span class="agent-shade-text">
+            <span class="agent-shade-title"><b>{{title}}</b>{{#if count}} <span class="agent-shade-n">{{count}}</span>{{/if}}{{#if owner}} <span class="agent-shade-owner">{{owner}}</span>{{/if}}</span>
+            {{#if body}}<span class="agent-shade-body">{{body}}</span>{{/if}}
+          </span>
+          <time>{{ago}}</time>
+        </a>
+        {{#if choices.length}}
+          <div class="agent-shade-buttons">{{#each choices}}<a class="{{#if @first}}accept{{else}}decline{{/if}}" data-action="alert-answer" data-alert-id="{{../id}}" data-choice="{{this}}">{{this}}</a>{{/each}}</div>
+        {{/if}}
+        {{#if answer}}<p class="agent-shade-answer"><i class="fas fa-check"></i> {{answer}}</p>{{/if}}
+        {{#if actions.length}}
+          <div class="agent-shade-buttons">{{#each actions}}<a data-action="shade-card-action" data-key="{{../key}}" data-index="{{index}}">{{#if icon}}<i class="fas {{icon}}"></i> {{/if}}{{label}}</a>{{/each}}</div>
+        {{/if}}
+        <a class="agent-shade-x" data-action="shade-clear" data-key="{{key}}" title="Clear"><i class="fas fa-xmark"></i></a>
+      </article>
+    {{else}}
+      <p class="agent-shade-empty">No notifications</p>
+    {{/each}}
+    {{#if more}}<p class="agent-shade-empty">{{more}} older</p>{{/if}}
+  </div>
+  <a class="agent-shade-handle" data-action="shade" title="Close notifications"></a>
+</section>

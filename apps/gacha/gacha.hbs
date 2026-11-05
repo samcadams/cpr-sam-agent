@@ -1,0 +1,147 @@
+{{!-- Gacha (apps/gacha/page.js). --}}
+{{!-- A collectible's picture, or its icon. `cls`: classes for either; `tint`: colour the icon. --}}
+{{!-- A shelf tile: one per collectible, with how many. --}}
+{{#*inline "gachaTile"}}
+  <li class="agent-gacha-tile{{#if open}} open{{/if}}{{#if fav}} fav{{/if}}" style="--rarity: {{color}}" data-action="gacha-pick" data-pull-id="{{id}}" title="{{name}} ({{rarityName}})" aria-label="{{name}}, {{rarityName}}{{#if many}}, C{{level}}, {{count}} of them{{/if}}{{#if fav}}, pinned{{/if}}">
+    {{> gachaArt}}
+    {{#if many}}<b>C{{level}}{{#if over}} +{{over}}{{/if}}</b>{{/if}}
+    {{#if fav}}<i class="fas fa-thumbtack agent-gacha-pin" aria-hidden="true"></i>{{/if}}
+    <span>{{name}}</span>
+    <small class="agent-gacha-stars" aria-hidden="true">{{stars}}</small>
+  </li>
+{{/inline}}
+{{#*inline "gachaArt"}}{{#if img}}<img class="agent-gacha-art {{cls}}" src="{{img}}" alt="">{{else}}<i class="fas {{icon}} {{cls}}"{{#if tint}} style="color: {{color}}"{{/if}}></i>{{/if}}{{/inline}}
+{{> agent-app-bar gacha.bar}}
+<div class="agent-info agent-app agent-gacha">
+  <div class="agent-tabs">
+    {{#each gacha.tabs}}<a class="agent-tab{{#if active}} active{{/if}}" data-action="gacha-tab" data-tab="{{id}}">{{label}}</a>{{/each}}
+  </div>
+
+  {{#if gacha.tab.pull}}
+    {{#if gacha.gm}}
+      <h3 class="agent-info-label">The machine</h3>
+      <div class="agent-setting-row"><span>zCreds a pull</span><input type="number" data-gacha-setting="pullCost" value="{{gacha.cfg.pullCost}}" min="0"></div>
+      <div class="agent-setting-row"><span>Purchases that fail (%)</span><input type="number" data-gacha-setting="failChance" value="{{gacha.cfg.failChance}}" min="0" max="100"></div>
+      <h3 class="agent-info-label">zCred bundles (eddies → zCreds)</h3>
+      {{#each gacha.bundles}}
+        <div class="agent-setting-row agent-gacha-bundle-row"><input type="number" data-gacha-setting="bundles.{{i}}.eb" value="{{eb}}" min="0" aria-label="Bundle {{i}}: eddies"><span>eb →</span><input type="number" data-gacha-setting="bundles.{{i}}.zc" value="{{zc}}" min="0" aria-label="Bundle {{i}}: zCreds"><span>zC</span></div>
+      {{/each}}
+      <label class="agent-radio"><input type="checkbox" data-gacha-setting="chat" {{#if gacha.cfg.chat}}checked{{/if}}> Show-offs in chat</label>
+      <h3 class="agent-info-label">Odds (weights, out of 1000)</h3>
+      {{#each gacha.weights}}
+        <div class="agent-setting-row"><span><i class="agent-rarity-dot" style="--rarity: {{color}}"></i>{{name}} <small>({{count}})</small></span><input type="number" data-gacha-setting="weights.{{key}}" value="{{value}}" min="0" step="1"></div>
+      {{/each}}
+      <h3 class="agent-info-label">A duplicate sells for (zCreds)</h3>
+      {{#each gacha.weights}}
+        <div class="agent-setting-row"><span><i class="agent-rarity-dot" style="--rarity: {{color}}"></i>{{name}}</span><input type="number" data-gacha-setting="sell.{{key}}" value="{{sell}}" min="0"></div>
+      {{/each}}
+      <p class="agent-info-note">A spare past C6 sells for 2.5 times this.</p>
+      <p class="agent-info-note">{{#each gacha.odds}}{{name}} {{pct}}%{{#unless @last}} · {{/unless}}{{/each}}</p>
+      <p class="agent-info-note">Pity: a character's 10th pull without an Epic or better is one; from their 74th without a Legendary its odds climb each pull, and the 90th is one.</p>
+      <h3 class="agent-info-label">Legendary rewards</h3>
+      <div class="agent-gacha-rewards">
+        {{#if gacha.rewards.length}}
+          <ol class="agent-app-list">
+            {{#each gacha.rewards}}
+              <li class="agent-app-item compact">
+                {{> gachaArt cls="agent-app-item-icon"}}
+                <div class="agent-app-item-main"><b>{{name}}</b></div>
+                <a class="agent-icon-btn" data-action="gacha-reward-remove" data-uuid="{{uuid}}" title="Remove {{name}}"><i class="fas fa-trash"></i></a>
+              </li>
+            {{/each}}
+          </ol>
+        {{/if}}
+        <button type="button" class="agent-wide-btn" data-action="gacha-reward-add"><i class="fas fa-plus"></i> Add a reward</button>
+        <p class="agent-info-note">What "Make it real" offers first. Search for an item, or drop one here. With none, it asks for any item.</p>
+      </div>
+      <h3 class="agent-info-label">Collectibles</h3>
+      <ol class="agent-app-list" data-short-list="gacha-collectibles">
+        {{#each gacha.collectibles}}
+          <li class="agent-app-item compact">
+            {{> gachaArt cls="agent-app-item-icon" tint=true}}
+            <div class="agent-app-item-main"><b>{{name}}</b><small><i class="agent-rarity-dot" style="--rarity: {{color}}"></i>{{rarityName}}{{#if text}} · {{text}}{{/if}}</small></div>
+            <a class="agent-icon-btn" data-action="gacha-c-edit" data-cid="{{id}}" title="Edit"><i class="fas fa-pen"></i></a>
+            <a class="agent-icon-btn" data-action="gacha-c-remove" data-cid="{{id}}" title="Remove"><i class="fas fa-trash"></i></a>
+          </li>
+        {{/each}}
+      </ol>
+      <button type="button" class="agent-wide-btn" data-action="gacha-c-add"><i class="fas fa-plus"></i> Add a collectible</button>
+      {{#if gacha.custom}}<a class="agent-card-more" data-action="gacha-c-reset">Back to the default collectibles</a>{{/if}}
+    {{else}}
+      <div class="agent-gacha-machine{{#if gacha.pulling}} pulling{{/if}}">
+        <div class="agent-gacha-dome" aria-hidden="true">
+          {{#each gacha.odds}}<i style="--c: {{color}}; --n: {{@index}}"></i>{{/each}}
+        </div>
+        <div class="agent-gacha-slot">CAPSULES</div>
+      </div>
+      {{#with gacha.reveal}}
+        <div class="agent-gacha-reveal rarity-{{rarity}}" style="--rarity: {{color}}">
+          {{> gachaArt}}
+          <small>{{rarityName}} · {{#if fresh}}<span class="agent-gacha-new">New!</span>{{else}}Duplicate · C{{level}}{{#if over}} +{{over}}{{/if}}{{/if}}</small>
+          <b>{{name}}</b>
+          {{#if text}}<p>{{text}}</p>{{/if}}
+        </div>
+      {{/with}}
+      <div class="agent-gacha-wallet"><i class="fas fa-z"></i><b>{{gacha.creds}}</b></div>
+      <button type="button" class="agent-wide-btn agent-gacha-pull" data-action="gacha-pull" {{#if gacha.pulling}}disabled{{/if}}{{#unless gacha.canPull}} aria-disabled="true"{{/unless}}>
+        <i class="fas fa-circle-play"></i> {{#if gacha.pulling}}Pulling…{{else}}Pull! {{gacha.cost}}{{/if}}
+      </button>
+      <h3 class="agent-info-label">Buy zCreds</h3>
+      <div class="agent-gacha-bundles">
+        {{#each gacha.bundles}}<a class="agent-gacha-bundle{{#if best}} best{{/if}}" data-action="gacha-buy" data-bundle="{{i}}">{{#if best}}<em>Best value!</em>{{/if}}<b>{{zc}}</b><small>{{eb}}</small></a>{{/each}}
+      </div>
+      <p class="agent-info-note">Epic or better within {{gacha.pity.epic}} pulls · Legendary guaranteed within {{gacha.pity.legendary}}.</p>
+      <p class="agent-info-note agent-gacha-odds">{{#each gacha.odds}}<span><i class="agent-rarity-dot" style="--rarity: {{color}}"></i>{{name}} {{pct}}%</span>{{/each}}</p>
+      <p class="agent-info-note">Digital collectibles: no refunds.</p>
+    {{/if}}
+  {{/if}}
+
+  {{#if gacha.tab.shelf}}
+    {{#if gacha.gm}}
+      {{#each gacha.shelves}}
+        <h3 class="agent-info-label">{{name}}{{#if pity}} <small>({{pity.sinceEpic}} since an Epic, {{pity.sinceLegendary}} since a Legendary)</small>{{/if}}</h3>
+        <div class="agent-setting-row"><span>{{creds}}</span><a class="agent-icon-btn" data-action="gacha-creds" data-actor-id="{{id}}" title="Set {{name}}'s zCreds"><i class="fas fa-pen"></i></a></div>
+        <ol class="agent-app-list" data-short-list="gacha-pulls-{{id}}">
+          {{#each pulls}}
+            <li class="agent-app-item compact">
+              {{> gachaArt cls="agent-app-item-icon" tint=true}}
+              <div class="agent-app-item-main"><b>{{name}}</b><small><i class="agent-rarity-dot" style="--rarity: {{color}}"></i>{{rarityName}}{{#if real}} · real: {{real.name}}{{/if}}{{#if from}} · from {{from}}{{/if}}</small></div>
+              {{#unless real}}<a class="agent-icon-btn" data-action="gacha-real" data-actor-id="{{../id}}" data-pull-id="{{id}}" title="Make it a real item"><i class="fas fa-wand-magic-sparkles"></i></a>{{/unless}}
+              <a class="agent-icon-btn" data-action="gacha-remove" data-actor-id="{{../id}}" data-pull-id="{{id}}" title="Remove"><i class="fas fa-trash"></i></a>
+            </li>
+          {{/each}}
+        </ol>
+      {{else}}
+        <p class="agent-empty">Nobody has pulled anything yet.</p>
+      {{/each}}
+    {{else}}
+      <p class="agent-info-note">{{gacha.kinds}} of {{gacha.total}} collected{{#if gacha.owned}} · {{gacha.owned}} in all{{/if}} · {{gacha.creds}}.</p>
+      {{#if gacha.favs.length}}
+        <h3 class="agent-info-label"><i class="fas fa-thumbtack"></i> Favourites</h3>
+        <ol class="agent-gacha-shelf agent-gacha-favs">{{#each gacha.favs}}{{> gachaTile}}{{/each}}</ol>
+      {{/if}}
+      {{#with gacha.picked}}
+        <div class="agent-gacha-reveal rarity-{{rarity}}" style="--rarity: {{color}}">
+          {{> gachaArt}}
+          <small>{{rarityName}}{{#if real}} · came with {{real.name}}{{/if}}</small>
+          <b>{{name}}{{#if many}} · C{{level}}{{#if over}} +{{over}}{{/if}}{{/if}}</b>
+          {{#if text}}<p>{{text}}</p>{{/if}}
+          <div class="agent-money-actions">
+            <a class="pay" data-action="gacha-show" data-pull-id="{{id}}"><i class="fas fa-bullhorn"></i> Show off</a>
+            <a data-action="gacha-give" data-pull-id="{{id}}"><i class="fas fa-hand-holding-heart"></i> Give away</a>
+          </div>
+          <div class="agent-money-actions">
+            {{#if canFav}}<a data-action="gacha-fav" data-cid="{{cid}}" aria-pressed="{{#if fav}}true{{else}}false{{/if}}"><i class="fas fa-thumbtack"></i> {{#if fav}}Unpin{{else}}Pin{{/if}}</a>{{/if}}
+            {{#if sell}}<a data-action="gacha-sell" data-cid="{{cid}}"><i class="fas fa-coins"></i> Sell a spare{{#unless over}} (to C{{dropsTo}}){{/unless}} · {{sell}}</a>{{/if}}
+          </div>
+        </div>
+      {{/with}}
+      <ol class="agent-gacha-shelf">
+        {{#each gacha.shelf}}{{> gachaTile}}{{else}}<li class="agent-empty agent-gacha-shelf-empty">An empty shelf. Pull some capsules.</li>{{/each}}
+      </ol>
+      {{#if gacha.dupes}}<button type="button" class="agent-wide-btn" data-action="gacha-sell-all"><i class="fas fa-coins"></i> Sell {{gacha.dupes.count}} duplicates · {{gacha.dupes.zc}}</button>{{/if}}
+      <p class="agent-info-note">Each spare raises a collectible's level, up to C6. Selling or giving one away lowers it. Spares past C6 sell for more.</p>
+      <p class="agent-info-note">Pin up to {{gacha.favMax}} favourites to the top of your shelf.</p>
+    {{/if}}
+  {{/if}}
+</div>

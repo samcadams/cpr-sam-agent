@@ -10,6 +10,8 @@ import { formatMoney, moneyStyle } from "../../../model/money.js";
 import { playerCharacters } from "../../../model/contacts.js";
 import { CLEARABLE } from "../../../model/clearing.js";
 import { features, setFeature } from "../../../model/features.js";
+import { defaultSound, SOUND_KINDS, soundOptions } from "../../../model/sounds.js";
+import { previewSound } from "../../../util/audio.js";
 import { actorAvatar, displayName } from "../../../model/threads.js";
 import { store } from "../../../store.js";
 import {
@@ -27,6 +29,14 @@ import { esc, initials } from "../../../util/text.js";
 
 
 export const actions = {
+  /** Every phone → Default sounds: hear one, or pick a file of the GM's own. */
+  "default-sound-preview"({ kind }) {
+    previewSound(defaultSound(kind));
+  },
+  "default-sound-file"({ kind }) {
+    const setting = SOUND_KINDS[kind].setting;
+    new FilePicker({ type: "audio", current: game.settings.get(MODULE_ID, setting), callback: path => game.settings.set(MODULE_ID, setting, path) }).render(true);
+  },
   "control-signal"({ actorId }) {
     this._toggleSignal(actorId);
   },
@@ -56,6 +66,34 @@ export const inputs = {
   "input[data-feature]": {
     change(event) {
       setFeature(event.currentTarget.dataset.feature, event.currentTarget.checked);
+    }
+  },
+  /** Every phone → Sounds in the world: the switches, and the radius (its label follows while dragging). */
+  "input[data-world-setting]": {
+    "input change"(event) {
+      const input = event.currentTarget;
+      const key = input.dataset.worldSetting;
+      if (input.type === "checkbox") {
+        if (event.type === "change") game.settings.set(MODULE_ID, key, input.checked);
+        return;
+      }
+      const label = input.parentElement.querySelector(".agent-range-value");
+      if (label) label.textContent = `${input.value} ${canvas.scene?.grid.units || "m"}`;
+      if (event.type === "change") game.settings.set(MODULE_ID, key, Number(input.value));
+    }
+  },
+  /** This GM Phone → Pop-ups: how long the GM's pop-ups stay (its label follows while dragging). */
+  "input[data-gm-popup]": {
+    "input change"(event) {
+      const input = event.currentTarget;
+      if (input.type === "checkbox") {
+        if (event.type === "change") game.settings.set(MODULE_ID, "gmPopupAnswers", input.checked);
+        return;
+      }
+      const seconds = Number(input.value);
+      const label = input.parentElement.querySelector(".agent-range-value");
+      if (label) label.textContent = seconds ? `${seconds}s` : "Usual";
+      if (event.type === "change") game.settings.set(MODULE_ID, "gmPopupSeconds", seconds).then(() => this.render());
     }
   },
   "input[data-permission=playerUploads]": {
@@ -159,6 +197,14 @@ export const dropdowns = {
   }
 };
 
+// Every phone's default sound of each kind ("default-sound-text", …): saved, then played to hear it.
+for (const [kind, { setting }] of Object.entries(SOUND_KINDS)) {
+  dropdowns[`default-sound-${kind}`] = async function (value) {
+    await game.settings.set(MODULE_ID, setting, value);
+    previewSound(defaultSound(kind));
+  };
+}
+
 export const methods = {
   controlData(ctx) {
     const on = features();
@@ -169,7 +215,10 @@ export const methods = {
     }));
     return {
       features: [
-        { key: "freeInternal", label: "Players can turn off the Internal Agent HUD", note: "Off: Internal Agents are always a HUD (players pick which one); the \"Disable forced Internal Agent theming\" box is gone from their Settings.", on: on.freeInternal }
+        { key: "freeInternal", label: "Players can disable the forced Internal Agent skin", on: on.freeInternal },
+        { key: "shareTexts", label: "Share a few texts from a conversation to chat (players and the GM Phone)", on: on.shareTexts },
+        { key: "agentChat", label: "Say in chat when someone takes out or puts away their Agent (not an Internal Agent)", on: on.agentChat },
+        { key: "agentChatWhisper", label: "Only the GM sees it (whispered)", on: on.agentChatWhisper, sub: true, disabled: !on.agentChat }
       ],
       comms: on.comms,
       apps: [
@@ -190,6 +239,15 @@ export const methods = {
           { value: "mortal", label: "Mortally Wounded" }
         ].map(o => ({ ...o, selected: o.value === (this.bloodPreview ?? "") })), { title: "Preview on this phone", cls: "agent-wide" })
       },
+      defaultSounds: Object.entries(SOUND_KINDS).map(([kind, { label, setting }]) => ({
+        kind, label, picker: dropdown(`default-sound-${kind}`, soundOptions(kind, game.settings.get(MODULE_ID, setting)), { title: label, cls: "agent-wide" })
+      })),
+      worldSounds: {
+        textTone: game.settings.get(MODULE_ID, "textToneAtToken"),
+        ring: game.settings.get(MODULE_ID, "ringAtToken"),
+        radius: game.settings.get(MODULE_ID, "ringRadius"),
+        units: canvas.scene?.grid.units || "m"
+      },
       characters: playerCharacters().map(a => ({
         id: a.id,
         name: displayName(a),
@@ -199,6 +257,10 @@ export const methods = {
         conversations: store.threadsFor(a.id).length
       })),
       phone: this.lookData(ctx),
+      popups: {
+        seconds: game.settings.get(MODULE_ID, "gmPopupSeconds"),
+        answers: game.settings.get(MODULE_ID, "gmPopupAnswers")
+      },
       emoji: look.emoji.join(" "),
       catalog: this.emojiCatalogOpen ? emojiCatalog(look.emoji) : null,
       labels: rows(LABELS, look.labels),

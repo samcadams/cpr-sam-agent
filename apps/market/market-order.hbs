@@ -1,0 +1,51 @@
+{{!-- One Great River order (apps/market/market.hbs): the player's Orders tab, and the GM's queue and history (gm=true). --}}
+<article class="agent-market-card {{status}}" data-market-order="{{id}}"{{#if pending}} data-keep{{else if drone}} data-keep{{/if}}>
+  <header>
+    <span class="agent-market-status {{status}}">{{statusLabel}}</span>
+    {{#if gm}}<b>{{actorName}}</b>{{/if}}
+    <small>{{date}} {{time}}</small>
+    <b class="agent-market-card-total">{{totalLabel}}</b>
+  </header>
+  {{#if gm}}{{#if pending}}<small class="agent-market-funds{{#if short}} short{{/if}}">{{#if short}}<i class="fas fa-triangle-exclamation"></i> {{/if}}Balance {{balance}}{{#if userName}} · sent by {{userName}}{{/if}}</small>{{/if}}{{/if}}
+  <ol class="agent-market-lines">
+    {{#each lines}}
+      <li>
+        <a data-action="market-open" data-uuid="{{uuid}}">{{qty}}× {{name}}{{#if off}} <span class="agent-market-off" title="Hot Deal">−{{off}}%</span>{{/if}}</a>
+        {{#if ../gm}}{{#if ../pending}}
+          <input type="number" name="marketPrice" data-index="{{index}}" value="{{price}}" min="0" step="1" placeholder="price" aria-label="Price of one {{name}}" class="{{#if unpriced}}unpriced{{/if}}">
+        {{else}}<span>{{priceLabel}}</span>{{/if}}
+        {{else}}<span>{{priceLabel}}</span>{{/if}}
+      </li>
+    {{/each}}
+  </ol>
+  {{#if feeLabel}}<p class="agent-market-feeline"><i class="fas fa-helicopter"></i> Delivery {{feeLabel}}</p>{{/if}}
+  {{#if drone}}
+    <div class="agent-gr-drone">
+      <i class="fas fa-helicopter" aria-hidden="true"></i>
+      <span class="agent-gr-drone-track" role="progressbar" aria-label="Drone on its way"><span style="animation-duration: {{drone.ms}}ms; animation-delay: -{{drone.elapsed}}ms"></span></span>
+      <small>~{{drone.left}} min</small>
+    </div>
+  {{/if}}
+  {{#if note}}<p class="agent-market-note"><i class="fas fa-comment"></i> {{note}}</p>{{/if}}
+  {{#if gmNote}}<p class="agent-market-note"><i class="fas fa-store"></i> {{gmNote}}</p>{{/if}}
+  {{#if pending}}
+    {{#if gm}}
+      <input type="text" name="marketNote" placeholder="A note to the player (optional)" aria-label="A note to the player">
+      <div class="agent-btn-row">
+        <button type="button" class="agent-wide-btn" data-action="market-deny" data-order-id="{{id}}"><i class="fas fa-xmark"></i> Deny</button>
+        <button type="button" class="agent-wide-btn agent-market-order-btn" data-action="market-approve" data-order-id="{{id}}"><i class="fas fa-check"></i> Approve</button>
+      </div>
+    {{else}}
+      <div class="agent-btn-row">
+        <button type="button" class="agent-wide-btn" data-action="market-cancel" data-order-id="{{id}}"><i class="fas fa-ban"></i> Cancel order</button>
+        <button type="button" class="agent-wide-btn" data-action="market-reorder" data-order-id="{{id}}"><i class="fas fa-rotate-right"></i> Re-order</button>
+      </div>
+    {{/if}}
+  {{else if drone}}
+    {{#if gm}}<button type="button" class="agent-wide-btn" data-action="market-deliver" data-order-id="{{id}}"><i class="fas fa-box-open"></i> Deliver now</button>{{/if}}
+  {{else if gm}}
+    <a class="agent-icon-btn agent-market-remove" data-action="market-remove" data-order-id="{{id}}" title="Remove from the list"><i class="fas fa-trash"></i></a>
+  {{else}}
+    <button type="button" class="agent-wide-btn" data-action="market-reorder" data-order-id="{{id}}"><i class="fas fa-rotate-right"></i> Re-order</button>
+  {{/if}}
+</article>

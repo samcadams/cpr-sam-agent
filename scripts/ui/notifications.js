@@ -14,13 +14,18 @@ import { GmButton, TokenButton, updateButtons } from "./buttons.js";
 import { panToToken } from "./location.js";
 import { AgentPhone } from "./phone/AgentPhone.js";
 import { playPhoneSound } from "../util/audio.js";
+import { broadcastWaits, playRaidAlarm, showBroadcast } from "../../apps/cbk/broadcasts.js";
+import { directorTakesCalls } from "./director/state.js";
 
 /*
- * Pop-up notifications (ui/Toasts.js) for everything that happens while the phone is away: texts,
- * reactions, calls, job and contact-request notices, Agent alerts and the GM's cards from the apps.
+ * Pop-up notifications (ui/Toasts.js): texts, reactions, calls, Agent alerts (jobs and contact requests
+ * among them) and the GM's cards from the apps. Beside the phone button while the phone is away; as a
+ * banner on its screen while it's up. Alerts and GM cards are kept for the phone's notification center
+ * (ui/phone/core/shade.js).
  */
 
-const playTextSound = () => playPhoneSound("sound");
+/** The text tone of the phone a thread came to: the GM Phone for a GM, else that character's phone. */
+const playTextSound = thread => playPhoneSound("text", game.user.isGM ? game.user : game.actors.get(memberActorId(game.user, thread)));
 
 /** Is the phone receiving this thread on silent? PCs' phones keep their own setting; the GM's is on the user. */
 function isSilent(thread) {
@@ -65,48 +70,58 @@ function describeSender(thread, message) {
 
 const toastAnchor = () => (game.user.isGM ? GmButton.el : TokenButton.el);
 
+/** The phone (token or console) if it's up, not minimised: notifications for it show as banners there. */
+function upPhone(mode) {
+  const phone = AgentPhone.get(mode);
+  return phone.rendered && !phone._minimized ? phone : null;
+}
+
+/** Pop up a notification for that phone: a banner on it while it's up, else beside the phone button. */
+const pop = (mode, options) => Toasts.show({ ...options, anchor: toastAnchor(), phone: upPhone(mode) });
+
+/** Is the up phone already showing this conversation (or the list it's in)? Then it needs no banner. */
+const showing = (phone, thread) => !!phone && phone.app === "messages" && !phone.locked && !!phone._ctx && phone.affectedBy({ threadId: thread.id });
+
 /** Listen for everything that pops up. `refreshPhones` (main.js) redraws phones and badges. */
 export function installNotifications(refreshPhones) {
   // Texts, reactions and contact requests stay quiet while Communications are off (BangMe!'s
   // Transfer can still add a line to a conversation).
   Hooks.on(`${MODULE_ID}.received`, (thread, message) => {
     if (!commsOn()) return;
-    if (!isSilent(thread) && !message.quiet) playTextSound();
+    if (!isSilent(thread) && !message.quiet) playTextSound(thread);
 
     const mode = game.user.isGM ? "console" : "token";
-    const phone = AgentPhone.get(mode);
     // Only the phone in hand, and only for texts to that character.
     if (!game.user.isGM && phoneSubject()?.actor.id !== memberActorId(game.user, thread)) return;
-    if (phone.rendered && !phone._minimized) return; // the phone is up: its own badges and lists show it
+    const phone = upPhone(mode);
+    if (showing(phone, thread)) return;
 
     const style = styleFor(thread);
-    if (style === "open") AgentPhone.openThread(thread, mode);
-    else if (style === "toast") {
-      Toasts.show({ ...describe(thread, message), anchor: toastAnchor(), onClick: () => AgentPhone.openThread(thread, mode) });
-    }
+    if (style === "none") return;
+    // "Open the conversation" only takes the phone out of the pocket; one in use gets a banner.
+    if (style === "open" && !phone) AgentPhone.openThread(thread, mode);
+    else pop(mode, { ...describe(thread, message), onClick: () => AgentPhone.openThread(thread, mode) });
   });
 
   // Someone reacted to one of my messages.
   Hooks.on(`${MODULE_ID}.reacted`, (thread, message, reaction) => {
     if (!commsOn()) return;
     const mode = game.user.isGM ? "console" : "token";
-    const phone = AgentPhone.get(mode);
     if (!game.user.isGM && phoneSubject()?.actor.id !== memberActorId(game.user, thread)) return;
-    if (phone.rendered && !phone._minimized) return;
-    if (!isSilent(thread)) playTextSound();
+    if (showing(upPhone(mode), thread)) return;
+    if (!isSilent(thread)) playTextSound(thread);
     if (styleFor(thread) === "none") return;
-    Toasts.show({
+    pop(mode, {
       title: `${reaction.by} reacted with ${reaction.emoji}`,
       body: previewText(message),
       img: describe(thread, message).img,
       icon: "fa-face-smile",
-      anchor: toastAnchor(),
       onClick: () => AgentPhone.openThread(thread, mode)
     });
   });
 
   /**
-   * A notification from a character's Agent (host/agent.js): signed with the Agent's name, with the
+   * A notification from a character's Agent (apps/agent/host.js): signed with the Agent's name, with the
    * alert's answers as buttons. Only for the player holding that character's phone.
    */
   Hooks.on(`${MODULE_ID}.agentAlert`, alert => {
@@ -117,24 +132,26 @@ export function installNotifications(refreshPhones) {
     if (subject && subject.actor.id !== actor.id) return;
     // The Agent itself speaks: its notifications sound even with no signal (only silent mode stops them).
     const quiet = isSilenced(actor);
-    if (!quiet) playTextSound();
+    // A Night Market's raid warning has its own alarm; a broadcast the phone shows needs no banner (apps/cbk/broadcasts.js).
+    if (!quiet) {
+      if (alert.kind === "raid") playRaidAlarm();
+      else playPhoneSound("text", actor);
+    }
+    if (showBroadcast(AgentPhone.get("token"))?.id === alert.id) return;
+    // Tapping it opens what it's about (and clears it from the center, unless it still asks something).
     const open = () => {
-      const phone = AgentPhone.get("token");
-      // Notifications from an app open that app.
-      phone.app = { alex: "alex", garden: "garden", trauma: "trauma", money: "bangme" }[alert.kind] ?? "agent";
-      phone.locked = false;
-      phone.render(true);
+      if (!alert.choices.length && !broadcastWaits(alert)) store.request("alert-clear", { alertIds: [alert.id] });
+      AgentPhone.get("token").openAlert(alert);
     };
     const title = alert.from ?? agentLabel(actor);
     const bang = alert.ref?.type === "bang-in";
-    if (bang && !quiet) playPhoneSound("moneySound");
-    Toasts.show({
+    if (bang && !quiet) playPhoneSound("money", actor);
+    pop("token", {
       id: `alert:${alert.id}`,
       title,
       body: alert.text,
       icon: `fa-solid ${ALERT_KINDS[alert.kind]?.icon ?? "fa-robot"}`,
       cls: `ctp-toast-agent kind-${alert.kind}${bang ? " ctp-toast-bang" : ""}`,
-      anchor: toastAnchor(),
       duration: alert.choices.length ? 0 : 8000,
       onClick: open,
       actions: alert.choices.map((choice, i) => ({
@@ -147,74 +164,43 @@ export function installNotifications(refreshPhones) {
   /** Cards for the GM from the apps (host/core.js _gmCard): buttons send requests to the host. */
   Hooks.on(`${MODULE_ID}.gmCard`, card => {
     if (!game.user.isGM) return;
-    if (card.urgent) playTextSound();
+    if (card.urgent) playPhoneSound("text", game.user);
+    // Opening it or using a button deals with it: it leaves the notification center.
+    const done = () => store.request("gm-card-clear", { cardIds: [card.id] });
     const open = () => {
-      const phone = AgentPhone.get("console");
-      if (card.open?.app) phone.app = card.open.app;
-      if (card.open?.tab) Object.assign(phone, { gardenTab: card.open.tab, gardenPost: null, gardenAccount: null });
-      phone.render(true);
+      done();
+      AgentPhone.get("console").openCard(card);
     };
-    Toasts.show({
+    pop("console", {
       id: card.id,
       title: card.title,
       body: card.body,
       img: card.img,
       icon: `fa-solid ${card.icon ?? "fa-bell"}`,
       cls: `ctp-toast-gm${card.urgent ? " urgent" : ""}`,
-      anchor: toastAnchor(),
       duration: card.actions?.length || card.urgent ? 0 : 8000,
       onClick: open,
       actions: (card.actions ?? []).map(a => ({
         label: a.label, icon: a.icon, text: true,
-        onClick: () => (a.pan ? panToToken(a.pan) : store.request(a.request, a.data))
+        onClick: () => {
+          if (a.pan) panToToken(a.pan);
+          else store.request(a.request, a.data);
+          done();
+        }
       }))
     });
   });
 
+  // A card dealt with somewhere else (the app's GM page, the center, another GM) takes its pop-up with it.
+  Hooks.on(`${MODULE_ID}.gmCardGone`, cardIds => {
+    for (const id of cardIds) Toasts.dismiss(id);
+  });
 
-  // Quest log updates (players only; the host decides what's worth a notice).
-  // Notices from the host, e.g. signal restored.
+
+  // Notices from the host, e.g. signal restored. (Job and contact-request news come as Agent alerts and
+  // GM cards: host/quests.js, host/contactRequests.js.)
   Hooks.on(`${MODULE_ID}.notice`, notice => {
-    Toasts.show({ ...notice, anchor: toastAnchor() });
-  });
-
-  Hooks.on(`${MODULE_ID}.questNotice`, notice => {
-    const phone = AgentPhone.get("token");
-    if (phone.rendered && !phone._minimized) return;
-    const actor = phoneSubject()?.actor;
-    if (actor && notifyStyle(actor) === "none") return;
-    const icon = { completed: "fa-trophy", failed: "fa-skull" }[notice.status] ?? "fa-list-check";
-    Toasts.show({
-      title: notice.title,
-      body: notice.body,
-      icon,
-      cls: "ctp-toast-quest",
-      anchor: toastAnchor(),
-      onClick: () => {
-        phone.app = "quests";
-        phone.questId = notice.questId;
-        phone.render(true);
-      }
-    });
-  });
-
-  // Contact requests: the GM hears about new ones, players about the answer.
-  Hooks.on(`${MODULE_ID}.requestNotice`, ({ kind, request }) => {
-    if (!commsOn()) return;
-    const actor = game.actors.get(request.actorId);
-    const who = actor ? displayName(actor) : "Someone";
-    const open = () => {
-      const phone = AgentPhone.get(game.user.isGM ? "console" : "token");
-      phone.app = "contacts";
-      phone.render(true);
-    };
-    if (kind === "new") {
-      Toasts.show({ title: "Contact request", body: `${who} wants ${request.name}'s number`, icon: "fa-user-plus", anchor: toastAnchor(), onClick: open });
-    } else if (kind === "approved") {
-      Toasts.show({ title: "Contact added", body: `${request.name} is now in ${who}'s contacts`, icon: "fa-user-check", anchor: toastAnchor(), onClick: open });
-    } else {
-      Toasts.show({ title: "Request denied", body: `Couldn't get ${request.name}'s number`, icon: "fa-user-xmark", anchor: toastAnchor() });
-    }
+    pop(game.user.isGM ? "console" : "token", notice);
   });
 
   /**
@@ -230,6 +216,8 @@ export function installNotifications(refreshPhones) {
     const calls = commsOn() ? store.myCalls() : []; // Communications off: no calls
     const phone = AgentPhone.primary();
     const phoneUp = phone.rendered && !phone._minimized;
+    // The Director is open and takes calls (its call strip): no call toasts, and the GM Phone stays put.
+    const director = directorTakesCalls();
     const openPhone = () => {
       phone.callHidden = false;
       phone.render(true);
@@ -238,11 +226,11 @@ export function installNotifications(refreshPhones) {
     // One notification per ringing call. The GM may be rung as several NPCs in one call: Decline
     // declines them all, and Answer opens the phone to choose (unless there's only one).
     const ringing = calls.filter(r => r.ringing.length);
-    const ids = new Set(ringing.map(r => `call:${r.call.id}`));
+    const ids = new Set(director ? [] : ringing.map(r => `call:${r.call.id}`));
     for (const id of [...Toasts.byId.keys()]) if (id.startsWith("call:") && !ids.has(id)) Toasts.dismiss(id);
     for (const { call, ringing: mine } of ringing) {
       const id = `call:${call.id}`;
-      if (phoneUp || Toasts.has(id)) continue;
+      if (director || phoneUp || Toasts.has(id)) continue;
       const caller = call.participants.find(p => p.key === call.callerKey);
       const detail = call.groupName ? `Group call · ${call.groupName}` : call.line ?? "Incoming call";
       const answerAs = game.user.isGM ? ` (for ${mine.map(p => p.name).join(", ")})` : "";
@@ -270,7 +258,7 @@ export function installNotifications(refreshPhones) {
 
     // A call you've just joined brings the phone up.
     const active = calls.find(r => r.joined.length)?.call.id ?? null;
-    if (active && active !== lastActiveCall) {
+    if (active && active !== lastActiveCall && !director) {
       phone.callHidden = false;
       if (!phone.rendered) phone.render(true);
       else if (phone._minimized) phone.maximize();

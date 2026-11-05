@@ -1,0 +1,13 @@
+# Stir reactions in the "hype" mood: instant chatter about something the GM logged.
+# One per line. {place}: where it happened. {thing}: what people call it. Lines with {place} are
+# skipped when the happening has no place. Lines starting with # are ignored.
+YO did anyone see the {thing} at {place}?? 🔥
+{place} is going OFF tonight
+the {thing}!!! somebody get footage
+preem chaos at {place}, I'm on my way
+this {thing} is the best thing to happen to {place} all year
+NOVA. the {thing}. that's it, that's the post
+who's streaming {place} right now
+I KNEW something was gonna pop at {place}
+legends only. {thing}. tonight.
+somebody tell me they got the {thing} on braindance

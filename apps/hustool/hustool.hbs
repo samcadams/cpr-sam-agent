@@ -1,0 +1,107 @@
+{{!-- HusTool (apps/hustool/page.js). --}}
+{{> agent-app-bar hustool.bar}}
+{{#if hustool.gm}}
+  <div class="agent-info agent-app agent-hustool">
+    <details class="agent-section" data-section="hustoolGigs" {{#if hustool.open.hustoolGigs}}open{{/if}}>
+      <summary>Hustles</summary>
+      {{#unless hustool.hq}}<p class="agent-info-note">Needs CPR HQ downtime.</p>{{/unless}}
+      {{#each hustool.gigs}}
+        <h3 class="agent-info-label">{{who}} <small>{{open}} left · {{resolved}} resolved</small></h3>
+        {{#each troubles}}
+          <p class="agent-info-note agent-hustool-due">{{when}}: {{text}}, {{label}}</p>
+        {{/each}}
+        <div class="agent-short-list" data-short-list="hustool-gm-days-{{@index}}" data-short-last>
+        {{#each days}}
+          <div>
+          <div class="agent-hustool-day"><b>{{date}}</b></div>
+          <ol class="agent-app-list" data-short-list="hustool-gm-day-{{rowId}}-{{day}}">
+            {{#each errands}}
+              <li class="agent-app-item compact"><div class="agent-app-item-main"><span>{{text}}</span><span class="agent-row-time">{{time}}</span>
+                <small class="{{#if bad}}agent-hustool-bad{{else if isOpen}}{{else}}agent-hustool-ok{{/if}}">{{#if isOpen}}Banked{{else}}{{label}}{{/if}}{{#if roll}} · rolled {{roll}}{{/if}}{{#if payLabel}} {{payLabel}}{{/if}}{{#if district}} · {{district}}{{/if}}{{#if flavor}} · {{flavor}}{{/if}}</small></div></li>
+            {{/each}}
+          </ol>
+          </div>
+        {{/each}}
+        </div>
+      {{else}}
+        {{#if hustool.hq}}<p class="agent-info-note">Nobody has hustles.</p>{{/if}}
+      {{/each}}
+    </details>
+    <details class="agent-section" data-section="hustoolErrands" {{#if hustool.open.hustoolErrands}}open{{/if}}>
+      <summary>Errands ({{hustool.errands.length}})</summary>
+      <p class="agent-info-note">Each gig hour draws at random from those switched on, in their hours, and needing a vehicle only for a character carrying one. Hours run from–to on a 24-hour clock (22 to 4 wraps past midnight); empty is any time.</p>
+      <ol class="agent-app-list">
+        {{#each hustool.errands}}
+          <li class="agent-app-item agent-hustool-errand">
+            <div class="agent-app-item-main">
+              <div class="agent-hustool-row">
+                <input type="checkbox" data-hustool-errand="on" data-index="{{index}}" {{#if on}}checked{{/if}} aria-label="Offered">
+                <input type="text" data-hustool-errand="text" data-index="{{index}}" value="{{text}}" maxlength="120" aria-label="Errand">
+                <a data-action="hustool-errand-remove" data-index="{{index}}" title="Remove this errand"><i class="fas fa-trash"></i></a>
+              </div>
+              <div class="agent-hustool-row">
+                <input type="text" list="hustool-districts" data-hustool-errand="district" data-index="{{index}}" value="{{district}}" placeholder="Any district" aria-label="District">
+              </div>
+              <div class="agent-hustool-row">
+                <label>Hours <input type="number" min="0" max="23" data-hustool-errand="from" data-index="{{index}}" value="{{from}}" aria-label="From hour"></label>
+                <label>to <input type="number" min="0" max="23" data-hustool-errand="to" data-index="{{index}}" value="{{to}}" aria-label="To hour"></label>
+                <label class="agent-radio"><input type="checkbox" data-hustool-errand="vehicle" data-index="{{index}}" {{#if vehicle}}checked{{/if}}> Needs a vehicle</label>
+              </div>
+            </div>
+          </li>
+        {{/each}}
+      </ol>
+      <button type="button" class="agent-wide-btn" data-action="hustool-errand-add"><i class="fas fa-plus"></i> Add an errand</button>
+      <datalist id="hustool-districts">{{#each hustool.districts}}<option value="{{this}}">{{/each}}</datalist>
+    </details>
+    <details class="agent-section" data-section="hustoolSetup" {{#if hustool.open.hustoolSetup}}open{{/if}}>
+      <summary>Setup</summary>
+      <div class="agent-setting-row"><span>Pay per errand (eb)</span><input type="number" min="0" data-hustool-setting="pay" value="{{hustool.config.pay}}"></div>
+      <div class="agent-setting-row"><span>Hustles per gig hour</span><input type="number" min="1" max="10" data-hustool-setting="perHour" value="{{hustool.config.perHour}}"></div>
+      <label class="agent-radio"><input type="checkbox" data-hustool-setting="trouble" {{#if hustool.config.trouble}}checked{{/if}}> Trouble on a 10 (an encounter)</label>
+      <p class="agent-info-note">Settling downtime banks hustles for each hour of HusTool gigs. The player hits PAY ME, then Done, and the app rolls a d10: 1 goes sour (no pay), 10 pays but brings trouble.</p>
+      <p class="agent-info-note">Hustles pay at once, and bring at most one trouble per character per downtime day. What's left expires when the next round settles.</p>
+    </details>
+  </div>
+{{else}}
+  <div class="agent-info agent-app agent-hustool">
+    <div class="agent-hustool-banner"><b>HusTool</b> <small>by {{hustool.publisher}}</small>{{#if hustool.ready}}<span class="agent-hustool-today">Hustles: <b>{{hustool.hustles}}</b></span>{{/if}}</div>
+    {{#if hustool.running}}
+      <div class="agent-hustool-job" data-gig="{{hustool.running.id}}">
+        <div class="agent-hustool-job-text">{{hustool.running.text}}</div>
+        <small>{{hustool.running.date}} · {{hustool.running.time}}{{#if hustool.running.district}} · {{hustool.running.district}}{{/if}} · {{hustool.pay}}</small>
+        <div class="agent-money-actions">
+          <a class="pay" data-action="hustool-done" data-row-id="{{hustool.running.rowId}}" data-errand-id="{{hustool.running.id}}"><i class="fas fa-check"></i> Done</a>
+          <a class="decline" data-action="hustool-bail" data-row-id="{{hustool.running.rowId}}" data-errand-id="{{hustool.running.id}}">Bail</a>
+        </div>
+      </div>
+    {{else if hustool.hustles}}
+      <button type="button" class="agent-hustool-payme" data-action="hustool-payme" {{#unless hustool.online}}disabled{{/unless}}>PAY ME</button>
+      {{#if hustool.online}}<p class="agent-info-note">One hustle, one errand, {{hustool.pay}}.</p>{{else}}<p class="agent-info-note">No CitiNet connection.</p>{{/if}}
+    {{else if hustool.hq}}
+      <p class="agent-info-note">No hustles ready. Put HusTool gigs in your downtime schedule.</p>
+    {{else}}
+      <p class="agent-info-note">Needs CPR HQ downtime.</p>
+    {{/if}}
+    <div class="agent-short-list" data-short-list="hustool-days" data-short-last>
+    {{#each hustool.gigDays}}
+      <div{{#if open}} data-keep{{/if}}>
+      <div class="agent-hustool-day"><b>{{date}}</b>
+        {{#if open}}<a data-action="hustool-gig-day" data-row-id="{{rowId}}" data-day="{{day}}"><i class="fas fa-check-double"></i> Complete all ({{open}})</a>{{/if}}
+      </div>
+      <ol class="agent-app-list" data-short-list="hustool-day-{{rowId}}-{{day}}">
+        {{#each errands}}
+          {{#if resolved}}
+            <li class="agent-app-item compact" data-gig="{{id}}">
+              <div class="agent-app-item-main"><span>{{text}}</span><span class="agent-row-time">{{time}}</span>
+                <small class="{{#if bad}}agent-hustool-bad{{else}}agent-hustool-ok{{/if}}">{{label}}{{#if payLabel}} {{payLabel}}{{/if}}{{#if flavor}} · {{flavor}}{{/if}}</small>
+              </div>
+            </li>
+          {{/if}}
+        {{/each}}
+      </ol>
+      </div>
+    {{/each}}
+    </div>
+  </div>
+{{/if}}

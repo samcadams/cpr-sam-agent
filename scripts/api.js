@@ -1,18 +1,29 @@
 import { DEFAULT_CONTACT_IMG, MODULE_ID } from "./config.js";
+import { APP_MANIFEST } from "./apps/manifest.js";
+import { agentType } from "./model/agent.js";
 import { ALERT_KINDS } from "./model/apps.js";
 import { findContact, getContacts, playerCharacters, setContacts } from "./model/contacts.js";
 import { FEATURE_DEFAULTS, feature, noSignalSince, setFeature } from "./model/features.js";
-import { gardenTiers } from "./model/garden.js";
+import { hasWallet } from "./model/money.js";
+import { gardenNow, gardenTiers } from "../apps/garden/model.js";
 import { QUEST_STATUSES } from "./model/quests.js";
+import { ADDONS, hasAddon, installedSet, isInstalled, isLapsed, poolOn, setSubsBilledBy, subsBilledBy, subscriptionState } from "../apps/pool/model.js";
 import { getServices } from "./model/services.js";
 import { actorAvatar, displayName } from "./model/threads.js";
-import { covered, traumaConfig } from "./model/trauma.js";
+import { covered, findPlan, setTraumaBilledBy, subscriptionInfo, traumaBilledBy, traumaConfig } from "../apps/trauma/model.js";
 import { store } from "./store.js";
+import { activity, noteActivity, registerScreen } from "./ui/activity.js";
+import { AgentMonitor } from "./ui/AgentMonitor.js";
+import { Director } from "./ui/director/Director.js";
+import { detach } from "./ui/director/detach.js";
 import { AgentPhone } from "./ui/phone/AgentPhone.js";
+import { openLocation } from "./ui/location.js";
+import { embedPlace, mapEmbed } from "../apps/map/embed.js";
+import { plainSheet } from "../apps/screamsheet/model.js";
 import { patchSetting } from "./util/settings.js";
 
 /*
- * The macro API: game.modules.get("cpr-slopagent").api (documented in API.md).
+ * The macro API: game.modules.get("cpr-sam-agent").api (documented in API.md).
  *
  * Every change goes to the host (the active GM) as an ordinary request, so the host checks it exactly
  * as it checks the GM Phone: the API adds friendlier arguments (an Actor, Token, id, UUID or name for
@@ -142,7 +153,7 @@ async function addContact({ to, name = null, actor = null, img = null } = {}) {
 
 /**
  * GM: an Agent alert to one or more characters, with up to three answer buttons. `tag` comes back in
- * the cpr-slopagent.alertAnswered hook, so a macro can tell its own alerts' answers apart.
+ * the cpr-sam-agent.alertAnswered hook, so a macro can tell its own alerts' answers apart.
  */
 async function alert({ to, text: body, choices = [], kind = "advice", tag = null } = {}) {
   requireGM("Sending Agent alerts");
@@ -222,6 +233,27 @@ async function adjustWallet({ actor, amount, memo = "" } = {}) {
   await send("ledger-adjust", { actorId: resolveActor(actor).id, amount: n, memo });
 }
 
+/** Can this character be sent a BangMe! invoice? BangMe! on in Control, and a wallet and an Agent of their own. */
+function canInvoice(actor) {
+  const target = resolveActor(actor);
+  return !!feature("app_bangme") && hasWallet(target) && !!agentType(target);
+}
+
+/** GM: send a character a BangMe! invoice under any name. Nothing moves until they pay. */
+async function sendInvoice({ to, from, amount, memo = "", tag = null } = {}) {
+  requireGM("Billing");
+  const actor = resolveActor(to);
+  if (!canInvoice(actor)) fail(`${displayName(actor)} can't be invoiced: it takes BangMe!, a wallet and an Agent.`);
+  await send("invoice-send", { targetId: actor.id, fromName: contactName(from), amount: amountOf(amount), memo, tag });
+}
+
+/** GM: the invoices sent to characters, newest first; with `tag`, only those. */
+function listInvoices({ tag = null } = {}) {
+  requireGM("Reading invoices");
+  return Object.values(store.apps.invoices ?? {}).filter(i => i.toActor && (!tag || i.tag === tag)).sort((a, b) => b.ts - a.ts)
+    .map(i => ({ id: i.id, actorId: i.toActor, from: i.fromName, amount: i.amount, memo: i.memo, status: i.status, tag: i.tag ?? null }));
+}
+
 /* ---------------- Jobs ---------------- */
 
 /** GM: create a job (no `id`) or change one. Returns its id. New jobs start hidden and Available. */
@@ -289,6 +321,31 @@ async function gardenQueue(lines, { as = "@random", every = 5, jitter = 0 } = {}
   await send("garden-drip", { lines: Array.isArray(lines) ? lines.join("\n") : String(lines ?? ""), accountId, every, jitter });
 }
 
+/**
+ * GM: log a happening for the Garden's writer. No `what`: the Log an event pop-up (place and who
+ * prefilled from the scene). With it: logged at once; `stir` adds instant chatter (plan §6).
+ */
+async function gardenLogEvent({ what, place = "", who = [], heat = "local", public: isPublic = true, keywords = [], note = "", stir = false, thing = null } = {}) {
+  requireGM("Logging a Garden event");
+  if (what === undefined) return (await import("../apps/garden/log-event.js")).openWriterPopup({ tab: "event" });
+  if (!String(what).trim()) fail("Say what happened (`what`).");
+  const whoIds = resolveActors(who, "character").map(a => a.id);
+  // No keywords given: the ones the context suggests (what, place, who, the scene), as the pop-up does.
+  if (!keywords?.length) keywords = (await import("../apps/garden/log-event.js")).autoKeywords({ what, place, who: whoIds });
+  await send("garden-happening", {
+    happening: { what, place, who: whoIds, heat, public: isPublic, keywords, direction: note }, stir, thing
+  });
+}
+
+/** GM: plant a seed for the writer (no `what`: the pop-up). `by`: in-game seconds from now, or none. */
+async function gardenPlantSeed({ what, keywords = [], obvious = "subtle", by = null, sources = [] } = {}) {
+  requireGM("Planting a Garden seed");
+  if (what === undefined) return (await import("../apps/garden/log-event.js")).openWriterPopup({ tab: "seed" });
+  if (!String(what).trim()) fail("Say what the city should talk about (`what`).");
+  if (!keywords?.length) keywords = (await import("../apps/garden/log-event.js")).autoKeywords({ what, place: "", who: [], context: "" });
+  await send("garden-seed", { seed: { what, keywords, obvious, by: by === null ? null : gardenNow() + Number(by), sources: sources.map(s => gardenAccount(s).id) } });
+}
+
 /** The Garden's accounts: { id, handle, name, kind, followers, actorId }. */
 const gardenAccounts = () => Object.values(store.garden.accounts ?? {}).map(a => ({
   id: a.id, handle: a.handle, name: a.name, kind: a.kind, followers: a.followers ?? 0, actorId: a.actorId ?? null
@@ -299,11 +356,44 @@ const gardenAccounts = () => Object.values(store.garden.accounts ?? {}).map(a =>
 /** GM: give a character a Trauma Team plan (by id or name), paid for by `sponsor`. */
 async function traumaGrant({ actor, plan, sponsor = "" } = {}) {
   requireGM("Granting Trauma Team coverage");
-  const tiers = traumaConfig().tiers;
-  const want = String(plan ?? "").toLowerCase();
-  const tier = Object.keys(tiers).find(id => id === plan || tiers[id].name.toLowerCase() === want);
-  if (!tier) fail(`No Trauma Team plan "${plan}": ${Object.values(tiers).map(t => t.name).join(", ")}.`);
-  await send("tt-grant", { actorId: resolveActor(actor).id, tier, sponsor });
+  await send("tt-grant", { actorId: resolveActor(actor).id, tier: planId(plan), sponsor });
+}
+
+/** A plan's id from its id or name, or an error listing the plans. */
+function planId(plan) {
+  const tier = findPlan(plan);
+  if (!tier) fail(`No Trauma Team plan "${plan}": ${Object.values(traumaConfig().tiers).map(t => t.name).join(", ")}.`);
+  return tier;
+}
+
+/** A character's coverage: { status, covered, plan, memberId, sponsor, auto, since, nextDue, biolink, noAds }. */
+const traumaStatus = actor => subscriptionInfo(store.apps.subs?.[resolveActor(actor).id]);
+
+/**
+ * Let another module bill Trauma Team (e.g. CPR HQ with its Lifestyle bill): while `by` is set the Agent
+ * charges nothing, neither monthly nor when a player subscribes, and plans don't lapse on their own.
+ * Call it on every client each session (e.g. in the cpr-sam-agent.ready hook); null hands billing back.
+ */
+function handOffBilling(by) {
+  setTraumaBilledBy(by);
+  for (const phone of AgentPhone.all()) phone.refresh({ apps: true });
+}
+
+/** The GM's plans: [{ id, name, price, days, execRank, note }]. */
+const traumaPlans = () => Object.entries(traumaConfig().tiers).map(([id, plan]) => ({ id, ...plan }));
+
+/**
+ * GM: change a character's coverage. Only what's given changes: `plan` (id or name, null for none),
+ * `status` ("active", "lapsed" or "none"), `sponsor` (a name: never billed; null: billed),
+ * `nextDue` (world time, seconds), `biolink`, `noAds`, and `notify` (an Agent alert to send).
+ */
+async function traumaUpdate({ actor, plan, status, sponsor, nextDue, biolink, noAds, notify } = {}) {
+  requireGM("Changing Trauma Team coverage");
+  if (status !== undefined && !["active", "lapsed", "none"].includes(status)) fail(`Trauma Team status "${status}": use "active", "lapsed" or "none".`);
+  const target = resolveActor(actor);
+  const tier = plan === undefined ? undefined : plan === null ? null : planId(plan);
+  if (status && status !== "none" && !(tier ?? store.apps.subs?.[target.id]?.tier)) fail(`${displayName(target)} has no plan: give one (\`plan\`).`);
+  await send("tt-update", { actorId: target.id, tier, status, sponsor, nextDue, biolink, noAds, notify });
 }
 
 async function traumaRevoke(actor) {
@@ -319,6 +409,73 @@ async function traumaDispatch(actor, { reason = "" } = {}) {
 
 /** Is this character covered by Trauma Team right now? */
 const traumaCovered = actor => covered(store.apps.subs?.[resolveActor(actor).id]);
+
+/* ---------------- App Store (id "pool") ---------------- */
+
+/** An app id the App Store knows (not the App Store itself) or an add-on ("bigsaai"), or an error. */
+function poolApp(app) {
+  if ((!APP_MANIFEST[app] || app === "pool") && !ADDONS[app]) fail(`No app "${app}": ${[...Object.keys(APP_MANIFEST).filter(id => id !== "pool"), ...Object.keys(ADDONS)].join(", ")}.`);
+  return app;
+}
+
+const pool = {
+  /** Is the App Store switched on (phones show only what's installed)? */
+  on: () => poolOn(),
+  /** The app ids installed on a character's Agent (every app that's on while the App Store is off). */
+  installed: actor => {
+    const id = resolveActor(actor).id;
+    return poolOn() ? [...installedSet(store.apps.installs, id)] : Object.keys(APP_MANIFEST).filter(app => feature(`app_${app}`));
+  },
+  /** Is this app on the character's Agent (and not lapsed)? */
+  has: (actor, app) => {
+    const id = resolveActor(actor).id;
+    // An add-on counts whether or not the App Store is on.
+    if (ADDONS[poolApp(app)]) return hasAddon(store.apps.installs, id, app);
+    if (!poolOn()) return !!feature(`app_${poolApp(app)}`);
+    return isInstalled(store.apps.installs, id, poolApp(app)) && !isLapsed(store.apps.installs, id, app);
+  },
+  /** GM: install an app on a character's Agent, free. */
+  async grant({ actor, app } = {}) {
+    requireGM("Installing apps");
+    await send("pool-grant", { actorId: resolveActor(actor).id, app: poolApp(app) });
+  },
+  /** GM: take an app off a character's Agent, telling them why; `refund` pays back what they paid. */
+  async revoke({ actor, app, reason = "Removed", refund = false } = {}) {
+    requireGM("Removing apps");
+    await send("pool-revoke", { actorId: resolveActor(actor).id, app: poolApp(app), reason, refund });
+  },
+  /** GM: a Fixer's app package in a conversation with `from` (a contact name), for `price` eb. */
+  async sideload({ actor, app, price = 0, from = "Fixer", note = "" } = {}) {
+    requireGM("Sideloading apps");
+    await send("pool-sideload", { actorId: resolveActor(actor).id, app: poolApp(app), price, contact: contactName(from), note });
+  }
+};
+
+/**
+ * App subscriptions (monthly Pool apps), for a module that bills them (CPR HQ's Lifestyle bill), like
+ * Trauma Team's: `state(actor)` is { items: [{ app, name, price, status, since, paidThrough, sponsor }],
+ * total (a month of the active ones nobody sponsors), billedBy }.
+ */
+const subscriptions = {
+  state: actor => subscriptionState(store.apps.installs, resolveActor(actor).id),
+  /** Bill them yourself: while `by` is set the App Store charges nothing (not even on subscribing). null hands it back. Every client, each session. */
+  handOffBilling(by) {
+    setSubsBilledBy(by);
+    for (const phone of AgentPhone.all()) phone.refresh({ apps: true });
+  },
+  billedBy: () => subsBilledBy(),
+  /** GM: change one: `status` ("active", "lapsed", "cancelled"), `sponsor` (a name, or null), `notify` (an alert). */
+  async update({ actor, app, status, sponsor, notify } = {}) {
+    requireGM("Changing subscriptions");
+    if (status !== undefined && !["active", "lapsed", "cancelled"].includes(status)) fail(`Subscription status "${status}": use "active", "lapsed" or "cancelled".`);
+    await send("pool-sub", { actorId: resolveActor(actor).id, app: poolApp(app), status, sponsor, notify });
+  },
+  /** GM: the App Store's own monthly bill (when nobody else bills): what's due, or `all` the active ones. */
+  async bill(actor, { all = false } = {}) {
+    requireGM("Billing subscriptions");
+    await send("pool-bill", { actorId: resolveActor(actor).id, all });
+  }
+};
 
 /* ---------------- WatchBox ---------------- */
 
@@ -350,6 +507,84 @@ const phone = {
   }
 };
 
+/* ---------------- Map ---------------- */
+
+/**
+ * The Map app (apps/map): open this user's phone on a place of the Map, or draw a small inline map of one.
+ * A place: { noteId?, x?, y?, label?, sceneId? } (what Messages shares): `noteId` a Map pin, x/y the Map's px; one
+ * with a `sceneId` is on the Map only when that's the NAV scene it was seeded from (older shares). `open` falls back
+ * to that scene itself when the Map can't show it (no Map on the phone, another scene).
+ */
+const map = {
+  async open(place = {}) {
+    const p = phone.open();
+    if (!p.rendered) await new Promise(resolve => Hooks.once("renderAgentPhone", resolve));
+    if (p.mapOpen(place)) return true;
+    if (place.sceneId) await openLocation(place);
+    return false;
+  },
+  embed: (element, place, options = {}) => mapEmbed(element, place, { onOpen: to => map.open(to), ...options }),
+  canShow: place => !!embedPlace(place)
+};
+
+/**
+ * The GM's Agent Monitor, and what feeds it (ui/activity.js): `activity()` is what each player last
+ * reported (GM), `note(text)` adds a line to the GM's log from a player's client, and
+ * `registerScreen(appId, fn)` names a screen for the monitor.
+ */
+const monitor = {
+  open: () => (requireGM("The Agent Monitor"), AgentMonitor.open()),
+  close: () => AgentMonitor.instance?.close(),
+  toggle: () => (requireGM("The Agent Monitor"), AgentMonitor.toggle()),
+  activity: () => (requireGM("Reading players' activity"), foundry.utils.deepClone(Object.fromEntries(activity))),
+  note: noteActivity,
+  registerScreen
+};
+
+/** The GM Director: open, close or toggle it; `detach()` (an open Director) needs a click, like any pop-up. */
+const director = {
+  open: () => (requireGM("The Director"), Director.open()),
+  close: () => Director.instance?.close(),
+  toggle: () => (requireGM("The Director"), Director.toggle()),
+  detach: () => {
+    requireGM("The Director");
+    if (!Director.instance?.rendered) fail("Open the Director first.");
+    detach(Director.instance);
+  }
+};
+
+/**
+ * DataPool (apps/screamsheet): `publish({ outlet, headline, body, byline, image, subjects, tags, dv, reach, spin,
+ * rep, hours, draft })` puts a clipping out (or on the desk with `draft: true`, or `hours` of world time ahead);
+ * `drafts()` lists the desk's drafts (GM); `pulled(character)` the clippings a character's Agent has pulled;
+ * `crawl(character?, { roll })` crawls now (no roll: the passive crawl, Headlines; a roll: everything
+ * matching up to that DV, taken as is). The hook `cpr-sam-agent.screamPublished` gets each clipping that goes out.
+ */
+const screamsheet = {
+  async publish({ outlet = "wns", headline, body = "", byline = "", image = "", subjects = [], tags = [], dv = 0, reach = "public", spin = "accurate", rep = null, hours = 0, draft = false, title = "" } = {}) {
+    requireGM("Publishing clippings");
+    if (!headline) fail("A clipping needs a `headline`.");
+    const ids = resolveActors(subjects, "subject").map(a => a.id);
+    const clip = {
+      id: foundry.utils.randomID(), title, sheet: plainSheet({ outlet, headline, byline, text: body, image }),
+      subjects: ids, tags, dv, reach, spin, rep: repList(rep) ?? [], source: { kind: "api" }
+    };
+    await send("scream-save", { clip, publish: !draft, hours });
+    return clip.id;
+  },
+  drafts: () => (requireGM("Reading the DataPool desk"), foundry.utils.deepClone(Object.values(store.apps.screamClips ?? {}).filter(c => c.status === "draft"))),
+  pulled: character => {
+    const id = resolveActor(character).id;
+    return foundry.utils.deepClone(Object.values(store.apps.screamClips ?? {}).filter(c => (c.actorIds ?? []).includes(id)));
+  },
+  async crawl(character = null, { roll = null } = {}) {
+    requireGM("Running a DataPool crawl");
+    const actorId = character ? resolveActor(character).id : null;
+    if (roll !== null && !actorId) fail("A deep crawl needs a character.");
+    await send("scream-crawl", { actorId, total: roll });
+  }
+};
+
 /** GM: open the GM Phone on a character's conversation with a contact. */
 function openConversation({ to, from, hidden = false } = {}) {
   requireGM("Opening conversations");
@@ -370,16 +605,26 @@ export const api = Object.freeze({
   alert,
   // Signal and Control's switches
   hasSignal, setSignal, feature: featureOn, setFeature: setFeatureOn,
-  money: Object.freeze({ request: requestMoney, send: sendMoney, adjust: adjustWallet }),
+  money: Object.freeze({ request: requestMoney, send: sendMoney, adjust: adjustWallet, invoice: sendInvoice, invoices: listInvoices, canInvoice }),
   jobs: Object.freeze({ save: saveJob, offer: offerJob, setStatus: setJobStatus }),
   garden: Object.freeze({
-    post: gardenPost, queue: gardenQueue, accounts: gardenAccounts,
+    post: gardenPost, queue: gardenQueue, accounts: gardenAccounts, logEvent: gardenLogEvent, plantSeed: gardenPlantSeed,
     pause: () => (requireGM("Pausing the Garden"), send("garden-queue", { op: "pause" })),
     resume: () => (requireGM("Resuming the Garden"), send("garden-queue", { op: "resume" }))
   }),
-  trauma: Object.freeze({ grant: traumaGrant, revoke: traumaRevoke, dispatch: traumaDispatch, covered: traumaCovered }),
+  trauma: Object.freeze({
+    grant: traumaGrant, revoke: traumaRevoke, dispatch: traumaDispatch, covered: traumaCovered,
+    status: traumaStatus, plans: traumaPlans, update: traumaUpdate,
+    handOffBilling, billedBy: traumaBilledBy
+  }),
   watchbox: Object.freeze({ status: watchStatus, trigger: watchTrigger }),
+  pool: Object.freeze(pool),
+  subscriptions: Object.freeze(subscriptions),
   phone: Object.freeze(phone),
+  map: Object.freeze(map),
+  monitor: Object.freeze(monitor),
+  screamsheet: Object.freeze(screamsheet),
+  director: Object.freeze(director),
   // Internals, for debugging; not part of the API (they change between versions).
   store, AgentPhone
 });

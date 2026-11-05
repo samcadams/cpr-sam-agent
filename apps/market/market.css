@@ -1,0 +1,274 @@
+/*
+ * Great River (river blue; NC Market until 2026-10-21): the app's page (apps/market/page.js,
+ * apps/market/market.hbs). Ziggurat's drone-delivery store from Black Chrome p. 156: a clean delivery-service
+ * look, a two-wave logo, the drone's track on each order. Built from the phone's variables plus --gr-rgb, so
+ * skins and palettes carry over; the Burner's one-colour LCD keeps its own colour.
+ */
+
+.ctp-phone-app .agent-market { --gr-rgb: 56, 189, 248; }
+.ctp-phone-app.skin-burner .agent-market { --gr-rgb: var(--agent-cyan-rgb); }
+
+/* The banner: logo, name, and the store's terms (drone time, price cap or delivery fee). */
+.ctp-phone-app .agent-gr-banner {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 2px 8px;
+  margin: 0 0 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: linear-gradient(120deg, rgba(var(--gr-rgb), 0.28), rgba(var(--gr-rgb), 0.06) 70%), var(--agent-panel);
+  box-shadow: inset 0 0 0 1px rgba(var(--gr-rgb), 0.45);
+}
+.ctp-phone-app .agent-gr-logo svg {
+  display: block;
+  width: 34px;
+  height: 14px;
+  fill: none;
+  stroke: rgb(var(--gr-rgb));
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.ctp-phone-app .agent-gr-name {
+  display: flex;
+  flex-direction: column;
+  color: rgb(var(--gr-rgb));
+  font-weight: bold;
+  letter-spacing: 3px;
+  line-height: 1.1;
+}
+.ctp-phone-app .agent-gr-name small {
+  color: var(--agent-muted);
+  font-weight: normal;
+  letter-spacing: 0.5px;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+}
+.ctp-phone-app .agent-gr-terms {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+.ctp-phone-app .agent-gr-terms i { color: rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-gr-fine {
+  margin: 10px 0 2px;
+  color: var(--agent-muted);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  font-style: italic;
+  text-align: center;
+}
+
+/* A drone on its way: a little helicopter and its track (fills in real time; the host lands it). */
+.ctp-phone-app .agent-gr-drone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+  color: rgb(var(--gr-rgb));
+}
+.ctp-phone-app .agent-gr-drone small { color: var(--agent-muted); white-space: nowrap; }
+.ctp-phone-app .agent-gr-drone-track {
+  flex: 1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(var(--gr-rgb), 0.15);
+}
+.ctp-phone-app .agent-gr-drone-track span {
+  display: block;
+  height: 100%;
+  background: rgb(var(--gr-rgb));
+  animation: ctp-gr-fly linear forwards;
+}
+@keyframes ctp-gr-fly {
+  from { width: 0; }
+  to { width: 100%; }
+}
+.ctp-phone-app .agent-gr-drone > i { animation: ctp-gr-hover 1.2s ease-in-out infinite alternate; }
+@keyframes ctp-gr-hover {
+  to { transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ctp-phone-app .agent-gr-drone > i { animation: none; }
+}
+.ctp-phone-app .agent-market-subtotal {
+  display: flex;
+  justify-content: space-between;
+  color: var(--agent-muted);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+.ctp-phone-app .agent-market-feeline { margin: 2px 0; color: var(--agent-muted); font-size: calc(11px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-market-status.shipping { color: rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market-card.shipping { box-shadow: inset 3px 0 0 rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market-tile .agent-price-tier { margin-top: -2px; }
+
+.ctp-phone-app .agent-market-balance {
+  display: flex;
+  flex-direction: column;
+  margin: 2px 0 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(var(--gr-rgb), 0.1);
+  box-shadow: inset 0 0 0 1px rgba(var(--gr-rgb), 0.35);
+}
+.ctp-phone-app .agent-market-balance span { font-weight: bold; color: rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market-balance small { color: var(--agent-muted); font-size: calc(11px * var(--agent-font-scale, 1)); }
+
+.ctp-phone-app .agent-market-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.ctp-phone-app .agent-market-tools input[type=search] { flex: 1 1 100%; }
+.ctp-phone-app .agent-market-tools .agent-dropdown { flex: 1 1 0; min-width: 0; }
+.ctp-phone-app .agent-market-found { display: block; margin: 4px 0 2px; color: var(--agent-muted); font-size: calc(11px * var(--agent-font-scale, 1)); }
+
+.ctp-phone-app .agent-market-list .agent-avatar { object-fit: contain; cursor: pointer; }
+.ctp-phone-app .agent-market-list .agent-app-item-main { min-width: 0; }
+.ctp-phone-app .agent-market-list .agent-app-item-main b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctp-phone-app .agent-market-list .in-cart { box-shadow: inset 3px 0 0 rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market-price {
+  flex: none;
+  color: rgb(var(--gr-rgb));
+  font-weight: bold;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  white-space: nowrap;
+}
+.ctp-phone-app .agent-market-price.on-request { color: var(--agent-muted); font-weight: normal; font-style: italic; }
+.ctp-phone-app .agent-market-incart {
+  display: inline-block;
+  min-width: 1.5em;
+  border-radius: 8px;
+  background: rgb(var(--gr-rgb));
+  color: #111;
+  font-weight: bold;
+  text-align: center;
+}
+.ctp-phone-app .agent-market-qty { display: flex; align-items: center; gap: 4px; flex: none; }
+.ctp-phone-app .agent-market-qty .disabled { opacity: 0.35; pointer-events: none; }
+
+.ctp-phone-app .agent-market-total {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0;
+  font-size: calc(14px * var(--agent-font-scale, 1));
+}
+.ctp-phone-app .agent-market-total b { color: rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market textarea[name=marketCartNote],
+.ctp-phone-app .agent-market input[name=marketNote] { width: 100%; margin: 4px 0; }
+.ctp-phone-app button.agent-wide-btn.agent-market-order-btn:not([disabled]) {
+  border-color: rgba(var(--gr-rgb), 0.7);
+  color: rgb(var(--gr-rgb));
+}
+.ctp-phone-app .agent-market-note { margin: 4px 0; color: var(--agent-muted); font-style: italic; }
+.ctp-phone-app .agent-market-note.warn { color: rgb(var(--gr-rgb)); font-style: normal; }
+
+/* Orders: the player's list and the GM's queue. */
+.ctp-phone-app .agent-market-card {
+  position: relative;
+  margin: 6px 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--agent-panel);
+  box-shadow: inset 3px 0 0 var(--agent-muted);
+}
+.ctp-phone-app .agent-market-card.pending { box-shadow: inset 3px 0 0 rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market-card.approved { box-shadow: inset 3px 0 0 var(--agent-good); }
+.ctp-phone-app .agent-market-card.denied { box-shadow: inset 3px 0 0 var(--agent-magenta); }
+.ctp-phone-app .agent-market-card.cancelled { opacity: 0.6; }
+.ctp-phone-app .agent-market-card header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ctp-phone-app .agent-market-card header small { color: var(--agent-muted); }
+.ctp-phone-app .agent-market-card-total { margin-left: auto; color: rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market-status {
+  padding: 0 5px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.ctp-phone-app .agent-market-status.pending { color: rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market-status.approved { color: var(--agent-good); }
+.ctp-phone-app .agent-market-status.denied { color: var(--agent-magenta); }
+.ctp-phone-app .agent-market-funds { display: block; color: var(--agent-muted); }
+.ctp-phone-app .agent-market-funds.short { color: rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market-lines { margin: 4px 0; padding: 0; list-style: none; }
+.ctp-phone-app .agent-market-lines li { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.ctp-phone-app .agent-market-lines li span { color: var(--agent-muted); white-space: nowrap; }
+.ctp-phone-app .agent-market-lines input[name=marketPrice] { width: 72px; flex: none; text-align: right; }
+.ctp-phone-app .agent-market-lines input.unpriced { box-shadow: 0 0 0 1px rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market-remove { position: absolute; right: 6px; bottom: 6px; }
+
+/* GM Setup. */
+.ctp-phone-app .agent-market-packs { margin: 0 0 6px; padding: 0; list-style: none; }
+.ctp-phone-app .agent-market-packs .agent-radio { margin: 1px 0; }
+.ctp-phone-app .agent-market-gm .agent-setting-row input[type=number] { flex: none; width: 76px; text-align: right; }
+
+/* The day's picks (apps/market/market-shop.hbs): the Hot Deals carousel and the Featured tiles. */
+.ctp-phone-app .agent-market-off {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--agent-magenta);
+  color: #fff;
+  font-weight: bold;
+  font-style: normal;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  white-space: nowrap;
+}
+.ctp-phone-app .agent-market s { color: var(--agent-muted); font-weight: normal; }
+.ctp-phone-app .agent-market-deals .agent-info-label small { color: var(--agent-muted); font-weight: normal; }
+.ctp-phone-app .agent-market-deal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(var(--gr-rgb), 0.18), rgba(255, 90, 95, 0.12));
+  box-shadow: inset 0 0 0 1px rgba(var(--gr-rgb), 0.45);
+}
+.ctp-phone-app .agent-market-deal.in-cart { box-shadow: inset 0 0 0 1px rgba(var(--gr-rgb), 0.45), inset 3px 0 0 rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market-deal img { width: 56px; height: 56px; flex: none; object-fit: contain; cursor: pointer; }
+.ctp-phone-app .agent-market-deal-main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.ctp-phone-app .agent-market-deal-main b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctp-phone-app .agent-market-deal-main small { color: var(--agent-muted); }
+.ctp-phone-app .agent-market-deal-step { flex: none; }
+.ctp-phone-app .agent-market-dots { display: flex; justify-content: center; gap: 5px; margin: 5px 0 2px; }
+.ctp-phone-app .agent-market-dots a {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--agent-muted);
+  opacity: 0.5;
+  cursor: pointer;
+}
+.ctp-phone-app .agent-market-dots a.active { background: rgb(var(--gr-rgb)); opacity: 1; }
+
+.ctp-phone-app .agent-market-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-bottom: 4px; }
+.ctp-phone-app .agent-market-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  background: var(--agent-panel);
+  text-align: center;
+}
+.ctp-phone-app .agent-market-tile.in-cart { box-shadow: inset 0 0 0 1px rgb(var(--gr-rgb)); }
+.ctp-phone-app .agent-market-tile img { width: 40px; height: 40px; object-fit: contain; border: none; cursor: pointer; }
+.ctp-phone-app .agent-market-tile b { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(12px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-market-tile .agent-market-add { position: absolute; top: 2px; right: 2px; }
+
+/* Unavailable items (the GM's call), and the GM Shop's Hide / Unavailable buttons. */
+.ctp-phone-app .agent-market-list .unavailable { opacity: 0.55; }
+.ctp-phone-app .agent-market-block { flex: none; color: var(--agent-muted); font-style: italic; font-size: calc(11px * var(--agent-font-scale, 1)); }
+.ctp-phone-app .agent-market-gm .agent-market-list .agent-icon-btn.active { color: var(--agent-magenta); }
+.ctp-phone-app .agent-market-tools .agent-dropdown.agent-wide { flex: 1 1 100%; }
+
+/* The cart's typed quantity. */
+.ctp-phone-app .agent-market-qty input[name=marketQty] { width: 3.2em; text-align: center; -moz-appearance: textfield; }
+.ctp-phone-app .agent-market-qty input[name=marketQty]::-webkit-inner-spin-button { -webkit-appearance: none; }

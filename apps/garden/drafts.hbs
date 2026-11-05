@@ -1,0 +1,88 @@
+{{!-- The Garden's Drafts tab (GM): batches from the garden-writer skill (apps/garden/drafts-page.js). Context: _gardenDraftsData(). --}}
+<div class="agent-info agent-garden agent-garden-drafts">
+  <div class="agent-btn-row">
+    <button type="button" class="agent-wide-btn" data-action="garden-pack" title="Writes this world's writer pack (what the garden-writer skill in Claude Code reads) right now. It's also saved by itself whenever the Garden changes; this has nothing to do with the drafts below."><i class="fas fa-file-export"></i> Save writer pack now</button>
+  </div>
+  <p class="agent-garden-pack-status">Writer pack {{#if pack.written}}last saved {{pack.written}}{{else}}{{#if pack.missing}}not saved yet{{else}}…{{/if}}{{/if}} · <em>{{pack.path}}</em></p>
+
+  {{#each batches}}
+    <section class="agent-garden-batch{{#if broken}} broken{{/if}}">
+      <h3 class="agent-info-label">Batch {{id}}</h3>
+      <p class="agent-info-note">{{summary}}{{#if baseLabel}} · written for {{baseLabel}}{{/if}}{{#if legacy}} · old drip lines, 5 in-game minutes apart{{/if}}</p>
+      {{#if errors.length}}
+        <ul class="agent-garden-problems errors">
+          {{#each errors}}<li>{{#if line}}Line {{line}}: {{/if}}{{message}}</li>{{/each}}
+        </ul>
+        <p class="agent-info-note">This batch can't be approved. Ask the writer for a new one, or discard it.</p>
+      {{/if}}
+      {{#if warnings.length}}
+        <ul class="agent-garden-problems">
+          {{#each warnings}}<li>{{#if line}}Line {{line}}: {{/if}}{{message}}</li>{{/each}}
+        </ul>
+      {{/if}}
+      {{#each notes}}<p class="agent-garden-writer-note"><i class="fas fa-feather"></i> {{this}}</p>{{/each}}
+      {{#if feedback}}<p class="agent-garden-writer-note mine"><i class="fas fa-comment"></i> {{feedback}}</p>{{/if}}
+
+      {{#if mix.length}}
+        <div class="agent-garden-mix" title="The included posts and replies by ring">
+          {{#each mix}}<span class="ring-{{ring}}" style="flex: {{n}}">{{name}} {{pct}}%</span>{{/each}}
+        </div>
+      {{/if}}
+
+      <div class="agent-btn-row compact">
+        <a class="agent-card-more" data-action="garden-draft-all" data-batch="{{id}}" data-on="true">Include all</a>
+        <a class="agent-card-more" data-action="garden-draft-all" data-batch="{{id}}" data-on="false">Cut all</a>
+      </div>
+
+      {{#each days}}
+        <h4 class="agent-garden-day">{{label}}</h4>
+        <ol class="agent-app-list">
+          {{#each rows}}
+            <li class="agent-app-item compact agent-garden-draft{{#unless include}} faded{{/unless}}" data-key="{{key}}">
+              <a class="agent-icon-btn" data-action="garden-draft-toggle" data-batch="{{batch}}" data-key="{{key}}" title="{{#if include}}Included: tap to cut{{else}}Cut: tap to include{{/if}}"><i class="fas {{#if include}}fa-square-check{{else}}fa-square{{/if}}"></i></a>
+              <div class="agent-app-item-main">
+                <b><i class="fas {{kindIcon}}" title="{{kindName}}"></i> {{author}}</b>
+                {{#if isNew}}<span class="agent-garden-badge">new</span>{{/if}}
+                {{#if private}}<span class="agent-garden-badge private">private</span>{{/if}}
+                {{#if ringName}}<span class="agent-garden-badge ring-{{ring}}">{{ringName}}</span>{{/if}}
+                {{#if hook}}<span class="agent-garden-badge hook">hook</span>{{/if}}
+                {{#each seeds}}<span class="agent-garden-badge seed">seed {{this}}</span>{{/each}}
+                {{#if tierName}}<span class="agent-garden-badge">{{tierName}}</span>{{/if}}
+                {{#if edited}}<span class="agent-garden-badge">edited</span>{{/if}}
+                {{#if when}}<span class="agent-row-time">{{when}}</span>{{/if}}
+                <small>
+                  {{#if replyTo}}<i class="fas fa-reply"></i> to {{replyTo}}: {{/if}}
+                  {{#if before}}<s>{{before}}</s> → {{/if}}{{body}}
+                  {{#if img}}<br><i class="fas fa-image"></i> {{img}}{{/if}}
+                  {{#if repNames}}<br><i class="fas fa-star"></i> Reputation: {{repNames}}{{/if}}
+                  {{#if why}}<br><em>why: {{why}}</em>{{/if}}
+                  {{#each problems}}<br><span class="agent-garden-problem"><i class="fas fa-triangle-exclamation"></i> {{this}}</span>{{/each}}
+                </small>
+              </div>
+              {{#if editable}}<a class="agent-icon-btn" data-action="garden-draft-edit" data-batch="{{batch}}" data-key="{{key}}" title="Edit"><i class="fas fa-pen"></i></a>{{/if}}
+            </li>
+          {{/each}}
+        </ol>
+      {{/each}}
+
+      <div class="agent-btn-row">
+        <button type="button" class="agent-wide-btn" data-action="garden-drafts-approve" data-batch="{{id}}"{{#if broken}} disabled{{/if}}><i class="fas fa-check"></i> Approve {{included}}</button>
+        <button type="button" class="agent-wide-btn" data-action="garden-drafts-note" data-batch="{{id}}"><i class="fas fa-comment"></i> Note for the writer</button>
+        <button type="button" class="agent-wide-btn" data-action="garden-drafts-discard" data-batch="{{id}}"><i class="fas fa-trash"></i> Discard</button>
+      </div>
+    </section>
+  {{else}}
+    <p class="agent-empty">No drafts waiting. Run <em>/garden-writer</em> in Claude Code; its batch shows up here within a minute.</p>
+  {{/each}}
+
+  {{#if reviews.length}}
+    <h3 class="agent-info-label">Last reviewed</h3>
+    <ol class="agent-app-list">
+      {{#each reviews}}
+        <li class="agent-app-item compact"><div class="agent-app-item-main"><b>{{batch}}</b><small>{{approved}} approved · {{cut}} cut{{#if edited.length}} · {{edited.length}} edited{{/if}}{{#if note}} · {{note}}{{/if}} · {{when}}</small></div></li>
+      {{/each}}
+    </ol>
+  {{/if}}
+
+  <p class="agent-info-note">The writer (the <em>garden-writer</em> skill in Claude Code) reads this world's writer pack, saved by itself when the Garden changes, and writes batches into <em>{{inbox}}</em>. Approved posts, replies and texts wait in the Queue for their in-game time; whatever's already due goes out at once, backdated. Dating profiles, profile changes and stages apply when you approve.</p>
+</div>

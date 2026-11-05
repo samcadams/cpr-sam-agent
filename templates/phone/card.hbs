@@ -37,15 +37,15 @@
   </div>
 
   {{#if card.rename}}
-    <label class="agent-info-label">Name on your phone</label>
+    <h3 class="agent-info-label">Name on your phone</h3>
     <input type="text" name="contactAlias" value="{{card.rename.value}}" maxlength="60" placeholder="{{card.name}}">
   {{/if}}
 
   {{#if card.notes.editable}}
-    <label class="agent-info-label">Notes</label>
+    <h3 class="agent-info-label">Notes</h3>
     <textarea name="notes" rows="8" placeholder="Anything worth remembering: who they are, what they owe you…">{{card.notes.text}}</textarea>
   {{else if card.notes}}
-    <label class="agent-info-label">{{card.pc}}'s notes</label>
+    <h3 class="agent-info-label">{{card.pc}}'s notes</h3>
     <div class="agent-card-notes{{#if card.notes.long}}{{#unless card.notes.open}} clamped{{/unless}}{{/if}}">{{card.notes.text}}</div>
     {{#if card.notes.long}}
       <a class="agent-card-more" data-action="toggle-notes">{{#if card.notes.open}}Show less{{else}}Show all{{/if}}</a>
@@ -53,7 +53,7 @@
   {{/if}}
 
   {{#if card.gm}}
-    <label class="agent-info-label">On {{card.pc}}'s phone</label>
+    <h3 class="agent-info-label">On {{card.pc}}'s phone</h3>
     {{#if card.gm.canBlock}}
       <a class="agent-card-row{{#if card.noCall}} on{{/if}}" data-action="toggle-calls">
         <i class="fas fa-phone-slash"></i><span>Texts only<small>{{card.pc}} can text them but not call</small></span><b class="agent-switch"></b>
@@ -69,7 +69,7 @@
       <a class="agent-card-row danger" data-action="delete-thread"><i class="fas fa-trash"></i><span>Delete conversation<small>For everyone. This can't be undone.</small></span></a>
     {{/if}}
   {{else if card.canDeleteMine}}
-    <label class="agent-info-label">Conversation</label>
+    <h3 class="agent-info-label">Conversation</h3>
     <a class="agent-card-row danger" data-action="card-clear"><i class="fas fa-trash"></i><span>Delete from this phone</span></a>
   {{/if}}
 </div>

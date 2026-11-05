@@ -1,0 +1,88 @@
+/* Weather (apps/weather): cards, a 10-day strip, the GM's tool grid. */
+.agent-wx { display: flex; flex-direction: column; gap: 10px; }
+.agent-wx-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(var(--agent-cyan-rgb, 0, 240, 255), .05);
+  border: 1px solid rgba(var(--agent-cyan-rgb, 0, 240, 255), .14);
+}
+.agent-wx-card > :first-child { margin-top: 0; }
+.agent-wx-card > :last-child { margin-bottom: 0; }
+.agent-wx-alert { border-color: rgba(var(--agent-yellow-rgb, 255, 220, 0), .45); }
+.agent-wx-offline, .agent-wx-note, .agent-wx-meta { margin: 6px 0 0; font-size: .82em; color: var(--agent-muted, inherit); }
+
+/* Today */
+.agent-wx-today.strange { border-color: rgba(var(--agent-magenta-rgb, 255, 60, 120), .55); }
+.agent-wx-hero { display: flex; gap: 12px; align-items: center; }
+.agent-wx-big { font-size: 2.6em; width: 1.3em; text-align: center; color: var(--agent-cyan); }
+.agent-wx-today.strange .agent-wx-big { color: var(--agent-magenta, var(--agent-cyan)); }
+.agent-wx-now { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.agent-wx-now small { color: var(--agent-muted, inherit); }
+.agent-wx-cond { font-size: 1.3em; line-height: 1.1; }
+.agent-wx-wacky { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid rgba(var(--agent-cyan-rgb, 0, 240, 255), .12); font-style: italic; font-size: .85em; }
+.agent-wx-wacky cite { display: block; margin-top: 2px; font-size: .85em; font-style: normal; color: var(--agent-muted, inherit); }
+.agent-wx-tag { font-size: .8em; padding: 1px 6px; border-radius: 4px; background: rgba(var(--agent-yellow-rgb, 255, 220, 0), .2); }
+.agent-wx-tag.safe { background: rgba(80, 200, 120, .22); }
+
+/* The strip: ten days side by side, scrolling sideways on narrow phones. */
+.agent-wx-strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.agent-wx-tile {
+  flex: 0 0 17.5%;
+  min-width: 46px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 2px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: rgba(var(--agent-cyan-rgb, 0, 240, 255), .06);
+  color: var(--agent-text);
+  text-align: center;
+  cursor: pointer;
+}
+.agent-wx-tile:hover { background: rgba(var(--agent-cyan-rgb, 0, 240, 255), .14); }
+.agent-wx-tile.picked { border-color: var(--agent-cyan); background: rgba(var(--agent-cyan-rgb, 0, 240, 255), .16); }
+.agent-wx-tile.strange i { color: var(--agent-magenta, var(--agent-cyan)); }
+.agent-wx-tile > i { font-size: 1.35em; }
+.agent-wx-tday { font-size: .72em; color: var(--agent-muted, inherit); white-space: nowrap; }
+.agent-wx-tdeg { font-size: .9em; font-weight: bold; }
+.agent-wx-tile.wx-cold .agent-wx-tdeg { color: #7fc8ff; }
+.agent-wx-tile.wx-hot .agent-wx-tdeg { color: #ffaa55; }
+.agent-wx-tflags { font-size: .65em; min-height: 1em; opacity: .8; }
+.agent-wx-picked { margin: 8px 0 0; font-size: .85em; }
+
+/* Section heads that fold */
+.ctp-phone-app .agent-wx-head { border: none; padding: 0; text-transform: none; letter-spacing: normal; }
+.agent-wx-head { display: flex; align-items: baseline; gap: 6px; margin: 0; font-size: .95em; cursor: pointer; }
+.agent-wx-head small { margin-left: auto; font-weight: normal; font-size: .78em; color: var(--agent-muted, inherit); }
+.agent-wx-head + * { margin-top: 8px; }
+.agent-wx-head > .fa-chevron-down, .agent-wx-head > .fa-chevron-right { width: 1em; font-size: .75em; opacity: .7; }
+.agent-wx-subhead { margin: 12px 0 6px; font-size: .85em; color: var(--agent-muted, inherit); }
+.agent-wx-sub { display: block; margin-top: 8px; font-size: .85em; cursor: pointer; }
+
+/* The GM's tool grid: same-size buttons, icon over label. */
+.agent-wx-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.agent-wx-tools.two { grid-template-columns: repeat(2, 1fr); }
+.agent-wx-tools a {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  min-height: 44px; padding: 6px 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--agent-cyan-rgb, 0, 240, 255), .28);
+  background: rgba(var(--agent-cyan-rgb, 0, 240, 255), .07);
+  color: var(--agent-text);
+  font-size: .78em;
+  cursor: pointer;
+}
+.agent-wx-tools a i { font-size: 1.25em; color: var(--agent-cyan); }
+.agent-wx-tools a:hover { background: rgba(var(--agent-cyan-rgb, 0, 240, 255), .16); }
+.agent-wx-tools a.active { border-color: var(--agent-cyan); background: rgba(var(--agent-cyan-rgb, 0, 240, 255), .18); }
+.agent-wx-tools a.go { border-color: rgba(80, 200, 120, .6); }
+.agent-wx-tools a.go i { color: #5fd38a; }
+
+/* Rules, people, hazards, checks */
+.agent-wx-rules { margin: 8px 0 0 1.1em; padding: 0; font-size: .86em; display: flex; flex-direction: column; gap: 4px; }
+.agent-wx-people { margin: 6px 0 0 1.1em; padding: 0; font-size: .85em; }
+.agent-wx-hazards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.agent-wx-hazards li { display: flex; flex-direction: column; gap: 2px; }
+.agent-wx-hazards small, .agent-wx-check small { color: var(--agent-muted, inherit); font-size: .8em; }
+.agent-wx-check { display: flex; flex-direction: column; gap: 4px; padding: 8px 0; border-top: 1px solid rgba(var(--agent-cyan-rgb, 0, 240, 255), .1); }
+.agent-wx-head + .agent-wx-check { border-top: none; }
+.agent-wx-edit { margin-top: 10px; padding: 8px 10px; border-radius: 8px; background: rgba(0, 0, 0, .2); }

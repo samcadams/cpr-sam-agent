@@ -1,0 +1,157 @@
+/*
+ * Roach Race: the app's page (apps/roach/page.js, apps/roach/roach.hbs). The cabinet
+ * screen is the canvas; the bar and the stable use the phone's colour variables, so every skin carries over.
+ */
+
+.ctp-phone-app .agent-roach {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  background: #120a05;
+}
+
+.ctp-phone-app .agent-roach-screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Its size is set in apps/roach/page.js (the field's shape, within limits). */
+.ctp-phone-app .agent-roach-canvas {
+  display: block;
+  flex: none;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  image-rendering: pixelated;
+}
+
+.ctp-phone-app .agent-roach-bar {
+  flex: none;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-top: 2px solid #f5c542;
+  background: #1c120a;
+}
+
+.ctp-phone-app .agent-roach-bar button {
+  flex: 1;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-roach-pass {
+  flex: 1;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-roach-pass.on {
+  color: #f5c542;
+}
+
+.ctp-phone-app .agent-roach-pass.off {
+  color: #ff6b6b;
+}
+
+/* The stable. */
+.ctp-phone-app .agent-roach-note {
+  color: var(--agent-muted);
+  font-size: 0.9em;
+  margin: 6px 0;
+}
+
+.ctp-phone-app .agent-roach-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.ctp-phone-app .agent-roach-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--agent-border, rgba(255, 255, 255, 0.15));
+  border-radius: 6px;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-roach-card.riding {
+  border: 2px solid #f5c542;
+}
+
+.ctp-phone-app .agent-roach-card canvas {
+  width: 96px;
+  height: 72px;
+  image-rendering: pixelated;
+  border-radius: 4px;
+}
+
+.ctp-phone-app .agent-roach-card button {
+  width: 100%;
+}
+
+.ctp-phone-app .agent-roach-tag {
+  color: var(--agent-muted);
+  font-size: 0.9em;
+}
+
+/* The GM's page. */
+.ctp-phone-app .agent-roach-num {
+  width: 6em;
+  flex: none;
+}
+
+.ctp-phone-app .agent-roach-gm .agent-setting-row label {
+  flex: 1;
+}
+
+.ctp-phone-app .agent-roach-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 3px 0;
+}
+
+.ctp-phone-app .agent-roach-chip {
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(245, 197, 66, 0.15);
+  font-size: 0.85em;
+}
+
+.ctp-phone-app .agent-roach-steeds .agent-app-item {
+  gap: 4px;
+  align-items: center;
+}
+
+.ctp-phone-app .agent-roach-steeds input[type="text"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-roach-rank {
+  width: 1.6em;
+  text-align: right;
+  margin-right: 6px;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-roach-score {
+  font-weight: bold;
+  color: var(--agent-yellow);
+  margin-left: 6px;
+}

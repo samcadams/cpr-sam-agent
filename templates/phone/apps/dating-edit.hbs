@@ -1,8 +1,0 @@
-{{!-- A player's own dating profile, edited in place (ui/phone/pages/garden.js). Context: the profile. --}}
-<div class="agent-dating-edit">
-  <label class="agent-info-label"><i class="fas fa-heart"></i> Your Garden Dating Patch{{#if accountId}}</small>{{/if}}</label>
-  <div class="agent-setting-row"><span>Age</span><input type="number" data-dating-field="age" value="{{age}}" min="18" max="120"></div>
-  <input type="text" data-dating-field="p0" value="{{prompts.[0]}}" placeholder="Ideal date: …">
-  <input type="text" data-dating-field="p1" value="{{prompts.[1]}}" placeholder="Green flag: …">
-  <input type="text" data-dating-field="p2" value="{{prompts.[2]}}" placeholder="Don't message me if…">
-</div>

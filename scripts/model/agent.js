@@ -46,39 +46,42 @@ export const INTERNAL_THEMES = {
  *  palettes: the colour themes (THEMES) apply; the others bring their own colours
  *  dockSide: the app bar can go down the left side instead of along the bottom
  *  hud: a heads-up display for Internal Agents, in the HUD colours (INTERNAL_THEMES) and opacity
- *  topScreen: a second, display-only screen above the phone (clock, newest message)
  *  vitals: a heart-rate and HP strip from the character sheet
- *  ads: sponsored lines slide in (the GM writes them in Control)
  *  typeOut: new messages type out letter by letter
  *  base: another skin whose styles this one builds on (the window carries both classes)
- *  opacity: see-through, with the opacity slider (like the HUDs, but in the skin's own colours)
  * The Agent models are from R. Talsorian's "All About Agents".
  */
 export const SKINS = {
   classic: { name: "Neon Agent", blurb: "Chamfered corpo glass in your colour palette.", palettes: true, dockSide: true },
   zetatech: { name: "Zetatech Grade A", blurb: "Unobtrusive. Effective. Rectangular. The corporate grey everyone owns, with one accent colour.", palettes: true },
-  zetatechplus: { name: "Zetatech Grade A-Plus", blurb: "The Grade A slab with a holo-projector: the newest message and calls lift off the screen.", palettes: true },
-  double: { name: "Segotari Double Agent", blurb: "Everyone's first Agent: a cheap black clamshell with a second, display-only screen on the lid.", palettes: false, topScreen: true },
   yourplay: { name: "Segotari Agent (2019)", blurb: "The original \"Your Play\" toy: a pastel handheld where texts are game dialogue.", palettes: false, typeOut: true },
-  merlyn: { name: "Wyzard Merlyn", blurb: "A wrist Agent for people who want to be seen wearing one: a holo projected over the dial.", palettes: true, opacity: true },
   dot: { name: "Microtech Dot", blurb: "Pre-war salvage with a CitiNet chip slotted in: glossy 2020 buttons and repair tape.", palettes: false },
-  fieldConstruction: { name: "Field Agent: Construction", blurb: "High-vis rubber bumpers, huge buttons and a level bubble.", palettes: false },
   fieldMed: { name: "Field Agent: Med", blurb: "Trauma-kit white and red, with the biomonitor's vitals across the top.", palettes: false, vitals: true },
   fieldTech: { name: "Field Agent: Tech", blurb: "Gunmetal and exposed screws, with a diagnostics readout.", palettes: false },
   burner: { name: "Burner", blurb: "A 2000s brick phone: green LCD, pixel type, softkeys.", palettes: false },
-  zine: { name: "Street Zine", blurb: "A photocopied punk flyer: paper, tape and marker.", palettes: false },
-  braindance: { name: "Braindance", blurb: "A floating projection: no body, just corner brackets (the Raven Drake's HUD). Uses the HUD colours and opacity.", palettes: true, hud: true },
-  braingen: { base: "braindance", name: "Mediaware BrainGen", blurb: "The cheap Internal Agent: the Braindance HUD with sponsored content and a glitch on calls.", palettes: true, hud: true, ads: true },
-  pir2: { base: "braindance", name: "EBM PiR2", blurb: "Clinical and calm: thin white type, no scan sweep, never a glitch.", palettes: true, hud: true },
-  neuron: { base: "braindance", name: "Rocklin Augmentics Neuron", blurb: "No panels at all: text written straight onto the optic nerve, at the edges of your sight.", palettes: true, hud: true }
+  neuron: { base: "hud", name: "Rocklin Augmentics Neuron", blurb: "No panels at all: text written straight onto the optic nerve, at the edges of your sight.", palettes: true, hud: true }
 };
 
 /**
  * The HUD skins (hud: true) always use the HUD colours (INTERNAL_THEMES) and the HUD opacity. An
- * Internal Agent is forced onto one (Braindance unless it picked another), unless the player turned
- * that off.
+ * Internal Agent is forced onto the Neuron, unless the player turned that off.
  */
-export const INTERNAL_SKIN = "braindance";
+export const INTERNAL_SKIN = "neuron";
+
+/**
+ * Skins no longer offered, and the one a phone that used one gets instead. Its saved
+ * setting stays as it was until the player picks another.
+ */
+export const RETIRED_SKINS = {
+  zetatechplus: "zetatech",
+  double: "yourplay",
+  merlyn: "classic",
+  fieldConstruction: "fieldTech",
+  zine: "dot",
+  braindance: "neuron",
+  braingen: "neuron",
+  pir2: "neuron"
+};
 
 /** BrainGen's sponsored content, until the GM writes their own in Control (world setting "brainGenAds"). */
 export const DEFAULT_ADS = [
@@ -114,6 +117,7 @@ export function getPhoneSettings(owner) {
     quickReplies: [],
     emoji: [], // players: their own reaction keyboard (empty: the GM's set)
     dockApps: null, // apps on the dock (model/apps.js DEFAULT_DOCK when not set); the rest are on the home screen
+    homeOrder: [], // the home screen's order as its owner arranged it (app ids; model/apps.js arrange)
     navigation: "dock", // "dock": a dock of apps plus Apps; "home": a home screen of every app and a Home button
     agent: "internal",
     silent: false,
@@ -126,11 +130,12 @@ export function getPhoneSettings(owner) {
 
 /**
  * How a phone looks: its skin, colour palette (theme) and where the app bar goes.
- * An Internal Agent is the Braindance HUD in a HUD palette, unless its settings free it.
+ * An Internal Agent is the Neuron HUD in a HUD palette, unless its settings free it.
  */
 export function phoneLook(settings, internal = false) {
   const forced = internal && !settings.freeInternal;
-  const chosen = settings.skin in SKINS ? settings.skin : "classic";
+  const kept = RETIRED_SKINS[settings.skin] ?? settings.skin;
+  const chosen = kept in SKINS ? kept : "classic";
   const skin = forced && !SKINS[chosen].hud ? INTERNAL_SKIN : chosen;
   if (SKINS[skin].hud) {
     const theme = settings.internalTheme in INTERNAL_THEMES ? settings.internalTheme : INTERNAL_THEME;
@@ -187,6 +192,16 @@ export function agentType(actor) {
   const { internal, agent } = agentsOf(actor);
   if (internal && agent) return getPhoneSettings(actor).agent === "agent" ? "agent" : "internal";
   return internal ? "internal" : agent ? "agent" : null;
+}
+
+/** The Agent item in use (agentType's choice): the Internal Agent cyberware or the gear Agent, or null. */
+export function agentItem(actor) {
+  const type = agentType(actor);
+  if (!type) return null;
+  const list = names(type === "internal" ? "internalAgentNames" : "agentNames");
+  return actor.items.find(item => list.includes(item.name.trim().toLowerCase()) && (type === "internal"
+    ? item.type === "cyberware" && (item.system.isInstalledInActor ?? item.system.isInstalled)
+    : item.type !== "cyberware" && item.system.equipped !== "owned")) ?? null;
 }
 
 /** Can this character use their phone right now: they have an Agent, and cellular service? */

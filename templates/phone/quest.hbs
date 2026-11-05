@@ -1,9 +1,18 @@
 <div class="agent-thread-bar">
-  <a class="agent-icon-btn" data-action="quest-back" title="Back"><i class="fas fa-chevron-left"></i></a>
+  {{#unless quest.popout}}
+    <a class="agent-icon-btn" data-action="quest-back" title="Back"><i class="fas fa-chevron-left"></i></a>
+  {{/unless}}
   <div class="agent-thread-title">
     <div class="agent-thread-name">{{quest.name}}</div>
     <div class="agent-thread-sub">{{quest.statusLabel}}{{#if quest.hidden}} · hidden from players{{/if}}</div>
   </div>
+  {{#if quest.popout}}
+    {{#if quest.manage}}{{#unless quest.hidden}}
+      <a class="agent-icon-btn" data-action="quest-show-players" title="Pop out on players' screens"><i class="fas fa-users-viewfinder"></i></a>
+    {{/unless}}{{/if}}
+  {{else}}
+    <a class="agent-icon-btn" data-action="quest-popout" title="Pop out (stays up with the phone away)"><i class="fas fa-up-right-from-square"></i></a>
+  {{/if}}
   {{#if quest.manage}}
     <a class="agent-icon-btn{{#if quest.hidden}} active{{/if}}" data-action="quest-hide" title="{{#if quest.hidden}}Reveal to players{{else}}Hide from players{{/if}}">
       <i class="fas {{#if quest.hidden}}fa-eye-slash{{else}}fa-eye{{/if}}"></i>
@@ -13,20 +22,23 @@
   {{/if}}
 </div>
 <div class="agent-info agent-quest">
-  {{#if quest.manage}}
-    <div class="agent-info-row agent-quest-status">
-      <label class="agent-info-label">Status</label>
-      {{> agent-dropdown quest.statusPicker}}
-    </div>
-  {{else}}
-    <span class="agent-quest-badge status-{{quest.status}}">{{quest.statusLabel}}</span>
-  {{/if}}
+  {{!-- Popped out: no status (the GM sets it with the pencil). --}}
+  {{#unless quest.popout}}
+    {{#if quest.manage}}
+      <div class="agent-info-row agent-quest-status">
+        <h3 class="agent-info-label">Status</h3>
+        {{> agent-dropdown quest.statusPicker}}
+      </div>
+    {{else}}
+      <span class="agent-quest-badge status-{{quest.status}}">{{quest.statusLabel}}</span>
+    {{/if}}
+  {{/unless}}
   {{#if quest.img}}
     <img class="agent-quest-img" src="{{quest.img}}" alt="{{quest.name}}" data-action="open-photo" data-src="{{quest.img}}">
   {{/if}}
   {{#if quest.description}}<div class="agent-quest-desc">{{quest.description}}</div>{{/if}}
 
-  <label class="agent-info-label">Objectives</label>
+  <h3 class="agent-info-label">Objectives</h3>
   <ol class="agent-objectives">
     {{#each quest.objectives}}
       <li class="agent-objective state-{{state}}{{#if hidden}} is-hidden{{/if}}{{#if hiddenByParent}} is-hidden-parent{{/if}}" style="padding-left: {{indent}}px">

@@ -1,0 +1,2 @@
+- Combat Cabb's map is now the Map app's own: the NAV picture in full detail, the same pins and district names, the crew's GPS spot as the pickup, and the trip drawn along the roads (cyan). Tap a pin to go there; zones are ringed red. The GM's "map players see" is the same map.
+- No NAV scene? Pick "No map: Night City districts" and Cabb runs on Night City's 25 districts (placed as on the NAV map), picked from lists, with no map at all. They replace the old rough 19-place list.

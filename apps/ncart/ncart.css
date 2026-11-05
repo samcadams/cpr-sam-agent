@@ -1,0 +1,54 @@
+/*
+ * NCART Runner: the app's page (apps/ncart/page.js, apps/ncart/ncart.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-ncart {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background: #05010f;
+}
+
+/* Its size is set in apps/ncart/page.js (the field's shape, within limits). */
+.ctp-phone-app .agent-ncart-canvas {
+  display: block;
+  flex: none;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+.ctp-phone-app .agent-ncart-board .agent-app-item {
+  align-items: center;
+}
+
+.ctp-phone-app .agent-ncart-rank {
+  width: 1.6em;
+  text-align: right;
+  margin-right: 6px;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-ncart-score {
+  font-weight: bold;
+  color: var(--agent-yellow);
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-ncart-dist {
+  color: var(--agent-muted);
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-ncart-num {
+  width: 5em;
+  flex: none;
+}

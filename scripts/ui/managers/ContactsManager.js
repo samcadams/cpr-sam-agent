@@ -1,5 +1,6 @@
 import { DEFAULT_CONTACT_IMG, TEMPLATES } from "../../config.js";
 import { findContact, getContacts, getNote, noteKey, playerCharacters, setContacts } from "../../model/contacts.js";
+import { describeControls } from "../a11y.js";
 
 /*
  * GM window for editing a character's contacts (drag actors in, block, rename, pictures).
@@ -62,6 +63,7 @@ export class ContactsManager extends Application {
 
   activateListeners(html) {
     super.activateListeners(html);
+    describeControls(html[0]);
 
     html.find(".ctp-character-select").on("change", event => {
       this.setActor(game.actors.get(event.currentTarget.value));

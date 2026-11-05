@@ -1,0 +1,1 @@
+- Saving: the GM's browser asks "Leave site?" when they reload or close Foundry while a text or other change is still waiting to be saved, and starts that save at once.

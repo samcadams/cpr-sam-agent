@@ -1,3 +1,21 @@
 node_modules/
 docs/
-tests/
+# Compendiums are built from packs/_source (npm run build:packs)
+packs/*
+!packs/_source/
+# Built by npm run bundle (tools/bundle.mjs)
+dist/
+# RTG art, kept locally until the rename migration rewrites stored paths
+images/apps/4tify.webp
+images/apps/digital-gladiator.webp
+images/apps/ncpd-crime-database.webp
+images/apps/trauma-team-medscan.webp
+images/apps/ziggurat-city-database.webp
+images/apps/cbk.webp
+images/cbk/*
+images/achievements/*
+# RTG's Night City atlas (the Map's drop-in, content folder map/); kept locally until the rename migration rewrites stored paths
+images/map/*
+!images/map/icons/
+data/map/config.json
+data/map/pins.json

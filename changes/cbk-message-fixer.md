@@ -1,0 +1,1 @@
+- CBK Message the Fixer: with a Fixer contact set on the market, the Alerts tab gets a button that opens the conversation with that contact, "Re: <market>" typed in and nothing sent.

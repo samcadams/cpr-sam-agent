@@ -1,0 +1,111 @@
+{{!-- DataPool (apps/screamsheet/page.js). Players: My Crawl (with what their Agent watches for and the deep crawl), Front Page. The GM: the desk and what's published. --}}
+{{> agent-app-bar screamsheet.bar}}
+<div class="agent-info agent-app agent-scream{{#if screamsheet.gm}} agent-scream-gm{{/if}}">
+  {{#with screamsheet}}
+    {{#if none}}
+      <p class="agent-empty">Pick a character to read their DataPool.</p>
+    {{else}}
+      <div class="agent-tabs agent-scream-tabs">
+        {{#each tabs}}
+          <a class="agent-tab{{#if active}} active{{/if}}" data-action="scream-tab" data-tab="{{id}}">{{label}}{{#if count}} <span class="agent-tab-count">{{count}}</span>{{/if}}</a>
+        {{/each}}
+      </div>
+
+      {{#if gm}}
+        {{#if tab.desk}}
+          <div class="agent-scream-tools">
+            <a class="agent-btn" data-action="scream-write"><i class="fas fa-pen-nib"></i> Write one</a>
+            <a class="agent-btn{{#if writing}} disabled{{/if}}" data-action="scream-claude" title="Claude writes a draft in an outlet's voice, with your spin (your Ask Alex key)"><i class="fas {{#if writing}}fa-spinner fa-spin{{else}}fa-wand-magic-sparkles{{/if}}"></i> {{#if writing}}Claude is writing…{{else}}Draft with Claude{{/if}}</a>
+            <a class="agent-btn" data-action="scream-crawl-now" title="Every character's Agent crawls the Pool for Headlines now"><i class="fas fa-rotate"></i> Crawl now</a>
+          </div>
+
+          {{#each deep}}
+            <section class="agent-scream-card agent-scream-deep">
+              <h3><i class="fas fa-dice-d10"></i> {{name}} crawls deep</h3>
+              <p class="agent-scream-note">Library Search <b>{{total}}</b> <small>({{detail}})</small></p>
+              {{#if found.length}}
+                <p class="agent-scream-note">The roll reaches these. Untick what isn't there.</p>
+                {{#each found}}
+                  <label class="agent-scream-pick"><input type="checkbox" value="{{id}}" data-scream-found="{{../actorId}}" checked> {{headline}} <small>DV {{dv}}</small></label>
+                {{/each}}
+              {{else}}
+                <p class="agent-scream-note">Nothing published matches past what they have.</p>
+              {{/if}}
+              {{#if others}}<div class="agent-setting-row"><span>You also find</span>{{> agent-dropdown others}}</div>{{/if}}
+              <a class="agent-btn" data-action="scream-resolve" data-actor="{{actorId}}"><i class="fas fa-check"></i> Confirm</a>
+            </section>
+          {{/each}}
+
+          {{#if suggested.length}}
+            <h3 class="agent-scream-h">Suggested</h3>
+            {{#each suggested}}{{> agent-scream-desk this}}{{/each}}
+          {{/if}}
+
+          <h3 class="agent-scream-h">Drafts</h3>
+          {{#each drafts}}{{> agent-scream-desk this}}{{else}}<p class="agent-scream-note">No drafts. "Write one" starts a sheet.</p>{{/each}}
+
+          {{#if scheduled.length}}
+            <h3 class="agent-scream-h">Scheduled</h3>
+            {{#each scheduled}}{{> agent-scream-desk this}}{{/each}}
+          {{/if}}
+
+          {{#if journals.length}}
+            <h3 class="agent-scream-h">From journals</h3>
+            <div class="agent-short-list" data-short-list="scream-journals">
+              {{#each journals}}
+                <div class="agent-scream-card agent-scream-journal">
+                  <b>{{name}}</b> <small>{{outlet}}{{#if dv}} · DV {{dv}}{{/if}}</small>
+                  <div class="agent-scream-actions">
+                    <a data-action="scream-open-entry" data-id="{{id}}"><i class="fas fa-book-open"></i> Open</a>
+                    <a data-action="scream-journal" data-id="{{id}}"><i class="fas fa-file-import"></i> Make a draft</a>
+                  </div>
+                </div>
+              {{/each}}
+            </div>
+          {{/if}}
+        {{/if}}
+
+        {{#if tab.front}}
+          <div class="agent-short-list" data-short-list="scream-published">{{#each published}}{{> agent-scream-desk this}}{{else}}<p class="agent-empty">Nothing published yet.</p>{{/each}}</div>
+        {{/if}}
+
+      {{else}}
+        {{#if offline}}<p class="agent-scream-offline"><i class="fas fa-signal"></i> Pool unreachable{{#if last}}, last crawl {{last}}{{/if}}. You're reading what your Agent already pulled.</p>{{/if}}
+
+        {{#if tab.crawl}}
+          <section class="agent-scream-intro">
+            <p><i class="fas fa-satellite-dish" aria-hidden="true"></i> Your Agent watches the Data Pool for screamsheets that mention you, and only those.
+              It checks once a day and whenever something new hits the Pool.</p>
+            <p class="agent-scream-note">{{#if watching}}Watching for these.{{else}}Everything is muted, so your Agent watches for nothing.{{/if}} Tap your name, handle or crew to mute it; tap something you added to drop it.</p>
+            <div class="agent-scream-chips">
+              {{#each terms}}
+                <a class="agent-scream-chip{{#if muted}} muted{{/if}}{{#if (eq auto "false")}} extra{{/if}}" data-action="scream-term" data-term="{{term}}" data-auto="{{auto}}" aria-pressed="{{#if muted}}false{{else}}true{{/if}}" title="{{#if (eq auto "true")}}{{#if muted}}Muted: tap to watch again{{else}}Tap to mute{{/if}}{{else}}Tap to remove{{/if}}">
+                  <i class="fas {{icon}}" aria-hidden="true"></i> {{term}}{{#if (eq auto "false")}} <i class="fas fa-xmark" aria-hidden="true"></i>{{/if}}{{#if muted}} <small>(muted)</small>{{/if}}
+                </a>
+              {{/each}}
+            </div>
+            <div class="agent-scream-tools">
+              <a class="agent-btn" data-action="scream-look"><i class="fas fa-magnifying-glass-plus"></i> Look for something</a>
+              {{#if deep.review}}
+                <p class="agent-scream-digging">Your Agent is digging<span>.</span><span>.</span><span>.</span> <small>(rolled {{deep.total}})</small></p>
+              {{else}}
+                <a class="agent-btn{{#unless canDeep}} disabled{{/unless}}" data-action="scream-deep"{{#unless canDeep}} aria-disabled="true"{{/unless}} title="Library Search, your Agent adds +{{bonus}}. The GM decides what turns up."><i class="fas fa-dice-d10"></i> Send your Agent digging deeper</a>
+              {{/if}}
+            </div>
+            {{#if deep.done}}<p class="agent-scream-note">Last dig: rolled {{deep.total}}, {{#if deep.nothing}}nothing new past page 1.{{else}}{{deep.n}} found.{{/if}}</p>{{/if}}
+          </section>
+          {{#if unread}}<a class="agent-scream-readall" data-action="scream-read-all"><i class="fas fa-check-double"></i> Mark all read</a>{{/if}}
+          <div class="agent-scream-list">
+            {{#each mine}}{{> agent-scream-row this}}{{else}}<p class="agent-empty">Nothing about you on the Pool. Yet.</p>{{/each}}
+          </div>
+        {{/if}}
+
+        {{#if tab.front}}
+          <div class="agent-scream-list">
+            {{#each front}}{{> agent-scream-row this}}{{else}}<p class="agent-empty">The kiosks are quiet.</p>{{/each}}
+          </div>
+        {{/if}}
+      {{/if}}
+    {{/if}}
+  {{/with}}
+</div>

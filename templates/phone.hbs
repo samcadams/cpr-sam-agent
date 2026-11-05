@@ -1,16 +1,7 @@
-<div class="agent-phone">
-  {{#if topScreen}}
-    {{!-- The Double Agent's lid: a second screen you can't touch. --}}
-    <div class="agent-topscreen" aria-hidden="true">
-      <div class="agent-topscreen-clock"><span>{{topScreen.time}}</span><small>{{topScreen.date}}</small></div>
-      <div class="agent-topscreen-label">{{topScreen.label}}</div>
-      {{#if topScreen.name}}<div class="agent-topscreen-name">{{topScreen.name}}</div>{{/if}}
-      {{#if topScreen.text}}<div class="agent-topscreen-ticker"><span>{{topScreen.text}}</span></div>{{/if}}
-    </div>
-    <div class="agent-hinge"><span>SEGOTARI</span></div>
-  {{/if}}
-  <div class="agent-statusbar">
+<div class="agent-phone"{{#if screen}} data-screen="{{screen}}"{{/if}}>
+  <div class="agent-statusbar" data-action="shade" role="button" aria-expanded="{{#if shade}}true{{else}}false{{/if}}" aria-label="Notifications{{#if shadeCount}}: {{shadeCount}}{{/if}}" title="Notifications (tap or pull down)">
     <span class="agent-brand">{{brand}}{{#if silent}} <i class="fas fa-bell-slash" title="Silent"></i>{{/if}}</span>
+    {{#if shadeCount}}<b class="agent-shade-count">{{shadeCount}}</b>{{/if}}
     <span class="agent-time">{{time}}</span>
     {{#if online}}
       <span class="agent-signal"><i></i><i></i><i></i><i></i></span>
@@ -115,12 +106,9 @@
   {{!-- The apps (ui/phone/pages/home.js and the pages it opens). --}}
   {{#if page.appSettings}}{{> agent-app-settings}}{{/if}}
   {{#if page.home}}{{> agent-home}}{{/if}}
-  {{#if page.agent}}{{> agent-agent-app}}{{/if}}
-  {{#if page.bangme}}{{> agent-bangme}}{{/if}}
-  {{#if page.trauma}}{{> agent-trauma}}{{/if}}
-  {{#if page.alex}}{{> agent-alex}}{{/if}}
-  {{#if page.watchbox}}{{> agent-watchbox}}{{/if}}
-  {{#if page.garden}}{{> agent-garden}}{{/if}}
+  {{!-- The open app, by its partial (agent-app-<id>, see apps/manifest.js). --}}
+  {{#if citinetOff}}<p class="agent-citinet-off" role="status"><i class="fas fa-satellite-dish"></i> <b>No CitiNet connection.</b> {{citinetOff.name}} needs the CitiNet; apps that don't still work.</p>{{/if}}
+  {{#if appPartial}}{{> (lookup . "appPartial")}}{{/if}}
 
   {{#if page.splitEmpty}}
     <div class="agent-empty agent-split-empty"><i class="{{appearance.icons.messages}}"></i> Pick a conversation.</div>
@@ -143,6 +131,8 @@
   <div class="agent-emoji-picker" hidden>
     {{#each emoji}}<a data-action="pick-emoji" data-emoji="{{this}}">{{this}}</a>{{/each}}
   </div>
+
+  {{#if shade}}{{> agent-shade shade}}{{/if}}
 
   {{#if blood}}<div class="agent-blood {{blood}}" aria-hidden="true"><i></i><i></i><i></i></div>{{/if}}
 </div>

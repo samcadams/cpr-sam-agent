@@ -1,0 +1,253 @@
+{{!-- CBK (apps/cbk/page.js), drawn like Black Chrome's catalogue screens. Players: searching / databases / categories / list / listing / receipts. The GM: Markets / Listings / Receipts. --}}
+{{> agent-app-bar cbk.bar}}
+{{#if cbk.gm}}
+<div class="agent-info agent-app agent-cbk agent-cbk-gm">
+  <div class="agent-tabs">
+    {{#each cbk.tabs}}<a class="agent-tab{{#if active}} active{{/if}}" data-action="cbk-gm-tab" data-tab="{{id}}">{{label}}{{#if count}} <span class="agent-tab-count">{{count}}</span>{{/if}}</a>{{/each}}
+  </div>
+
+  {{#if cbk.tab.markets}}
+    <p class="agent-info-note">A market is open to every CBK while it's live (GO LIVE), unless it's invite-only. Buyers pay at once and pick up at the booth while the market is still live; you can hand over or refund in Receipts.</p>
+    {{#each cbk.markets}}
+      <article class="agent-cbk-gm-market{{#if live}} live{{/if}}">
+        <header>
+          {{#if letter}}<b class="agent-cbk-letter">{{letter}}</b>{{/if}}
+          <span class="agent-cbk-gm-name"><b>{{name}}</b><small>{{fixer}}{{#if fixer}} · {{/if}}{{count}} listings{{#if hidden}} ({{hidden}} hidden){{/if}}{{#if waiting}} · {{waiting}} to pick up{{/if}}{{#if inviteOnly}} · invite-only{{/if}}</small></span>
+        </header>
+        {{#if inviteOnly}}
+          <div class="agent-btn-row">
+            <button type="button" class="agent-wide-btn" data-action="cbk-invite" data-market="{{id}}" data-send="true"><i class="fas fa-key"></i> Send invite</button>
+            <button type="button" class="agent-wide-btn" data-action="cbk-invite" data-market="{{id}}" data-send="false"><i class="fas fa-hand-holding"></i> Give invite</button>
+          </div>
+        {{/if}}
+        <div class="agent-btn-row">
+          <button type="button" class="agent-wide-btn agent-cbk-golive{{#if live}} on{{/if}}" data-action="cbk-live" data-market="{{id}}" aria-pressed="{{#if live}}true{{else}}false{{/if}}">{{#if live}}<i class="fas fa-tower-broadcast"></i> LIVE · Go offline{{else}}<i class="fas fa-power-off"></i> GO LIVE{{/if}}</button>
+          <a class="agent-icon-btn" data-action="cbk-edit" data-market="{{id}}" title="Edit {{name}}"><i class="fas fa-pen"></i></a>
+          <a class="agent-icon-btn" data-action="cbk-delete" data-market="{{id}}" title="Delete {{name}}"><i class="fas fa-trash"></i></a>
+        </div>
+        {{#if live}}
+          <div class="agent-cbk-bc-kinds" role="group" aria-label="Broadcast to {{name}}">
+            {{#each kinds}}<a class="agent-cbk-bc-kind{{#if active}} active{{/if}}" data-action="cbk-compose" data-market="{{../id}}" data-kind="{{id}}" aria-pressed="{{#if active}}true{{else}}false{{/if}}" title="{{label}}"><i class="fas {{icon}}" aria-hidden="true"></i> {{label}}</a>{{/each}}
+          </div>
+          {{#with compose}}
+            <div class="agent-cbk-bc-form">
+              {{#if flash}}
+                {{> agent-dropdown targetPick}}
+                <label>% off <input type="number" data-cbk-compose="pct" value="{{pct}}" min="1" max="90" step="1" aria-label="Discount in percent"></label>
+                <label>Minutes <input type="number" data-cbk-compose="mins" value="{{mins}}" min="1" max="240" step="1" aria-label="How many minutes the sale runs"></label>
+              {{/if}}
+              {{#if raid}}{{> agent-dropdown byPick}}{{/if}}
+              <input type="text" data-cbk-compose="text" value="{{text}}" maxlength="300" placeholder="{{#if date}}e.g. Next Friday, same place{{else if policy}}e.g. No drawn weapons past the gate{{else}}Message (optional){{/if}}" aria-label="{{label}} text">
+              <button type="button" class="agent-wide-btn" data-action="cbk-broadcast" data-market="{{market}}"><i class="fas fa-tower-broadcast"></i> Send {{label}}</button>
+            </div>
+          {{/with}}
+        {{/if}}
+        {{#each auctions}}
+          <div class="agent-cbk-gm-auction">
+            <b><i class="fas fa-gavel" aria-hidden="true"></i> {{name}}</b>{{#if reserveLabel}} <small>reserve {{reserveLabel}}</small>{{/if}}
+            <ol class="agent-cbk-bc-sent">
+              {{#each rows}}<li><span>{{label}} ({{who}})</span><b>{{amount}}</b></li>{{else}}<li><span>No bids yet.</span></li>{{/each}}
+            </ol>
+            <div class="agent-btn-row">
+              <button type="button" class="agent-wide-btn" data-action="cbk-auction-sold" data-market="{{marketId}}" data-listing="{{listingId}}" {{#unless rows.length}}disabled{{/unless}}><i class="fas fa-gavel"></i> Sold!</button>
+              <button type="button" class="agent-wide-btn" data-action="cbk-auction-cancel" data-market="{{marketId}}" data-listing="{{listingId}}"><i class="fas fa-ban"></i> Cancel</button>
+            </div>
+          </div>
+        {{/each}}
+        {{#if sent.length}}
+          <ul class="agent-cbk-bc-sent">
+            {{#each sent}}<li class="{{#unless on}}ended{{/unless}}"><i class="fas {{icon}}" aria-hidden="true"></i> <span><b>{{label}}</b> {{line}} <small>{{when}}{{#unless on}} · ended{{/unless}}</small></span>{{#if endable}}<a class="agent-icon-btn" data-action="cbk-broadcast-end" data-market="{{../id}}" data-broadcast="{{id}}" title="End {{label}} now"><i class="fas fa-stop"></i></a>{{/if}}</li>{{/each}}
+          </ul>
+        {{/if}}
+      </article>
+    {{else}}
+      <p class="agent-empty">No Night Markets yet.</p>
+    {{/each}}
+    {{> agent-dropdown cbk.newPick}}
+    <p class="agent-info-note">The six presets are Black Chrome's Night Markets (A–F) with their booths and catalogue items, matched by name to your world items and compendiums (Black Chrome's first). Where each market meets and who gets in are yours to fill in.</p>
+  {{/if}}
+
+  {{#if cbk.tab.listings}}
+    {{#if cbk.editPick}}{{> agent-dropdown cbk.editPick}}{{/if}}
+    {{#with cbk.market}}
+      <div class="agent-cbk-gm-fields">
+        <input type="text" data-cbk-market="{{id}}" data-field="name" value="{{name}}" maxlength="60" placeholder="Market name" aria-label="Market name">
+        <input type="text" data-cbk-market="{{id}}" data-field="fixer" value="{{fixer}}" maxlength="60" placeholder="Fixer" aria-label="Fixer">
+        <input type="text" data-cbk-market="{{id}}" data-field="letter" value="{{letter}}" maxlength="1" placeholder="Letter" aria-label="Booth letter">
+        <input type="text" data-cbk-market="{{id}}" data-field="where" value="{{where}}" maxlength="120" placeholder="Where" aria-label="Where it's held">
+        <textarea data-cbk-market="{{id}}" data-field="rules" rows="2" maxlength="300" placeholder="When, invites, house rules" aria-label="House rules">{{rules}}</textarea>
+        <label class="agent-cbk-gm-switch"><input type="checkbox" data-cbk-switch="{{id}}" data-field="invite" {{#if inviteOnly}}checked{{/if}}> Invite-only</label>
+        {{#if inviteOnly}}<input type="text" data-cbk-passcode="{{id}}" value="{{access.passcode}}" maxlength="40" placeholder="Passcode" aria-label="Passcode">{{/if}}
+        <label class="agent-cbk-gm-switch"><input type="checkbox" data-cbk-switch="{{id}}" data-field="rex" {{#if rex}}checked{{/if}}> Rex's game on its listings</label>
+      </div>
+    {{/with}}
+    {{#if cbk.market}}
+      {{> agent-dropdown cbk.fixerPick}}
+      <h3 class="agent-info-label">Add an item</h3>
+      <input type="search" name="cbkAddSearch" value="{{cbk.addSearch}}" placeholder="Search your items and compendiums" aria-label="Search items to list" data-live autocomplete="off">
+      {{#if cbk.addLoading}}<p class="agent-empty"><i class="fas fa-spinner fa-spin"></i> Loading the catalogue…</p>{{/if}}
+      <ul class="agent-app-list">
+        {{#each cbk.addRows}}
+          <li class="agent-app-item compact"><img class="agent-avatar" src="{{img}}" alt=""><div class="agent-app-item-main"><b>{{name}}</b><small>{{typeLabel}} · {{priceLabel}} · {{sourceLabel}}</small></div>
+            <a class="agent-icon-btn" data-action="cbk-add" data-uuid="{{uuid}}" title="List {{name}}"><i class="fas fa-plus"></i></a></li>
+        {{/each}}
+      </ul>
+      {{> agent-dropdown cbk.appPick}}
+      <h3 class="agent-info-label">Listings ({{cbk.listings.length}})</h3>
+      <p class="agent-info-note">Booth: e.g. C1 or C1/E3. Stock: blank = as many as they like; 0 = sold out.</p>
+      <ul class="agent-app-list agent-cbk-gm-listings" data-short-list="cbk-listings">
+        {{#each cbk.listings}}
+          <li class="agent-app-item compact{{#if hidden}} unavailable{{/if}}">
+            <img class="agent-avatar" src="{{#if img}}{{img}}{{else}}icons/svg/item-bag.svg{{/if}}" alt="" {{#if uuid}}data-action="cbk-item" data-uuid="{{uuid}}"{{/if}}>
+            <div class="agent-app-item-main"><b>{{name}}</b><small>{{catLabel}}{{#if sub}} > {{sub}}{{/if}}{{#if corp}} · {{corp}}{{/if}}{{#if missing}} · <i class="fas fa-triangle-exclamation" title="No matching item: a plain gear item is handed over"></i> no item{{/if}}</small>
+              <span class="agent-cbk-gm-inputs">
+                <input type="text" data-cbk-listing="{{id}}" data-market="{{../cbk.market.id}}" data-field="booths" value="{{boothText}}" placeholder="Booth" aria-label="Booth of {{name}}">
+                <input type="number" data-cbk-listing="{{id}}" data-market="{{../cbk.market.id}}" data-field="price" value="{{price}}" min="0" step="1" aria-label="Price of {{name}}">
+                <input type="number" data-cbk-listing="{{id}}" data-market="{{../cbk.market.id}}" data-field="stock" value="{{stockText}}" min="0" step="1" placeholder="∞" aria-label="Stock of {{name}}">
+              </span>
+            </div>
+            {{#if canAuction}}<a class="agent-icon-btn" data-action="cbk-auction-start" data-market="{{../cbk.market.id}}" data-listing="{{id}}" title="Start auction: {{name}}"><i class="fas fa-gavel"></i></a>{{/if}}
+            <a class="agent-icon-btn{{#if hidden}} active{{/if}}" data-action="cbk-hide" data-market="{{../cbk.market.id}}" data-listing="{{id}}" aria-pressed="{{#if hidden}}true{{else}}false{{/if}}" title="{{#if hidden}}Show{{else}}Hide{{/if}} {{name}}"><i class="fas fa-eye-slash"></i></a>
+            <a class="agent-icon-btn" data-action="cbk-remove" data-market="{{../cbk.market.id}}" data-listing="{{id}}" title="Remove {{name}}"><i class="fas fa-xmark"></i></a>
+          </li>
+        {{else}}
+          <li class="agent-empty">No listings yet.</li>
+        {{/each}}
+      </ul>
+    {{else}}
+      <p class="agent-empty">Make a market in the Markets tab first.</p>
+    {{/if}}
+  {{/if}}
+
+  {{#if cbk.tab.receipts}}
+    <h3 class="agent-info-label">Waiting for pick-up</h3>
+    {{#each cbk.paid}}{{> agent-cbk-receipt this gm=true}}{{else}}<p class="agent-empty">Nothing waiting.</p>{{/each}}
+    {{#if cbk.done.length}}<h3 class="agent-info-label">Done</h3><div class="agent-short-list" data-short-list="cbk-done">{{#each cbk.done}}{{> agent-cbk-receipt this gm=true}}{{/each}}</div>{{/if}}
+  {{/if}}
+</div>
+{{else}}
+<div class="agent-info agent-app agent-cbk">
+  <header class="agent-cbk-head">
+    <img class="agent-cbk-logo" src="{{cbk.logo}}" alt="CBK">
+    {{#if cbk.market}}
+      <label class="agent-cbk-search"><input type="search" name="cbkSearch" value="{{cbk.search}}" placeholder="Search" aria-label="Search {{cbk.market.name}}" data-live autocomplete="off"><i class="fas fa-magnifying-glass" aria-hidden="true"></i></label>
+    {{/if}}
+  </header>
+  {{#with cbk.market}}<div class="agent-cbk-market"><span>{{#if letter}}<b class="agent-cbk-letter">{{letter}}</b> {{/if}}{{name}}</span>{{#if fixer}}<small>{{fixer}}</small>{{/if}}</div>{{/with}}
+  {{#if cbk.chips}}
+    <div class="agent-cbk-chips"><span>other categories</span>{{#each cbk.chips}}<a class="agent-cbk-chip" style="--cbk-cat: {{color}}" data-action="cbk-cat" data-cat="{{id}}">{{label}}</a>{{/each}}</div>
+  {{/if}}
+  {{#if cbk.crumb}}<h3 class="agent-cbk-crumb">{{cbk.crumb}}</h3>{{/if}}
+
+  {{#if cbk.view.searching}}
+    <div class="agent-cbk-searching" role="status">
+      <span class="agent-cbk-radar" aria-hidden="true"><i></i></span>
+      <b>Searching for database…</b>
+      <small>{{#if cbk.offline}}No CitiNet connection.{{else}}CBK finds a Night Market's listings once you're there and the Fixer has gone live.{{/if}}</small>
+    </div>
+  {{/if}}
+
+  {{#if cbk.view.databases}}
+    <p class="agent-cbk-found">{{cbk.databases.length}} databases found</p>
+    {{#each cbk.databases}}
+      <a class="agent-cbk-database" data-action="cbk-connect" data-market="{{id}}">{{#if letter}}<b class="agent-cbk-letter">{{letter}}</b>{{/if}}<span><b>{{name}}</b><small>{{fixer}} · {{count}} listings</small></span><i class="fas fa-chevron-right"></i></a>
+    {{/each}}
+  {{/if}}
+
+  {{#if cbk.view.home}}
+    <div class="agent-cbk-tiles">
+      {{#each cbk.tiles}}
+        <a class="agent-cbk-tile{{#unless count}} empty{{/unless}}" style="--cbk-cat: {{color}}" data-action="cbk-cat" data-cat="{{id}}">
+          {{#if img}}<img src="{{img}}" alt="">{{else}}<i class="fas fa-mobile-screen-button agent-cbk-tile-icon" aria-hidden="true"></i>{{/if}}<span>{{label}}<small>{{count}} listing{{#unless (eq count 1)}}s{{/unless}}</small></span>
+        </a>
+      {{/each}}
+    </div>
+    {{#with cbk.market}}{{#if rules}}<p class="agent-cbk-rules"><i class="fas fa-circle-info"></i> {{rules}}</p>{{/if}}{{/with}}
+  {{/if}}
+
+  {{#if cbk.upcoming.length}}
+    <h3 class="agent-cbk-crumb">Upcoming</h3>
+    <ul class="agent-cbk-upcoming">
+      {{#each cbk.upcoming}}<li>{{#if letter}}<b class="agent-cbk-letter">{{letter}}</b> {{/if}}<span><b>{{name}}</b>{{#if fixer}}<small>{{fixer}}</small>{{/if}}</span></li>{{/each}}
+    </ul>
+  {{/if}}
+
+  {{#if cbk.view.list}}
+    <ol class="agent-cbk-list">
+      {{#each cbk.rows}}
+        <li class="{{#if soldOut}}sold{{/if}}"><a data-action="cbk-open" data-listing="{{id}}">
+          {{#if appIcon}}<i class="fas {{appIcon}} agent-cbk-appicon" aria-hidden="true"></i>{{else}}<img src="{{#if img}}{{img}}{{else}}icons/svg/item-bag.svg{{/if}}" alt="">{{/if}}
+          <span class="agent-cbk-list-main"><b>{{name}}</b><small>{{#if corp}}{{corp}} · {{/if}}{{#if sub}}{{sub}}{{else}}{{catLabel}}{{/if}}</small></span>
+          <span class="agent-cbk-list-price">{{#if soldOut}}<em>SOLD OUT</em>{{else if inAuction}}<em>AUCTION</em>{{else}}{{#if was}}<s>{{was}}</s> {{/if}}{{priceLabel}}<small>{{#if sale}}{{sale}}% off · {{/if}}{{tier}}</small>{{/if}}</span>
+        </a></li>
+      {{else}}
+        <li class="agent-empty">Nothing here.</li>
+      {{/each}}
+    </ol>
+  {{/if}}
+
+  {{#if cbk.view.listing}}
+    {{#with cbk.listing}}
+      <article class="agent-cbk-card{{#if soldOut}} sold{{/if}}">
+        <div class="agent-cbk-card-top">
+          {{#if appIcon}}<i class="fas {{appIcon}} agent-cbk-photo agent-cbk-appicon" aria-hidden="true"></i>
+          {{else}}<img class="agent-cbk-photo" src="{{#if img}}{{img}}{{else}}icons/svg/item-bag.svg{{/if}}" alt="" {{#if uuid}}data-action="cbk-item" data-uuid="{{uuid}}" title="Open {{name}}"{{/if}}>{{/if}}
+          <div class="agent-cbk-card-head">
+            <h4>{{name}}</h4>
+            {{#if corp}}<span class="agent-cbk-corp">{{corp}}</span>{{/if}}
+            <b class="agent-cbk-price">{{#if was}}<s aria-label="was {{was}}">{{was}}</s> {{/if}}{{priceLabel}}{{#if tier}} ({{tier}}){{/if}}</b>
+            {{#if rexDeal}}<span class="agent-cbk-flash"><i class="fas fa-dice" aria-hidden="true"></i> REX'S DEAL {{sale}}% off</span>
+            {{else if sale}}<span class="agent-cbk-flash"><i class="fas fa-bolt" aria-hidden="true"></i> FLASH SALE {{sale}}% off</span>{{/if}}
+          </div>
+        </div>
+        <div class="agent-cbk-buy">
+          {{#if soldOut}}<span class="agent-cbk-sold">SOLD OUT</span>
+          {{else if auction}}
+            <div class="agent-cbk-auction">
+              <b><i class="fas fa-gavel" aria-hidden="true"></i> AUCTION</b>
+              <span class="agent-cbk-high">{{#if auction.highLabel}}High bid {{auction.highLabel}} ({{#if auction.mine}}you{{else}}{{auction.bidder}}{{/if}}){{else}}No bids yet{{/if}}</span>
+              <small>Next bid at least {{auction.minLabel}}. Held at once, back if you're outbid.</small>
+              <input type="number" data-cbk-bid="{{id}}" value="{{auction.value}}" min="{{auction.min}}" step="1" aria-label="Your bid on {{name}}">
+              <button type="button" class="agent-cbk-buynow" data-action="cbk-bid" data-market="{{@root.cbk.market.id}}" data-listing="{{id}}" {{#if auction.short}}disabled title="You can't cover it"{{/if}}>BID</button>
+            </div>
+          {{else}}<button type="button" class="agent-cbk-buynow" data-action="cbk-buy" data-market="{{@root.cbk.market.id}}" data-listing="{{id}}" {{#if short}}disabled title="You can't afford it"{{/if}}>BUY NOW!!!</button>{{/if}}
+          <small class="agent-cbk-booth">{{boothLine}}{{#if boothNames}} ({{boothNames}}){{/if}}</small>
+          {{#if stock}}<small class="agent-cbk-stock">{{stock}} left</small>{{/if}}
+        </div>
+        {{#with rex}}
+          <div class="agent-cbk-rex">
+            {{#if canPlay}}<button type="button" class="agent-wide-btn" data-action="cbk-rex-play" data-market="{{@root.cbk.market.id}}" data-listing="{{../id}}"><i class="fas fa-dice"></i> Play Rex's game</button><small>A coin flip or a card draw for a discount, paid in favours.</small>{{/if}}
+            {{#if pending}}<small><i class="fas fa-dice"></i> Rex is dealing…</small>{{/if}}
+            {{#if lost}}<small><i class="fas fa-dice"></i> Rex took that one. No discount this market.</small>{{/if}}
+            {{#if used}}<small><i class="fas fa-dice"></i> You've spent Rex's deal on this one.</small>{{/if}}
+          </div>
+        {{/with}}
+        {{#if loading}}<p class="agent-cbk-pitch"><i class="fas fa-spinner fa-spin"></i></p>{{else if pitch}}<p class="agent-cbk-pitch">{{pitch}}</p>{{/if}}
+      </article>
+    {{/with}}
+  {{/if}}
+
+  {{#if cbk.view.alerts}}
+    {{#if cbk.market.fixerContact}}<button type="button" class="agent-wide-btn agent-cbk-fixer" data-action="cbk-message-fixer" data-market="{{cbk.market.id}}"><i class="fas fa-comment"></i> Message the Fixer</button>{{/if}}
+    <ol class="agent-cbk-alerts" data-short-list="cbk-alerts">
+      {{#each cbk.alerts}}
+        <li class="kind-{{kind}}{{#unless on}} ended{{/unless}}"><i class="fas {{icon}}" aria-hidden="true"></i><span><b>{{label}}</b>{{line}}<small>{{when}}{{#unless on}} · over{{/unless}}</small></span></li>
+      {{else}}
+        <li class="agent-empty">No alerts from {{@root.cbk.market.fixer}}{{#unless @root.cbk.market.fixer}}the Fixer{{/unless}} yet.</li>
+      {{/each}}
+    </ol>
+  {{/if}}
+
+  {{#if cbk.view.receipts}}
+    <div class="agent-short-list" data-short-list="cbk-receipts">{{#each cbk.receipts}}{{> agent-cbk-receipt this}}{{else}}<p class="agent-empty">No receipts yet.</p>{{/each}}</div>
+  {{/if}}
+
+  <p class="agent-cbk-fine">What you get may not look or work exactly like the listing.</p>
+</div>
+<nav class="agent-cbk-nav" aria-label="CBK">
+  <a data-action="cbk-back" title="Back" class="{{#unless cbk.market}}{{#unless cbk.view.receipts}}disabled{{/unless}}{{/unless}}"><i class="fas fa-play fa-flip-horizontal"></i></a>
+  {{#if cbk.market}}<a data-action="cbk-alerts" title="Alerts" class="agent-cbk-bell{{#if cbk.view.alerts}} active{{/if}}"><i class="fas fa-bell"></i>{{#if cbk.alertCount}}<b>{{cbk.alertCount}}</b>{{/if}}</a>{{/if}}
+  <a data-action="cbk-receipts" title="Receipts" class="agent-cbk-cart{{#if cbk.view.receipts}} active{{/if}}"><i class="fas fa-cart-shopping"></i>{{#if cbk.waiting}}<b>{{cbk.waiting}}</b>{{/if}}</a>
+  <a data-action="cbk-next" data-listing="{{cbk.next}}" title="Next listing" class="{{#unless cbk.next}}disabled{{/unless}}"><i class="fas fa-play"></i></a>
+</nav>
+{{/if}}

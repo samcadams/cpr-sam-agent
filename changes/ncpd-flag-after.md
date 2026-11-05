@@ -1,0 +1,1 @@
+- NCPD Crime Database (GM Phone): a delivered lookup can be flagged or unflagged after the fact from its row in Delivered. Flagging sends the usual GM card; the player is never told.

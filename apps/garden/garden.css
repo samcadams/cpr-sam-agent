@@ -1,0 +1,608 @@
+/*
+ * The Garden: the app's page (apps/garden/page.js, apps/garden/garden.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-garden-feed,
+.ctp-phone-app .agent-garden-replies {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ctp-phone-app .agent-garden-post {
+  display: flex;
+  gap: 8px;
+  padding: 8px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.ctp-phone-app .agent-garden-post.rep {
+  box-shadow: inset 3px 0 0 var(--agent-yellow);
+  padding-left: 6px;
+}
+
+.ctp-phone-app .agent-garden-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-garden-head {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-garden-head a {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ctp-phone-app .agent-garden-head .agent-row-time {
+  margin-left: auto;
+}
+
+.ctp-phone-app .agent-garden-handle {
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-garden-verified {
+  color: var(--agent-good);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-garden-rep {
+  color: var(--agent-yellow);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 0.5px;
+}
+
+.ctp-phone-app .agent-garden-text {
+  margin: 2px 0 4px;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  line-height: 1.35;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  user-select: text;
+}
+
+.ctp-phone-app .agent-garden-reply > div {
+  user-select: text;
+}
+
+.ctp-phone-app .agent-garden-img {
+  max-height: 180px;
+}
+
+.ctp-phone-app .agent-garden-counts {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-garden-counts a:hover,
+.ctp-phone-app .agent-garden-counts a.on {
+  color: var(--agent-good);
+}
+
+.ctp-phone-app .agent-garden-tier {
+  margin-left: auto;
+  padding: 0 5px;
+  border: 1px solid var(--agent-muted);
+  border-radius: 6px;
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-garden-reply {
+  padding: 6px 4px 6px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-garden-reply-delete {
+  float: right;
+  margin-left: 6px;
+  color: var(--agent-muted);
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-garden-reply-delete:hover {
+  color: var(--agent-magenta);
+}
+
+/* On a Patch: the post a reply answers, quoted small above it. */
+.ctp-phone-app .agent-garden-reply-to {
+  margin: 2px 0;
+  padding-left: 6px;
+  border-left: 2px solid rgba(var(--agent-cyan-rgb), 0.3);
+  color: var(--agent-muted);
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ctp-phone-app .agent-garden-composer {
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+}
+
+.ctp-phone-app .agent-garden-composer-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ctp-phone-app .agent-garden-composer-row .agent-dropdown {
+  flex: 1;
+}
+
+.ctp-phone-app .agent-garden-composer-row input[type="number"] {
+  width: 40px;
+  height: 22px;
+  flex: none;
+}
+
+.ctp-phone-app button.agent-garden-post-btn {
+  flex: none;
+  width: auto;
+  margin-left: auto;
+  padding: 2px 10px;
+  border: 1px solid var(--agent-good);
+  border-radius: 12px;
+  background: rgba(111, 224, 138, 0.12);
+  color: var(--agent-good);
+  font-family: var(--agent-font);
+  line-height: 20px;
+}
+
+.ctp-phone-app .agent-garden-join {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 10px;
+  border: 1px dashed rgba(111, 224, 138, 0.6);
+  color: var(--agent-muted);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  text-align: center;
+}
+
+.ctp-phone-app .agent-garden-join .agent-wide-btn {
+  border-color: var(--agent-good);
+  color: var(--agent-good);
+}
+
+.ctp-phone-app .agent-garden-compose {
+  flex: none;
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  background: var(--agent-panel);
+  position: relative;
+  z-index: 1;
+}
+
+.ctp-phone-app .agent-garden-reply-as {
+  flex: none;
+  margin: 0;
+  padding: 6px 8px 0;
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+  background: var(--agent-panel);
+}
+
+.ctp-phone-app .agent-garden-reply-as + .agent-garden-compose {
+  border-top: none;
+}
+
+.ctp-phone-app .agent-garden-patch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 0;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-garden-patch .agent-avatar {
+  flex-basis: 64px;
+  width: 64px;
+  height: 64px;
+  font-size: calc(22px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-garden-bio {
+  margin: 4px 0;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-garden-stats {
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-garden-boost {
+  margin-left: auto;
+  width: 110px;
+}
+
+/* The Garden Dating */
+.ctp-phone-app .agent-dating-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0 10px;
+  padding: 10px;
+  border: 1px solid rgba(255, 120, 170, 0.6);
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(255, 120, 170, 0.15), rgba(var(--agent-cyan-rgb), 0.05));
+}
+
+.ctp-phone-app .agent-dating-photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 170px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--agent-panel);
+  color: var(--agent-muted);
+  font-size: calc(40px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-dating-name b {
+  font-size: calc(16px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-dating-prompts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ctp-phone-app .agent-dating-prompts li {
+  margin: 4px 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-dating-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.ctp-phone-app .agent-dating-actions a {
+  flex: 1;
+  padding: 8px;
+  border-radius: 20px;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-dating-pass {
+  border: 1px solid var(--agent-muted);
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-dating-spark {
+  background: linear-gradient(90deg, #ff6aa2, #ffb86a);
+  color: #1a0010;
+  font-weight: bold;
+}
+
+/* The Garden's big buttons: solid, so they read on every skin. */
+.ctp-phone-app button.agent-wide-btn.agent-garden-cta {
+  padding: 6px;
+  border: 1px solid #1e7a3c;
+  background: #1e7a3c;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: none;
+}
+
+.ctp-phone-app button.agent-wide-btn.agent-garden-cta:hover {
+  background: #26964b;
+}
+
+.ctp-phone-app button.agent-wide-btn.agent-dating-cta {
+  border-color: #b8336a;
+  background: linear-gradient(90deg, #c2336f, #d9713a);
+}
+
+.ctp-phone-app button.agent-wide-btn.agent-dating-cta:hover {
+  background: linear-gradient(90deg, #d8407f, #e8854a);
+}
+
+.ctp-phone-app .agent-garden-join {
+  border-color: rgba(var(--agent-cyan-rgb), 0.5);
+  background: var(--agent-panel);
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-dating-found {
+  color: #ff8ab5;
+  font-weight: bold;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-dating-searching {
+  margin: 10px 0;
+  color: #ff8ab5;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-dating-searching span {
+  animation: ctp-alex-dot 1.4s infinite;
+}
+
+.ctp-phone-app .agent-dating-searching span:nth-child(3) { animation-delay: 0.2s; }
+
+.ctp-phone-app .agent-dating-searching span:nth-child(4) { animation-delay: 0.4s; }
+
+.ctp-phone-app .agent-help-list {
+  margin: 2px 0 8px;
+  padding-left: 16px;
+}
+
+.ctp-phone-app .agent-help-list li {
+  margin: 2px 0;
+}
+
+/* The Garden Dating: the Algorithm is one big round glowing button. */
+.ctp-phone-app .agent-algorithm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 10px;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-algorithm-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff9cc3, #d9336f 55%, #7a1540);
+  box-shadow: 0 0 0 3px rgba(255, 138, 181, 0.35), 0 0 22px rgba(255, 90, 150, 0.75), 0 0 48px rgba(255, 90, 150, 0.35);
+  color: #fff;
+  font-size: calc(34px * var(--agent-font-scale, 1));
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  animation: ctp-algorithm-glow 2.6s ease-in-out infinite;
+}
+
+.ctp-phone-app .agent-algorithm-btn span {
+  max-width: 110px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+  font-weight: bold;
+  letter-spacing: 1px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-algorithm-btn:hover {
+  box-shadow: 0 0 0 4px rgba(255, 138, 181, 0.5), 0 0 30px rgba(255, 90, 150, 0.95), 0 0 60px rgba(255, 90, 150, 0.5);
+}
+
+.ctp-phone-app .agent-algorithm-btn.searching {
+  cursor: default;
+  animation-duration: 0.9s;
+}
+
+.ctp-phone-app .agent-algorithm-btn.searching i {
+  animation: ctp-algorithm-spin 2s linear infinite;
+}
+
+@keyframes ctp-algorithm-glow {
+  50% { box-shadow: 0 0 0 6px rgba(255, 138, 181, 0.2), 0 0 34px rgba(255, 90, 150, 0.95), 0 0 70px rgba(255, 90, 150, 0.45); }
+}
+
+@keyframes ctp-algorithm-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctp-phone-app .agent-algorithm-btn,
+  .ctp-phone-app .agent-algorithm-btn i { animation: none; }
+}
+
+/* A player's own dating profile, edited in place. */
+.ctp-phone-app .agent-dating-edit {
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px 8px 8px;
+  border: 1px solid rgba(255, 120, 170, 0.5);
+  border-radius: 10px;
+  text-align: left;
+}
+
+.ctp-phone-app .agent-dating-edit input[type="text"] {
+  width: 100%;
+  margin: 3px 0;
+}
+
+.ctp-phone-app .agent-dating-edit .agent-setting-row input {
+  width: 60px;
+  flex: none;
+}
+
+/* A post shown on someone's Patch because they grafted (shared) it. */
+.ctp-phone-app .agent-garden-grafted {
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-list-sample {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: italic;
+}
+
+.ctp-list-view {
+  max-height: 60vh;
+  overflow-y: auto;
+  margin: 0;
+  padding-left: 28px;
+}
+
+/* The Writer tab (GM) and the Log an event pop-up */
+.ctp-phone-app .agent-garden-writer .faded {
+  opacity: 0.55;
+}
+.ctp-phone-app .agent-garden-stage {
+  flex: none;
+  font-size: 0.75em;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  opacity: 0.8;
+  cursor: pointer;
+}
+.ctp-garden-writer .ctp-garden-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--color-border-light-tertiary, #999);
+}
+.ctp-garden-writer .ctp-garden-tabs a {
+  padding: 4px 10px;
+  border-radius: 4px 4px 0 0;
+}
+.ctp-garden-writer .ctp-garden-tabs a.active {
+  background: rgba(0, 0, 0, 0.1);
+  font-weight: bold;
+}
+.ctp-garden-writer .ctp-garden-pills,
+.ctp-garden-writer .ctp-garden-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  flex: 2;
+}
+.ctp-garden-writer .ctp-garden-pill input {
+  display: none;
+}
+.ctp-garden-writer .ctp-garden-pill span {
+  display: inline-block;
+  padding: 2px 10px;
+  border: 1px solid var(--color-border-light-tertiary, #999);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.ctp-garden-writer .ctp-garden-pill input:checked + span {
+  background: var(--color-shadow-primary, #ff6400);
+  color: #fff;
+}
+.ctp-garden-writer select[multiple] {
+  flex: 2;
+  height: auto;
+}
+/* Log an event: the known keywords as chips, and what Stir would do with the field's. */
+.ctp-garden-writer .ctp-garden-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  max-height: 7.5em;
+  overflow-y: auto;
+  margin-top: 2px;
+}
+.ctp-garden-writer .ctp-garden-chip {
+  padding: 0 7px;
+  border: 1px solid var(--color-border-light-tertiary, #999);
+  border-radius: 9px;
+  font-size: var(--font-size-12, 12px);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ctp-garden-writer .ctp-garden-chip.quiet {
+  opacity: 0.6;
+}
+.ctp-garden-writer .ctp-garden-chip.active {
+  background: var(--color-shadow-primary, #ff6400);
+  color: #fff;
+  opacity: 1;
+}
+.ctp-garden-writer .ctp-garden-chip small {
+  opacity: 0.7;
+}
+.ctp-garden-writer .ctp-garden-stir-preview {
+  margin: 2px 0 0;
+  font-style: italic;
+}
+
+/* The Drafts tab (drafts.hbs): batches from the garden-writer skill. */
+.ctp-phone-app .agent-garden-pack-status {
+  margin: 2px 0 0.5em;
+  font-size: 0.85em;
+  opacity: 0.8;
+  word-break: break-all;
+}
+.ctp-phone-app .agent-garden-batch + .agent-garden-batch {
+  margin-top: 1em;
+  padding-top: 0.5em;
+  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.3);
+}
+.ctp-phone-app .agent-garden-day {
+  margin: 0.6em 0 0.2em;
+  font-size: calc(0.8em * var(--agent-font-scale, 1));
+  color: var(--agent-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.ctp-phone-app .agent-garden-mix {
+  display: flex;
+  gap: 2px;
+  margin: 0.4em 0;
+  font-size: 0.7em;
+  white-space: nowrap;
+}
+.ctp-phone-app .agent-garden-mix span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: rgba(var(--agent-cyan-rgb), 0.25);
+}
+.ctp-phone-app .agent-garden-mix .ring-close,
+.ctp-phone-app .agent-garden-badge.ring-close { background: rgba(var(--agent-cyan-rgb), 0.5); }
+.ctp-phone-app .agent-garden-mix .ring-about,
+.ctp-phone-app .agent-garden-badge.ring-about { background: var(--agent-magenta); color: #fff; }
+.ctp-phone-app .agent-garden-mix .ring-none { background: var(--agent-panel); }
+.ctp-phone-app .agent-garden-badge {
+  display: inline-block;
+  margin-left: 3px;
+  padding: 0 5px;
+  font-size: 0.7em;
+  border-radius: 6px;
+  border: 1px solid currentColor;
+  opacity: 0.85;
+}
+.ctp-phone-app .agent-garden-badge.private { border-color: var(--agent-yellow); color: var(--agent-yellow); }
+.ctp-phone-app .agent-garden-badge.hook,
+.ctp-phone-app .agent-garden-badge.seed { border-color: var(--agent-good); color: var(--agent-good); }
+.ctp-phone-app .agent-garden-problems { margin: 0.3em 0; padding-left: 1.2em; font-size: 0.8em; color: var(--agent-yellow); }
+.ctp-phone-app .agent-garden-problems.errors,
+.ctp-phone-app .agent-garden-problem { color: var(--agent-magenta); }
+.ctp-phone-app .agent-garden-writer-note { margin: 0.3em 0; font-size: 0.85em; font-style: italic; }
+.ctp-phone-app .agent-garden-writer-note.mine { color: var(--agent-muted); }
+.ctp-phone-app .agent-garden-draft .agent-app-item-main small { white-space: normal; }

@@ -1,0 +1,3 @@
+- Skins: eight skins are retired to keep the rest polished: Zetatech Grade A-Plus, Segotari Double Agent, Wyzard Merlyn, Field Agent: Construction, Street Zine, Braindance, Mediaware BrainGen and EBM PiR2. A phone that used one now shows the closest skin that's left (A-Plus → Zetatech Grade A, Double Agent → Segotari Agent, Construction → Field Agent: Tech, Zine → Microtech Dot, Merlyn → Neon Agent, the HUDs → Rocklin Augmentics Neuron).
+- Internal Agents now project the Rocklin Augmentics Neuron HUD by default.
+- Control: the ad list is now "Sponsored Cybereye ads" (they still show for anyone with a Sponsored Cybereye installed, on any skin).

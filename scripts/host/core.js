@@ -1,7 +1,9 @@
+import { APP_MANIFEST } from "../apps/manifest.js";
 import { dataFolder, MODULE_ID, SOCKET } from "../config.js";
 import { noSignalSince } from "../model/features.js";
+import { agentType } from "../model/agent.js";
 import { appsFor, emptyApps } from "../model/apps.js";
-import { emptyGarden, gardenFor } from "../model/garden.js";
+import { emptyGarden, gardenFor } from "../../apps/garden/model.js";
 import { canView, memberActorId, redactCall, redactReaction, redactThread } from "../model/permissions.js";
 import {
   DATA_FOLDER, GARDEN_FILE, joinGarden, joinMessages, MESSAGES_FILE, splitGarden, splitMessages, SUBFOLDERS
@@ -21,6 +23,9 @@ export const requests = {
 
 let queue = Promise.resolve();
 
+/** GM cards kept for the notification center (older ones drop off). */
+const MAX_GM_CARDS = 60;
+
 export const methods = {
   /**
    * Host work runs one job at a time. Handlers await sheet updates part-way through, so without this
@@ -34,6 +39,7 @@ export const methods = {
   async _becomeHost() {
     this._written = new Map();
     this._folders = this._ensureFolders();
+    this._guardUnload();
     await this.load();
     await this.loadGarden();
     this._signalSeen = { ...(game.settings.get(MODULE_ID, "noSignal") ?? {}) };
@@ -51,7 +57,7 @@ export const methods = {
     for (const [actorId, since] of Object.entries(this._signalSeen ?? {})) {
       if (now[actorId]) continue;
       const actor = game.actors.get(actorId);
-      if (!actor) continue;
+      if (!actor || !agentType(actor)) continue;
       const held = this.threadsFor(actorId).reduce((n, t) => {
         const own = isGroup(t) ? pcKey(actorId) : "pc";
         // Counted like unread: texts, plus call logs and alerts.
@@ -59,6 +65,12 @@ export const methods = {
       }, 0);
       const text = held ? `Signal restored. ${held} new while you had no signal.` : "Signal restored. Back online.";
       alerts.push(this._alert(actorId, { kind: "system", text }));
+    }
+    // Losing signal is told too (alerts ignore signal, so it still arrives).
+    for (const actorId of Object.keys(now)) {
+      const actor = game.actors.get(actorId);
+      if (this._signalSeen?.[actorId] || !actor || !agentType(actor)) continue;
+      alerts.push(this._alert(actorId, { kind: "system", text: "No signal. Texts and calls will wait until you're back." }));
     }
     this._signalSeen = now;
     this.syncAll(); // restored phones get what was held; phones that just lost signal stop getting more
@@ -76,6 +88,7 @@ export const methods = {
         this.requests = new Map(Object.values(data.requests ?? {}).map(r => [r.id, r]));
         this.quests = new Map(Object.values(data.quests ?? {}).map(q => [q.id, q]));
         this.apps = { ...emptyApps(), ...(data.apps ?? {}) };
+        this._traumaChanges(false); // what's loaded isn't a change
       }
       this.loadFailed = false;
     } catch (err) {
@@ -84,18 +97,64 @@ export const methods = {
       console.error(`${MODULE_ID} | Could not read the message history`, err);
       ui.notifications.error("Agent: could not load message history. Saving is disabled until reload.");
     }
+    // Each app's own step once the data is in (apps/manifest.js `load`).
+    for (const [id, app] of Object.entries(APP_MANIFEST)) {
+      if (!app.load || this.loadFailed) continue;
+      try {
+        await this[app.load]();
+      } catch (err) {
+        console.error(`${MODULE_ID} | ${id}: ${app.load} failed`, err);
+      }
+    }
     this.loaded = true;
     this._changed();
   },
 
   /** Save soon: a burst of changes is written once. */
   save() {
-    (this._saveSoon ??= foundry.utils.debounce(() => this._queueWrite(() => this._write()), 500))();
+    this._markUnsaved("messages");
+    (this._saveSoon ??= foundry.utils.debounce(() => this._writeMessages(), 500))();
   },
 
+  _writeMessages() {
+    return this._queueWrite(async () => {
+      const mark = this._unsaved?.messages;
+      if ((await this._write()) === false) this._retrySave("messages", () => this.save());
+      else this._markSaved("messages", mark);
+    });
+  },
+
+  /** False if some files couldn't be saved. */
   async _write() {
     if (!this.isHost || this.loadFailed) return;
-    await this._writeSplit(MESSAGES_FILE, splitMessages(this), ["threads/", "apps/"]);
+    return this._writeSplit(MESSAGES_FILE, splitMessages(this), ["threads/", "apps/"]);
+  },
+
+  /**
+   * Some files couldn't be saved (the connection dropped, or the server or a proxy in front of it
+   * refused): try again on its own, sooner at first (5 s, doubling up to a minute), so the changes
+   * don't wait for the next one. One retry waits at a time; another change saving first clears it.
+   */
+  _retrySave(key, again) {
+    this._retries ??= {};
+    this._retryTimers ??= {};
+    if (this._retryTimers[key]) return;
+    const delay = Math.min(60000, 5000 * 2 ** (this._retries[key] ?? 0));
+    this._retries[key] = (this._retries[key] ?? 0) + 1;
+    this._retryTimers[key] = setTimeout(() => {
+      delete this._retryTimers[key];
+      if (this.isHost) again();
+    }, delay);
+    this._retryTimers[key]?.unref?.();
+  },
+
+  /** A save went through: forget the retries, and say so if the GM was told it failed. */
+  _saved(key) {
+    if (!this._retries?.[key]) return;
+    delete this._retries[key];
+    if (Object.keys(this._retries).length || !this._saveWarned) return;
+    this._saveWarned = false;
+    ui.notifications.info("Agent: the changes that couldn't be saved are saved now.");
   },
 
   /** The Garden's own files (it can grow large, so it's kept apart from messages). */
@@ -113,9 +172,56 @@ export const methods = {
   },
 
   saveGarden() {
-    (this._saveGardenSoon ??= foundry.utils.debounce(() => this._queueWrite(async () => {
-      if (this.isHost && !this.gardenFailed) await this._writeSplit(GARDEN_FILE, splitGarden(this.garden), ["garden/"]);
-    }), 1000))();
+    this._markUnsaved("garden");
+    (this._saveGardenSoon ??= foundry.utils.debounce(() => this._writeGarden(), 1000))();
+  },
+
+  _writeGarden() {
+    return this._queueWrite(async () => {
+      const mark = this._unsaved?.garden;
+      if (this.gardenFailed) return this._markSaved("garden", mark); // saving is off: nothing to wait for
+      if (!this.isHost) return;
+      if ((await this._writeSplit(GARDEN_FILE, splitGarden(this.garden), ["garden/"])) === false) this._retrySave("garden", () => this.saveGarden());
+      else this._markSaved("garden", mark);
+    });
+  },
+
+  /*
+   * Unsaved changes: each kind ("messages", "garden") is marked when a save is asked for and cleared
+   * once a write that started after the latest change went through. A text that arrives just before
+   * the GM reloads is still waiting for its batched save, so the browser asks "Leave site?" then.
+   */
+  _markUnsaved(key) {
+    this._unsaved ??= {};
+    this._unsaved[key] = (this._unsavedSeq = (this._unsavedSeq ?? 0) + 1);
+  },
+
+  /** A write that started when `mark` was the latest change went through. */
+  _markSaved(key, mark) {
+    if (this._unsaved?.[key] === mark) delete this._unsaved[key];
+  },
+
+  /** True while some change is still waiting to be written (batched, uploading, or retrying). */
+  hasUnsavedChanges() {
+    return !!this.isHost && Object.keys(this._unsaved ?? {}).length > 0;
+  },
+
+  /** Write what's waiting now instead of after the batch delay. */
+  flushSaves() {
+    if (this._unsaved?.messages) this._writeMessages();
+    if (this._unsaved?.garden) this._writeGarden();
+    return this._writing;
+  },
+
+  _guardUnload() {
+    if (this._unloadGuard) return;
+    this._unloadGuard = event => {
+      if (!this.hasUnsavedChanges()) return;
+      this.flushSaves(); // if the GM stays, the save is already on its way
+      event.preventDefault();
+      event.returnValue = ""; // older browsers need this to show the warning
+    };
+    window.addEventListener("beforeunload", this._unloadGuard);
   },
 
   /** Saves run one at a time, so a slow upload can't be overtaken by an older one. */
@@ -158,7 +264,8 @@ export const methods = {
   /**
    * Upload the files of a split save that changed since they were last written. Files under `owned`
    * that it no longer has (a deleted conversation) are emptied. The index goes last, and only once
-   * everything it lists is on the server.
+   * everything it lists is on the server. False if anything couldn't be saved (left as it was, so the
+   * next try uploads it again).
    */
   async _writeSplit(indexFile, { index, parts }, owned) {
     await this._folders;
@@ -178,16 +285,24 @@ export const methods = {
       } else if (path in parts) this._written.set(path, text);
       else this._written.delete(path);
     });
-    if (failed) {
-      // Left as it was: the next save tries again.
-      if (!this._saveWarned) ui.notifications.error("Agent: some changes could not be saved. They'll be retried.");
-      this._saveWarned = true;
-      return;
-    }
     const text = JSON.stringify(index);
-    if (this._written.get(indexFile) === text) return;
-    await this._upload(indexFile, text);
-    this._written.set(indexFile, text);
+    if (!failed && this._written.get(indexFile) !== text) {
+      try {
+        await this._upload(indexFile, text);
+        this._written.set(indexFile, text);
+      } catch (err) {
+        failed++;
+        console.error(`${MODULE_ID} | Could not save ${DATA_FOLDER}/${indexFile}`, err);
+      }
+    }
+    const key = indexFile === GARDEN_FILE ? "garden" : "messages";
+    if (!failed) {
+      this._saved(key);
+      return true;
+    }
+    if (!this._saveWarned) ui.notifications.error("Agent: some changes could not be saved. Trying again.");
+    this._saveWarned = true;
+    return false;
   },
 
   /** Write one file in the data folder (`path` relative to it). */
@@ -197,7 +312,9 @@ export const methods = {
     const file = new File([text], path.slice(slash + 1), { type: "application/json" });
     const picker = FilePicker.implementation ?? FilePicker;
     const result = await picker.upload("data", dir, file, {}, { notify: false });
-    if (!result?.path) throw new Error("upload failed");
+    // Foundry's upload gives nothing back when the request itself failed (a dropped connection, or an
+    // error page from the server or a proxy), and logs why when the server said no.
+    if (!result?.path) throw new Error("upload failed: no answer from the server (see any Foundry error above)");
   },
 
   /** The data folder and its subfolders, which uploads need (and players may not create folders). */
@@ -236,6 +353,10 @@ export const methods = {
     }
     this._changed({ garden: true });
     this.saveGarden();
+    // Agent alerts the Garden held for this push (replies to a character's post, Reputation: apps/garden/host.js).
+    const alerts = (this._gardenAlerts ?? []).filter(Boolean);
+    this._gardenAlerts = [];
+    if (alerts.length) this._pushApps(alerts);
   },
 
   /**
@@ -243,6 +364,13 @@ export const methods = {
    * request, data }] }; each button sends that request to the host.
    */
   _gmCard(card) {
+    // Kept for the GM Phone's notification center (a card with the same id replaces the last one).
+    card = { ...card, id: card.id ?? foundry.utils.randomID(), ts: Date.now() };
+    this.apps.gmCards[card.id] = card;
+    const cards = Object.values(this.apps.gmCards).sort((a, b) => a.ts - b.ts);
+    for (const old of cards.slice(0, Math.max(0, cards.length - MAX_GM_CARDS))) delete this.apps.gmCards[old.id];
+    this.save();
+    this._changed({ apps: true });
     this._send(game.users.filter(u => u.isGM && u.active && u !== game.user).map(u => u.id), { type: "gm-card", card });
     if (game.user.isGM) Hooks.callAll(`${MODULE_ID}.gmCard`, card);
   },
@@ -338,5 +466,17 @@ export const methods = {
 
   _message(from, text, extra = {}) {
     return { id: foundry.utils.randomID(), from, text, ...agentTimestamp(), ts: Date.now(), ...extra };
+  },
+
+  /**
+   * One sent text as its messages (`parts` from validate.js textParts: a long text is several
+   * bubbles), a millisecond apart so they keep their order. The photo, location and job come with
+   * the last one; the other fields of `extra` with each.
+   */
+  _textMessages(from, parts, { location, image, job, ...extra } = {}) {
+    const now = Date.now();
+    return parts.map((text, i) => this._message(from, text, {
+      ...extra, ts: now + i, ...(i === parts.length - 1 ? { location, image, job } : {})
+    }));
   }
 };

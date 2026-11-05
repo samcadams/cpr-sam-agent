@@ -1,0 +1,110 @@
+{{!-- Trauma Team's MedScan tab (apps/trauma/page.js _medscanGm / _medscanPlayer). Context: the trauma data. --}}
+<div class="agent-ms">
+  {{#if gm}}
+    {{#if medscan.calls.length}}
+      <h3 class="agent-info-label">Consults</h3>
+      <ol class="agent-app-list">
+        {{#each medscan.calls}}
+          <li class="agent-app-item agent-ms-call{{#if consult.pending}} pending{{/if}}">
+            <i class="{{consult.icon}} agent-app-item-icon"></i>
+            <div class="agent-app-item-main">
+              <div class="agent-app-item-top"><b>{{name}}</b><span class="agent-row-time">{{#if consult.pending}}Waiting{{else}}{{consult.left}} left{{/if}}</span></div>
+              <small>{{consult.name}}{{#if consult.doctor}} · {{consult.doctor}}{{/if}}{{#if consult.paid}} · {{consult.paid}}{{/if}} · {{consult.bonus}}</small>
+              <div class="agent-money-actions">
+                {{#if consult.pending}}
+                  <a class="pay" data-action="ms-answer" data-actor-id="{{id}}" data-consult-id="{{consult.id}}" data-ok="true">Connect</a>
+                  <a class="decline" data-action="ms-answer" data-actor-id="{{id}}" data-consult-id="{{consult.id}}" data-ok="false">Unavailable</a>
+                {{else}}
+                  <a class="decline" data-action="ms-end" data-actor-id="{{id}}">End consult</a>
+                {{/if}}
+              </div>
+            </div>
+          </li>
+        {{/each}}
+      </ol>
+    {{/if}}
+
+    <h3 class="agent-info-label">Characters</h3>
+    <ol class="agent-members">
+      {{#each medscan.characters}}
+        <li>
+          <span class="agent-member-name">{{name}}<small>{{#if owned}}Has MedScan{{#if gift}} (given){{/if}}{{else}}No MedScan{{/if}}{{#if covered}} · consults covered by {{covered}}{{/if}}</small></span>
+          {{#if owned}}
+            <a class="agent-icon-btn" data-action="ms-grant" data-actor-id="{{id}}" data-owned="false" title="Remove MedScan from their Agent"><i class="fas fa-ban"></i></a>
+          {{else}}
+            <a class="agent-icon-btn" data-action="ms-grant" data-actor-id="{{id}}" data-owned="true" title="Give them MedScan (free)"><i class="fas fa-gift"></i></a>
+          {{/if}}
+        </li>
+      {{/each}}
+    </ol>
+
+    <h3 class="agent-info-label">Prices</h3>
+    <div class="agent-setting-row"><span>MedScan app</span><input type="number" data-ms-setting="price" value="{{medscan.price}}" min="0"> <small>once</small></div>
+    {{#each medscan.consults}}
+      <div class="agent-setting-row"><span>{{name}}</span><input type="number" data-ms-setting="{{id}}" value="{{price}}" min="0"> <small>{{hours}} h · {{bonus}}</small></div>
+    {{/each}}
+    <p class="agent-info-note">{{#if medscan.plans}}Free for members of: {{medscan.plans}}.{{else}}No plan includes MedScan: tick it on a plan (Coverage tab).{{/if}}</p>
+
+    <h3 class="agent-info-label">Rules</h3>
+    <label class="agent-radio"><input type="checkbox" data-ms-setting="live" {{#if medscan.live}}checked{{/if}}> I answer each consult myself</label>
+    <p class="agent-info-note">On: every call waits for your Connect or Unavailable (play the doctor). Off: a specialist picks up at once.</p>
+    <label class="agent-radio"><input type="checkbox" data-ms-setting="unavailable" {{#if medscan.unavailable}}checked{{/if}}> No specialist available</label>
+    <p class="agent-info-note">A blackout, a hostile zone, or the corp is having a day.</p>
+  {{else}}
+    {{#if medscan.owned}}
+      <div class="agent-ms-head">
+        {{#if medscan.img}}<img src="{{medscan.img}}" alt="">{{else}}<i class="fas fa-truck-medical agent-ms-icon" aria-hidden="true"></i>{{/if}}
+        <div><b>MedScan</b><small>Trauma Team North America{{#if medscan.covered}} · covered by {{medscan.covered}}{{/if}}</small></div>
+      </div>
+      {{#if medscan.offline}}<p class="agent-pool-offline"><i class="fas fa-signal"></i> No signal: MedScan needs the CitiNet.</p>{{/if}}
+
+      {{#if medscan.consult}}
+        <div class="agent-ms-live{{#if medscan.consult.pending}} pending{{/if}}">
+          <i class="{{medscan.consult.icon}}"></i>
+          <div>
+            {{#if medscan.consult.pending}}
+              <b>Connecting to a specialist…</b>
+              <small>{{medscan.consult.name}}</small>
+            {{else}}
+              <b>{{medscan.consult.doctor}}</b>
+              <small>{{medscan.consult.name}} · {{medscan.consult.left}} left</small>
+              <div class="agent-ms-bonus">{{medscan.consult.bonus}}<small>{{medscan.consult.how}}</small></div>
+            {{/if}}
+          </div>
+        </div>
+        <a class="agent-card-more" data-action="ms-end">{{#if medscan.consult.pending}}Hang up{{else}}End the consult{{/if}}</a>
+      {{else}}
+        {{#if medscan.unavailable}}<p class="agent-info-note"><i class="fas fa-phone-slash"></i> All specialists are busy right now.</p>{{/if}}
+        <ol class="agent-app-list">
+          {{#each medscan.consults}}
+            <li class="agent-app-item agent-ms-consult">
+              <i class="{{icon}} agent-app-item-icon"></i>
+              <div class="agent-app-item-main"><b>{{name}}</b> <span class="agent-ms-price">{{price}}</span><small>{{blurb}}</small></div>
+              {{#unless ../medscan.offline}}<a class="agent-app-chip" data-action="ms-consult" data-kind="{{id}}">Call</a>{{/unless}}
+            </li>
+          {{/each}}
+        </ol>
+      {{/if}}
+
+      {{#if medscan.history.length}}
+        <h3 class="agent-info-label">Recent consults</h3>
+        <ol class="agent-app-list">
+          {{#each medscan.history}}<li class="agent-app-item compact"><div class="agent-app-item-main">{{name}}<small>{{paid}}</small></div></li>{{/each}}
+        </ol>
+      {{/if}}
+    {{else}}
+      <div class="agent-ms-store">
+        {{#if medscan.img}}<img src="{{medscan.img}}" alt="">{{else}}<i class="fas fa-truck-medical agent-ms-icon" aria-hidden="true"></i>{{/if}}
+        <b>Trauma Team MedScan</b>
+        <small>Trauma Team North America · Requires CitiNet</small>
+        <p>A Trauma Team specialist on call. Wound consult: +1 to First Aid or Paramedic for an hour. Surgical consult: +1 to Medical Tech or Surgery through one operation.</p>
+        {{#if medscan.covered}}<p class="agent-info-note">Your {{medscan.covered}} plan covers every consult once you have the app.</p>{{/if}}
+        {{#if medscan.offline}}
+          <p class="agent-pool-offline"><i class="fas fa-signal"></i> No signal: MedScan needs the CitiNet.</p>
+        {{else}}
+          <button type="button" class="agent-wide-btn" data-action="ms-buy"><i class="fas fa-download"></i> Buy · {{medscan.priceLabel}}</button>
+        {{/if}}
+      </div>
+    {{/if}}
+  {{/if}}
+</div>

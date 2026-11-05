@@ -1,0 +1,8 @@
+- Map: the pins are bigger and keep their icons zoomed out; names sit on a dark backing. Districts show only their name (the GM gets a small handle to move them). Territories are drawn as their picture at the map's scale, much larger.
+- Map (GM): the Map edits the NAV scene: drag the picked pin to move it (its district follows), size a territory by its corner and fade it (the Map only), and edit a pin's name, category, district, colour, icon, journal and page on its card.
+- Map (GM): say who sees a pin and its journal page from its card ("Show it all to the players" sets the page to Observer and lifts its entry to Limited).
+- Map (GM): right-click the map (or hold) to drop a new pin or a temporary one (players see it at once; clear them all from the chip).
+- Map: the picked pin's card shows the start of its journal page; tap it to open the whole page (players see revealed secrets marked; the GM sees all of them). "Read" now opens a page the player may see even when its entry is hidden, as the scene does.
+- Map: an Agent alert (or any other change the Map doesn't show) no longer redraws the Map's card.
+- Map (GM): every character's planned route, and the cabs that are out, are drawn on the GM's Map. A character's route comes back after a reload.
+- Map: `api.map.open(place)` opens the phone's Map on a place, and `api.map.embed(element, place)` draws a small inline map of it that opens the Map when tapped (for Messages' shared locations and Combat Cabb). Inside the phone, `<div class="agent-mapembed" data-…>` is filled on every redraw.

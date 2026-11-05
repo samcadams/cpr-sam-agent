@@ -1,0 +1,62 @@
+/*
+ * BangMe! (Eurobank navy and gold): the app's page (apps/bangme/page.js, apps/bangme/bangme.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-bang-balance {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 4px 0 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0f1f45, #1b3a7a);
+  box-shadow: inset 0 0 0 1px rgba(242, 193, 78, 0.5);
+  color: #f2c14e;
+}
+
+.ctp-phone-app .agent-bang-balance small {
+  color: rgba(242, 193, 78, 0.75);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-bang-balance b {
+  color: #fff4d6;
+  font-size: calc(26px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-bang-brand {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  font-style: italic;
+  letter-spacing: 1px;
+}
+
+/* Solid navy and gold, so it reads on light skins too. */
+.ctp-phone-app button.agent-wide-btn.agent-bang-btn {
+  padding: 6px;
+  border: 1px solid #f2c14e;
+  background: linear-gradient(135deg, #0f1f45, #1b3a7a);
+  color: #f2c14e;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+  font-weight: bold;
+  text-shadow: none;
+}
+
+.ctp-phone-app button.agent-wide-btn.agent-bang-btn:hover {
+  background: linear-gradient(135deg, #16295a, #24489a);
+}
+
+.ctp-phone-app .agent-ledger-amount {
+  flex: none;
+  color: var(--agent-magenta);
+  font-weight: bold;
+}
+
+.ctp-phone-app .agent-ledger-amount.credit {
+  color: var(--agent-good);
+}

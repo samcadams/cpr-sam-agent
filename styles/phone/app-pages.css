@@ -1,7 +1,8 @@
 /*
- * The apps (ui/phone/pages/home.js and the pages it opens): the home screen, the Agent app, BangMe!,
- * Trauma Team, Ask Alex Anything, WatchBox and The Garden. Built from the phone's colour variables,
- * so every skin and palette carries over.
+ * The apps' shared pieces (ui/phone/pages/home.js and the pages it opens): the home screen, the app
+ * bars, sections, rows and buttons every app page uses, and a few small parts of Settings, Control,
+ * Jobs and the dialogs. Each app's own look is in styles/apps/<id>.css. Built from the phone's colour
+ * variables, so every skin and palette carries over.
  */
 
 /* ---------------- Home screen ---------------- */
@@ -31,7 +32,7 @@
   height: 48px;
   border: 1px solid rgba(var(--agent-cyan-rgb), 0.5);
   border-radius: 12px;
-  background: linear-gradient(145deg, rgba(var(--agent-cyan-rgb), 0.22), rgba(var(--agent-magenta-rgb), 0.12));
+  background: linear-gradient(145deg, rgba(var(--agent-cyan-rgb), 0.22), rgba(var(--agent-magenta-rgb), 0.12)), var(--agent-panel);
   color: var(--agent-cyan);
   font-size: calc(20px * var(--agent-font-scale, 1));
 }
@@ -52,11 +53,137 @@
   line-height: 1.2;
 }
 
-/* Each app's own icon colour, like an app store would have it. */
-.ctp-phone-app .agent-home-app.app-garden .agent-home-icon { color: var(--agent-good); border-color: rgba(111, 224, 138, 0.6); }
-.ctp-phone-app .agent-home-app.app-bangme .agent-home-icon { color: #f2c14e; border-color: rgba(242, 193, 78, 0.6); }
-.ctp-phone-app .agent-home-app.app-trauma .agent-home-icon { color: #ff5a5f; border-color: rgba(255, 90, 95, 0.6); }
-.ctp-phone-app .agent-home-app.app-watchbox .agent-home-icon { color: #e6e6e6; background: #111; }
+/*
+ * Each app's tile in a colour for what it does (--app-rgb), drawn the phone's way: a tinted glass tile
+ * with a neon glyph. Apps without one keep the phone's accent. Light skins darken the glyph so it reads
+ * on paper; the Burner's LCD stays one colour. The App Store draws the same tiles (.agent-app-tile,
+ * apps/pool), so an app looks the same in the store as on the home screen. The tint sits on the screen's
+ * solid panel colour, so the wallpaper doesn't show through (the Internal Agent's panel is
+ * see-through on purpose).
+ */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile)[class*="app-"] .agent-home-icon {
+  border-color: rgba(var(--app-rgb, var(--agent-cyan-rgb)), 0.55);
+  background: linear-gradient(145deg, rgba(var(--app-rgb, var(--agent-cyan-rgb)), 0.24), rgba(var(--app-rgb, var(--agent-cyan-rgb)), 0.06)), var(--agent-panel);
+  color: rgb(var(--app-rgb, var(--agent-cyan-rgb)));
+}
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile)[class*="app-"]:hover .agent-home-icon { box-shadow: 0 0 10px rgba(var(--app-rgb, var(--agent-cyan-rgb)), 0.5); }
+
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-contacts { --app-rgb: 106, 168, 255; }  /* people: blue */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-messages { --app-rgb: 62, 230, 193; }   /* chat: mint */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-quests { --app-rgb: 255, 159, 67; }     /* gigs: orange */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-settings { --app-rgb: 176, 190, 197; }  /* system: grey */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-agent { --app-rgb: 180, 140, 255; }     /* the AI: violet */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-garden { --app-rgb: 111, 224, 138; }    /* The Garden's green */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-alex { --app-rgb: 79, 195, 247; }       /* search: sky blue */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-screamsheet { --app-rgb: 255, 46, 136; } /* news: screamsheet hot pink */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-bangme { --app-rgb: 242, 193, 78; }     /* money: Eurobank gold */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-trauma { --app-rgb: 255, 90, 95; }      /* Trauma Team red */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-pigeon { --app-rgb: 200, 214, 224; }    /* chrome */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-gacha { --app-rgb: 255, 110, 199; }     /* capsule-toy pink */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-map { --app-rgb: 245, 211, 0; }        /* NAV highway yellow */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-market { --app-rgb: 56, 189, 248; }     /* Great River's river blue */
+
+/* Filled tiles, for apps with a look of their own. */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-watchbox .agent-home-icon {          /* a camera in the dark */
+  --app-rgb: 255, 70, 70;
+  color: #e6e6e6;
+  background: radial-gradient(circle at 78% 22%, #ff4646 0 3px, transparent 4px), #111;
+}
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-notes .agent-home-icon {             /* a sticky note */
+  --app-rgb: 255, 226, 122;
+  color: #4a3b00;
+  background: linear-gradient(160deg, #fff0a0, #f5d65a);
+}
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-calendar .agent-home-icon {          /* a desk calendar page */
+  --app-rgb: 255, 90, 95;
+  color: #c62828;
+  background: linear-gradient(#e53935 0 11px, #f4f4f4 11px);
+}
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-ncart .agent-home-icon {             /* NCART: yellow on black, teal trim */
+  --app-rgb: 95, 211, 201;
+  color: #f5e400;
+  background: linear-gradient(160deg, #10161a, #000);
+}
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-roach .agent-home-icon {             /* Roach Race: a gold horse on a green hill at dusk */
+  --app-rgb: 245, 197, 66;
+  color: #f5c542;
+  background: linear-gradient(#3a2a5a 0 60%, #3f7a2e 60%);
+}
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-redline .agent-home-icon {           /* REDLINE: a red stripe on asphalt */
+  --app-rgb: 255, 42, 61;
+  color: #fff;
+  background: linear-gradient(100deg, transparent 0 58%, #ff2a3d 58% 72%, transparent 72%), linear-gradient(160deg, #26222c, #0b090e);
+}
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-breach .agent-home-icon {            /* BREACH: Breach Protocol's lime on a dark matrix */
+  --app-rgb: 208, 237, 87;
+  color: #d0ed57;
+  background: repeating-linear-gradient(90deg, rgba(208, 237, 87, 0.08) 0 1px, transparent 1px 6px), linear-gradient(160deg, #141a10, #050703);
+}
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-cabb .agent-home-icon {              /* Combat Cab: white on red */
+  --app-rgb: 255, 80, 60;
+  color: #fff;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 3px), linear-gradient(180deg, #e8402f, #9c1a12);
+}
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-pool .agent-home-icon {              /* App Store: a white store on Ziggurat blue */
+  --app-rgb: 80, 160, 255;
+  color: #fff;
+  background: linear-gradient(160deg, #2f7fe0, #123a7a);
+}
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-achieve .agent-home-icon {           /* a trophy in a display case */
+  --app-rgb: 255, 209, 102;
+  color: #ffd166;
+  background: linear-gradient(160deg, #3a1d5c, #1a0c2c);
+}
+
+/* Light skins: the same colours, darkened to read on a light screen. */
+.ctp-phone-app:is(.skin-dot, .skin-yourplay, .skin-fieldMed) :is(.agent-home-app, .agent-app-tile):not(.app-watchbox, .app-notes, .app-calendar, .app-ncart, .app-roach, .app-redline, .app-breach, .app-cabb, .app-achieve, .app-pool) .agent-home-icon {
+  color: color-mix(in srgb, rgb(var(--app-rgb, var(--agent-cyan-rgb))) 55%, #000);
+}
+.ctp-phone-app.skin-burner :is(.agent-home-app, .agent-app-tile) .agent-home-icon { --app-rgb: var(--agent-cyan-rgb); color: var(--agent-text); background: none; }
+
+/*
+ * In-world logos (images/apps/, white shapes used as masks so they take the tile's colour). Only while
+ * the app keeps its default icon: once the GM picks another in Control, that icon shows instead.
+ */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-garden i.fa-seedling,
+.ctp-phone-app .agent-dock-app.app-garden > i.fa-seedling { --app-logo: url("../../images/apps/garden.webp"); }
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-cabb i.fa-taxi,
+.ctp-phone-app .agent-dock-app.app-cabb > i.fa-taxi { --app-logo: url("../../images/apps/cabb.webp"); }
+
+.ctp-phone-app :is(.agent-home-app, .agent-dock-app, .agent-app-tile) :is(.app-garden i.fa-seedling, .app-cabb i.fa-taxi) {
+  display: inline-block;
+  width: 1.55em;
+  height: 1.55em;
+  vertical-align: middle;
+  background: currentColor;
+  -webkit-mask: var(--app-logo) center / contain no-repeat;
+  mask: var(--app-logo) center / contain no-repeat;
+}
+.ctp-phone-app :is(.agent-home-app, .agent-dock-app, .agent-app-tile) :is(.app-garden i.fa-seedling, .app-cabb i.fa-taxi)::before { content: none; }
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-cabb i.fa-taxi { width: 1.7em; height: 1.7em; }
+
+/*
+ * Full-colour app icons from the content folder (model/content.js sets body.agent-art-<app> and
+ * --agent-art-<app> when it has one; without, the glyph): the picture is the whole tile, in the dock
+ * too. Same rule as the logos: only while the app keeps its default icon. The Burner's one-colour LCD keeps
+ * the glyph.
+ */
+body.agent-art-trauma .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-trauma .agent-home-icon:has(> i.fa-truck-medical),
+body.agent-art-trauma .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-trauma > i.fa-truck-medical { --app-picture: var(--agent-art-trauma); }
+
+body.agent-art-trauma .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-trauma .agent-home-icon:has(> i.fa-truck-medical) {
+  border-color: transparent;
+  background: var(--app-picture) center / cover no-repeat;
+}
+body.agent-art-trauma .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-trauma .agent-home-icon > i.fa-truck-medical { visibility: hidden; }
+body.agent-art-trauma .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-trauma > i.fa-truck-medical {
+  display: inline-block;
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 0.3em;
+  background: var(--app-picture) center / cover no-repeat;
+}
+body.agent-art-trauma .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-trauma > i.fa-truck-medical::before { content: none; }
 
 /* ---------------- Shared pieces ---------------- */
 
@@ -66,6 +193,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.ctp-phone-app .agent-app-bar-tag {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--agent-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: calc(9px * var(--agent-font-scale, 1));
 }
 
 .ctp-phone-app .agent-app-list {
@@ -211,281 +348,7 @@
   color: var(--agent-cyan);
 }
 
-/* ---------------- The Agent ---------------- */
-
-.ctp-phone-app .agent-alert.open {
-  border-left: 3px solid var(--agent-magenta);
-  padding-left: 6px;
-  background: rgba(var(--agent-magenta-rgb), 0.06);
-}
-
-.ctp-phone-app .agent-alert.kind-warning .agent-app-item-icon,
-.ctp-phone-app .agent-alert.kind-biometric .agent-app-item-icon,
-.ctp-phone-app .agent-alert.kind-trauma .agent-app-item-icon {
-  color: #ff5a5f;
-}
-
-.ctp-phone-app .agent-alert-answer {
-  margin-top: 2px;
-  color: var(--agent-muted);
-  font-style: italic;
-}
-
-.ctp-phone-app .agent-app-item-x {
-  font-size: calc(11px * var(--agent-font-scale, 1));
-  opacity: 0.5;
-}
-
-.ctp-phone-app .agent-vitals-tile {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin: 4px 0 6px;
-  padding: 8px;
-  border: 1px solid rgba(77, 255, 136, 0.5);
-  background: rgba(16, 24, 32, 0.6);
-  color: #4dff88;
-  font-size: calc(12px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-vitals-tile.state-serious { border-color: #ffc24d; color: #ffc24d; }
-
-.ctp-phone-app .agent-vitals-tile.state-mortal { border-color: #ff4d5e; color: #ff4d5e; }
-
-.ctp-phone-app .agent-vitals-state {
-  margin-left: auto;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.ctp-phone-app .agent-vitals-injury {
-  flex-basis: 100%;
-}
-
-/* ---------------- BangMe! (Eurobank navy and gold) ---------------- */
-
-.ctp-phone-app .agent-bang-balance {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  margin: 4px 0 8px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #0f1f45, #1b3a7a);
-  box-shadow: inset 0 0 0 1px rgba(242, 193, 78, 0.5);
-  color: #f2c14e;
-}
-
-.ctp-phone-app .agent-bang-balance small {
-  color: rgba(242, 193, 78, 0.75);
-  font-size: calc(10px * var(--agent-font-scale, 1));
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.ctp-phone-app .agent-bang-balance b {
-  color: #fff4d6;
-  font-size: calc(26px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-bang-brand {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  font-size: calc(10px * var(--agent-font-scale, 1));
-  font-style: italic;
-  letter-spacing: 1px;
-}
-
-/* Solid navy and gold, so it reads on light skins too. */
-.ctp-phone-app button.agent-wide-btn.agent-bang-btn {
-  padding: 6px;
-  border: 1px solid #f2c14e;
-  background: linear-gradient(135deg, #0f1f45, #1b3a7a);
-  color: #f2c14e;
-  font-size: calc(13px * var(--agent-font-scale, 1));
-  font-weight: bold;
-  text-shadow: none;
-}
-
-.ctp-phone-app button.agent-wide-btn.agent-bang-btn:hover {
-  background: linear-gradient(135deg, #16295a, #24489a);
-}
-
-.ctp-phone-app .agent-ledger-amount {
-  flex: none;
-  color: var(--agent-magenta);
-  font-weight: bold;
-}
-
-.ctp-phone-app .agent-ledger-amount.credit {
-  color: var(--agent-good);
-}
-
-/* ---------------- Trauma Team ---------------- */
-
-.ctp-phone-app .agent-tt-card {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 4px 0 8px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #e9eef5, #c7d2e0);
-  color: #0d1a2a;
-}
-
-.ctp-phone-app .agent-tt-card.lapsed {
-  background: repeating-linear-gradient(-45deg, #e9eef5 0 10px, #f3d6d6 10px 20px);
-}
-
-.ctp-phone-app .agent-tt-logo {
-  color: #c8102e;
-  font-size: calc(11px * var(--agent-font-scale, 1));
-  font-weight: bold;
-  letter-spacing: 3px;
-}
-
-.ctp-phone-app .agent-tt-tier {
-  font-size: calc(20px * var(--agent-font-scale, 1));
-  font-weight: bold;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.ctp-phone-app .agent-tt-id {
-  font-family: "Share Tech Mono", monospace;
-  letter-spacing: 2px;
-}
-
-.ctp-phone-app .agent-tt-card small {
-  color: #445;
-}
-
-.ctp-phone-app .agent-tt-panic {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  margin: 6px auto 10px;
-  padding: 14px;
-  width: 150px;
-  border-radius: 50%;
-  aspect-ratio: 1;
-  justify-content: center;
-  background: radial-gradient(circle at 40% 35%, #ff6b6b, #c8102e 70%);
-  box-shadow: 0 0 0 4px rgba(200, 16, 46, 0.3), 0 6px 18px rgba(200, 16, 46, 0.5);
-  color: #fff;
-  font-size: calc(30px * var(--agent-font-scale, 1));
-  text-align: center;
-}
-
-.ctp-phone-app .agent-tt-panic span {
-  font-size: calc(11px * var(--agent-font-scale, 1));
-  font-weight: bold;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.ctp-phone-app .agent-tt-panic:hover {
-  box-shadow: 0 0 0 6px rgba(200, 16, 46, 0.45), 0 6px 22px rgba(200, 16, 46, 0.7);
-}
-
-.ctp-phone-app .agent-tt-dispatch {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 6px 0 10px;
-  padding: 12px;
-  border: 2px solid #c8102e;
-  background: rgba(200, 16, 46, 0.15);
-  color: var(--agent-text);
-  font-size: calc(14px * var(--agent-font-scale, 1));
-  text-transform: uppercase;
-  animation: ctp-tt-alert 1.2s ease-in-out infinite;
-}
-
-@keyframes ctp-tt-alert {
-  50% { background: rgba(200, 16, 46, 0.3); }
-}
-
-.ctp-phone-app .agent-tt-eta {
-  font-family: "Share Tech Mono", monospace;
-  font-size: calc(22px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-tt-call.status-pending {
-  background: rgba(200, 16, 46, 0.12);
-}
-
-/* "Dispatch in [5] Minutes Rounds" */
-.ctp-phone-app .agent-tt-dispatch-row {
-  align-items: center;
-}
-
-.ctp-phone-app .agent-tt-dispatch-in {
-  flex: none;
-  font-size: calc(11px * var(--agent-font-scale, 1));
-  white-space: nowrap;
-}
-
-.ctp-phone-app .agent-tt-dispatch-row input[name="eta"] {
-  width: 48px;
-  flex: none;
-}
-
-.ctp-phone-app .agent-trauma .agent-setting-row input[type="number"] {
-  width: 56px;
-  flex: none;
-}
-
-/* ---------------- Ask Alex Anything ---------------- */
-
-
-.ctp-phone-app .agent-alex-reply .agent-msg-sender {
-  color: #9a7cff;
-}
-
-.ctp-phone-app .agent-alex-crawling {
-  color: var(--agent-muted);
-  font-style: italic;
-}
-
-.ctp-phone-app .agent-alex-crawling span {
-  animation: ctp-alex-dot 1.4s infinite;
-}
-
-.ctp-phone-app .agent-alex-crawling span:nth-child(2) { animation-delay: 0.2s; }
-
-.ctp-phone-app .agent-alex-crawling span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes ctp-alex-dot {
-  0%, 60%, 100% { opacity: 0.2; }
-  30% { opacity: 1; }
-}
-
-.ctp-phone-app .agent-alex-none {
-  color: var(--agent-muted);
-}
-
-.ctp-phone-app .agent-alex-source {
-  display: block;
-  margin-top: 4px;
-  color: var(--agent-muted);
-}
-
-.ctp-phone-app .agent-alex-compose {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
-  background: var(--agent-panel);
-  position: relative;
-  z-index: 1;
-}
-
+/* The message bar under Ask Alex Anything and The Garden's threads. */
 .ctp-phone-app .agent-alex-compose input,
 .ctp-phone-app .agent-garden-compose input {
   flex: 1;
@@ -508,410 +371,6 @@
   background: transparent;
   color: var(--agent-cyan);
   line-height: 1;
-}
-
-.ctp-phone-app .agent-alex-question {
-  margin: 2px 0;
-  font-style: italic;
-}
-
-.ctp-phone-app .agent-alex-roll {
-  margin: 4px 0;
-  color: var(--agent-yellow);
-}
-
-.ctp-phone-app .agent-alex-img {
-  max-width: 100%;
-  max-height: 90px;
-  margin: 2px 0;
-}
-
-/* ---------------- WatchBox ---------------- */
-
-.ctp-phone-app .agent-watchbox {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: 0;
-  padding: 20px 14px;
-  background: #000;
-  color: #d8d8d8;
-  text-align: center;
-  position: relative;
-  z-index: 1;
-}
-
-.ctp-phone-app .agent-watchbox.idle {
-  flex: none;
-  padding: 16px;
-  margin-bottom: 8px;
-}
-
-.ctp-phone-app .agent-watchbox-eye {
-  position: relative;
-  width: 110px;
-  height: 56px;
-  border: 3px solid #d8d8d8;
-  border-radius: 50%;
-}
-
-.ctp-phone-app .agent-watchbox-eye i {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 26px;
-  height: 26px;
-  margin: -13px 0 0 -13px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #fff 0 3px, #ff2a2a 4px 9px, #400 10px);
-  box-shadow: 0 0 12px #ff2a2a;
-  animation: ctp-wb-look 6s ease-in-out infinite;
-}
-
-@keyframes ctp-wb-look {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-24px); }
-  75% { transform: translateX(24px); }
-}
-
-.ctp-phone-app .agent-watchbox.assessing .agent-watchbox-eye i {
-  animation-duration: 2s;
-}
-
-.ctp-phone-app .agent-watchbox-status {
-  font-family: "Share Tech Mono", monospace;
-  font-size: calc(22px * var(--agent-font-scale, 1));
-  letter-spacing: 4px;
-}
-
-.ctp-phone-app .agent-watchbox-brand {
-  color: #777;
-  font-size: calc(10px * var(--agent-font-scale, 1));
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.ctp-phone-app .agent-watchbox.alarm {
-  animation: ctp-wb-alarm 0.5s steps(1) infinite;
-}
-
-.ctp-phone-app .agent-watchbox.alarm .agent-watchbox-status {
-  color: #ff2a2a;
-}
-
-@keyframes ctp-wb-alarm {
-  50% { background: #3a0000; }
-}
-
-.ctp-phone-app .agent-watchbox .agent-info-note {
-  color: #999;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ctp-phone-app .agent-watchbox-eye i,
-  .ctp-phone-app .agent-watchbox.alarm,
-  .ctp-phone-app .agent-tt-dispatch { animation: none; }
-}
-
-/* ---------------- The Garden ---------------- */
-
-.ctp-phone-app .agent-garden-feed,
-.ctp-phone-app .agent-garden-replies {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.ctp-phone-app .agent-garden-post {
-  display: flex;
-  gap: 8px;
-  padding: 8px 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.ctp-phone-app .agent-garden-post.rep {
-  box-shadow: inset 3px 0 0 var(--agent-yellow);
-  padding-left: 6px;
-}
-
-.ctp-phone-app .agent-garden-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.ctp-phone-app .agent-garden-head {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  font-size: calc(12px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-garden-head a {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ctp-phone-app .agent-garden-head .agent-row-time {
-  margin-left: auto;
-}
-
-.ctp-phone-app .agent-garden-handle {
-  color: var(--agent-muted);
-  font-size: calc(11px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-garden-verified {
-  color: var(--agent-good);
-  font-size: calc(10px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-garden-rep {
-  color: var(--agent-yellow);
-  font-size: calc(10px * var(--agent-font-scale, 1));
-  letter-spacing: 0.5px;
-}
-
-.ctp-phone-app .agent-garden-text {
-  margin: 2px 0 4px;
-  font-size: calc(13px * var(--agent-font-scale, 1));
-  line-height: 1.35;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  cursor: pointer;
-}
-
-.ctp-phone-app .agent-garden-img {
-  max-height: 180px;
-}
-
-.ctp-phone-app .agent-garden-counts {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: var(--agent-muted);
-  font-size: calc(11px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-garden-counts a:hover,
-.ctp-phone-app .agent-garden-counts a.on {
-  color: var(--agent-good);
-}
-
-.ctp-phone-app .agent-garden-tier {
-  margin-left: auto;
-  padding: 0 5px;
-  border: 1px solid var(--agent-muted);
-  border-radius: 6px;
-  font-size: calc(9px * var(--agent-font-scale, 1));
-  text-transform: uppercase;
-}
-
-.ctp-phone-app .agent-garden-reply {
-  padding: 6px 4px 6px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: calc(12px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-garden-reply-delete {
-  float: right;
-  margin-left: 6px;
-  color: var(--agent-muted);
-  cursor: pointer;
-}
-
-.ctp-phone-app .agent-garden-reply-delete:hover {
-  color: var(--agent-magenta);
-}
-
-/* On a Patch: the post a reply answers, quoted small above it. */
-.ctp-phone-app .agent-garden-reply-to {
-  margin: 2px 0;
-  padding-left: 6px;
-  border-left: 2px solid rgba(var(--agent-cyan-rgb), 0.3);
-  color: var(--agent-muted);
-  cursor: pointer;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.ctp-phone-app .agent-garden-composer {
-  margin-bottom: 6px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
-}
-
-.ctp-phone-app .agent-garden-composer-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.ctp-phone-app .agent-garden-composer-row .agent-dropdown {
-  flex: 1;
-}
-
-.ctp-phone-app .agent-garden-composer-row input[type="number"] {
-  width: 40px;
-  height: 22px;
-  flex: none;
-}
-
-.ctp-phone-app button.agent-garden-post-btn {
-  flex: none;
-  width: auto;
-  margin-left: auto;
-  padding: 2px 10px;
-  border: 1px solid var(--agent-good);
-  border-radius: 12px;
-  background: rgba(111, 224, 138, 0.12);
-  color: var(--agent-good);
-  font-family: var(--agent-font);
-  line-height: 20px;
-}
-
-.ctp-phone-app .agent-garden-join {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 8px;
-  padding: 10px;
-  border: 1px dashed rgba(111, 224, 138, 0.6);
-  color: var(--agent-muted);
-  font-size: calc(12px * var(--agent-font-scale, 1));
-  text-align: center;
-}
-
-.ctp-phone-app .agent-garden-join .agent-wide-btn {
-  border-color: var(--agent-good);
-  color: var(--agent-good);
-}
-
-.ctp-phone-app .agent-garden-compose {
-  flex: none;
-  display: flex;
-  gap: 6px;
-  padding: 6px 8px;
-  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
-  background: var(--agent-panel);
-  position: relative;
-  z-index: 1;
-}
-
-.ctp-phone-app .agent-garden-reply-as {
-  flex: none;
-  margin: 0;
-  padding: 6px 8px 0;
-  border-top: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
-  background: var(--agent-panel);
-}
-
-.ctp-phone-app .agent-garden-reply-as + .agent-garden-compose {
-  border-top: none;
-}
-
-.ctp-phone-app .agent-garden-patch {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 10px 0;
-  text-align: center;
-}
-
-.ctp-phone-app .agent-garden-patch .agent-avatar {
-  flex-basis: 64px;
-  width: 64px;
-  height: 64px;
-  font-size: calc(22px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-garden-bio {
-  margin: 4px 0;
-  font-size: calc(12px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-garden-stats {
-  color: var(--agent-muted);
-  font-size: calc(11px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-garden-boost {
-  margin-left: auto;
-  width: 110px;
-}
-
-/* The Garden Dating */
-.ctp-phone-app .agent-dating-card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 4px 0 10px;
-  padding: 10px;
-  border: 1px solid rgba(255, 120, 170, 0.6);
-  border-radius: 14px;
-  background: linear-gradient(160deg, rgba(255, 120, 170, 0.15), rgba(var(--agent-cyan-rgb), 0.05));
-}
-
-.ctp-phone-app .agent-dating-photo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 170px;
-  border-radius: 10px;
-  object-fit: cover;
-  background: var(--agent-panel);
-  color: var(--agent-muted);
-  font-size: calc(40px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-dating-name b {
-  font-size: calc(16px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-dating-prompts {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.ctp-phone-app .agent-dating-prompts li {
-  margin: 4px 0;
-  padding: 6px 8px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.25);
-  font-size: calc(12px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-dating-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.ctp-phone-app .agent-dating-actions a {
-  flex: 1;
-  padding: 8px;
-  border-radius: 20px;
-  font-size: calc(13px * var(--agent-font-scale, 1));
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.ctp-phone-app .agent-dating-pass {
-  border: 1px solid var(--agent-muted);
-  color: var(--agent-muted);
-}
-
-.ctp-phone-app .agent-dating-spark {
-  background: linear-gradient(90deg, #ff6aa2, #ffb86a);
-  color: #1a0010;
-  font-weight: bold;
 }
 
 /* ---------------- Dialogs ---------------- */
@@ -961,205 +420,6 @@
   white-space: nowrap;
 }
 
-/* The Garden's big buttons: solid, so they read on every skin. */
-.ctp-phone-app button.agent-wide-btn.agent-garden-cta {
-  padding: 6px;
-  border: 1px solid #1e7a3c;
-  background: #1e7a3c;
-  color: #fff;
-  font-weight: bold;
-  text-shadow: none;
-}
-
-.ctp-phone-app button.agent-wide-btn.agent-garden-cta:hover {
-  background: #26964b;
-}
-
-.ctp-phone-app button.agent-wide-btn.agent-dating-cta {
-  border-color: #b8336a;
-  background: linear-gradient(90deg, #c2336f, #d9713a);
-}
-
-.ctp-phone-app button.agent-wide-btn.agent-dating-cta:hover {
-  background: linear-gradient(90deg, #d8407f, #e8854a);
-}
-
-.ctp-phone-app .agent-garden-join {
-  border-color: rgba(var(--agent-cyan-rgb), 0.5);
-  background: var(--agent-panel);
-  color: var(--agent-text);
-}
-
-.ctp-phone-app .agent-dating-found {
-  color: #ff8ab5;
-  font-weight: bold;
-  text-align: center;
-}
-
-.ctp-phone-app .agent-dating-searching {
-  margin: 10px 0;
-  color: #ff8ab5;
-  text-align: center;
-}
-
-.ctp-phone-app .agent-dating-searching span {
-  animation: ctp-alex-dot 1.4s infinite;
-}
-
-.ctp-phone-app .agent-dating-searching span:nth-child(3) { animation-delay: 0.2s; }
-
-.ctp-phone-app .agent-dating-searching span:nth-child(4) { animation-delay: 0.4s; }
-
-.ctp-phone-app .agent-help-list {
-  margin: 2px 0 8px;
-  padding-left: 16px;
-}
-
-.ctp-phone-app .agent-help-list li {
-  margin: 2px 0;
-}
-
-/* WatchBox: its explanations, larger and in italics. */
-.ctp-phone-app .agent-wb .agent-info-note,
-.ctp-phone-app .agent-watchbox .agent-info-note {
-  font-size: calc(13px * var(--agent-font-scale, 1));
-  font-style: italic;
-  line-height: 1.4;
-}
-
-/* The Garden Dating: the Algorithm is one big round glowing button. */
-.ctp-phone-app .agent-algorithm {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  margin: 14px 0 10px;
-  text-align: center;
-}
-
-.ctp-phone-app .agent-algorithm-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ff9cc3, #d9336f 55%, #7a1540);
-  box-shadow: 0 0 0 3px rgba(255, 138, 181, 0.35), 0 0 22px rgba(255, 90, 150, 0.75), 0 0 48px rgba(255, 90, 150, 0.35);
-  color: #fff;
-  font-size: calc(34px * var(--agent-font-scale, 1));
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  animation: ctp-algorithm-glow 2.6s ease-in-out infinite;
-}
-
-.ctp-phone-app .agent-algorithm-btn span {
-  max-width: 110px;
-  font-size: calc(12px * var(--agent-font-scale, 1));
-  font-weight: bold;
-  letter-spacing: 1px;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
-.ctp-phone-app .agent-algorithm-btn:hover {
-  box-shadow: 0 0 0 4px rgba(255, 138, 181, 0.5), 0 0 30px rgba(255, 90, 150, 0.95), 0 0 60px rgba(255, 90, 150, 0.5);
-}
-
-.ctp-phone-app .agent-algorithm-btn.searching {
-  cursor: default;
-  animation-duration: 0.9s;
-}
-
-.ctp-phone-app .agent-algorithm-btn.searching i {
-  animation: ctp-algorithm-spin 2s linear infinite;
-}
-
-@keyframes ctp-algorithm-glow {
-  50% { box-shadow: 0 0 0 6px rgba(255, 138, 181, 0.2), 0 0 34px rgba(255, 90, 150, 0.95), 0 0 70px rgba(255, 90, 150, 0.45); }
-}
-
-@keyframes ctp-algorithm-spin {
-  to { transform: rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ctp-phone-app .agent-algorithm-btn,
-  .ctp-phone-app .agent-algorithm-btn i { animation: none; }
-}
-
-/* A player's own dating profile, edited in place. */
-.ctp-phone-app .agent-dating-edit {
-  width: 100%;
-  margin-top: 10px;
-  padding: 6px 8px 8px;
-  border: 1px solid rgba(255, 120, 170, 0.5);
-  border-radius: 10px;
-  text-align: left;
-}
-
-.ctp-phone-app .agent-dating-edit input[type="text"] {
-  width: 100%;
-  margin: 3px 0;
-}
-
-.ctp-phone-app .agent-dating-edit .agent-setting-row input {
-  width: 60px;
-  flex: none;
-}
-
-/* A post shown on someone's Patch because they grafted (shared) it. */
-.ctp-phone-app .agent-garden-grafted {
-  color: var(--agent-muted);
-  font-size: calc(10px * var(--agent-font-scale, 1));
-}
-
-.ctp-phone-app .agent-list-sample {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-style: italic;
-}
-
-.ctp-list-view {
-  max-height: 60vh;
-  overflow-y: auto;
-  margin: 0;
-  padding-left: 28px;
-}
-
-/* Ask Alex Anything, before the first question. */
-.ctp-phone-app .agent-alex-hello {
-  margin: 10px 6px;
-  padding: 12px;
-  border: 1px solid rgba(154, 124, 255, 0.5);
-  border-radius: 12px;
-  background: linear-gradient(160deg, rgba(154, 124, 255, 0.14), transparent 70%), var(--agent-panel);
-  color: var(--agent-text);
-  font-size: calc(12px * var(--agent-font-scale, 1));
-  line-height: 1.45;
-}
-
-.ctp-phone-app .agent-alex-hello p {
-  margin: 6px 0;
-}
-
-.ctp-phone-app .agent-alex-hello-title {
-  color: #9a7cff;
-  font-size: calc(15px * var(--agent-font-scale, 1));
-  font-weight: bold;
-}
-
-.ctp-phone-app .agent-alex-hello-try {
-  color: var(--agent-muted);
-  font-style: italic;
-}
-
-.ctp-phone-app .agent-alex-hello small {
-  color: var(--agent-muted);
-}
-
 /* The full home screen (home-screen navigation): the clock over every app. */
 .ctp-phone-app .agent-homescreen {
   display: flex;
@@ -1192,3 +452,429 @@
 .ctp-phone-app .agent-homescreen .agent-home {
   gap: 16px 6px;
 }
+
+/*
+ * Buttons in a centred card (Gacha's collectible, Achieve!'s popup): the row spans the card, and each
+ * button keeps its icon and words on one line (a long row wraps to a second line instead).
+ */
+.ctp-phone-app .agent-gacha-reveal .agent-money-actions,
+.ctp-phone-app .agent-achieve-detail .agent-money-actions {
+  flex-wrap: wrap;
+  align-self: stretch;
+  justify-content: center;
+}
+
+.ctp-phone-app .agent-gacha-reveal .agent-money-actions a,
+.ctp-phone-app .agent-achieve-detail .agent-money-actions a {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Arranging the home screen (ui/phone/pages/home.js): the tile being dragged, and where it would go. */
+.ctp-phone-app .agent-home-app.dragging {
+  opacity: 0.4;
+}
+
+.ctp-phone-app .agent-home-app.drop-before .agent-home-icon {
+  box-shadow: -6px 0 0 -2px var(--agent-cyan), 0 0 10px rgba(var(--agent-cyan-rgb), 0.5);
+}
+
+/* ---------------- App themes ---------------- */
+
+/*
+ * Every app is its own app: opening one swaps the screen for the app's own: its palette
+ * (the phone's colour variables, so every control follows), its font, a solid toolbar, a flat screen and
+ * header art (--app-hero) that scrolls away with the page; nothing patterned sits behind the content (the fixed full-screen motifs drowned the apps' own lines and cards). The status bar and the
+ * dock stay the phone's, as on a real phone. AgentPhone._screen puts
+ * the open app on .agent-phone as data-screen (none on the Apps page, calls and the lock screen).
+ * - Dark skins (Neon, Zetatech, Field Tech) get the whole theme.
+ * - Light skins (Dot, Segotari Agent, Field Med) keep their own look with a tint of the app's colour.
+ * - The Neuron HUD (see-through by design) and the Burner keep the plain screen.
+ * A new app adds one block of variables below and its id to the :is([data-screen=...]) lists, or it keeps
+ * the plain screen.
+ * CBK is in the lists for the GM's pages only (:where(:has(...)) adds no specificity): the player's page is
+ * the book's white page on every skin.
+ */
+.ctp-phone-app .agent-phone[data-screen="messages"] { /* Zchat: a soft night-mint chat app, bubbles drifting up */
+  --app-bg: #061a1a; --app-panel: #0d2a29;
+  --app-rgb: 62, 230, 193; --app-rgb2: 255, 120, 170; --app-rgb3: 255, 214, 120;
+  --app-text: #e4fff8; --app-muted: #6aa59a; --app-good: #39ff88;
+  --app-font: "Nunito", "Segoe UI", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(135deg, #1fbf9c, #0e8f8a); --app-ink-rgb: 4, 30, 28;
+  --app-hero:
+    radial-gradient(ellipse 70% 100% at 88% 0%, rgba(62, 230, 193, 0.24), transparent 70%),
+    radial-gradient(ellipse 50% 80% at 8% 0%, rgba(255, 120, 170, 0.12), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="contacts"] { /* an address book: blue card stock, ruled lines, an A-Z tab edge */
+  --app-bg: #0b1630; --app-panel: #14244a;
+  --app-rgb: 106, 168, 255; --app-rgb2: 255, 159, 67; --app-rgb3: 255, 226, 122;
+  --app-text: #e8f0ff; --app-muted: #7d93c0; --app-good: #39ff88;
+  --app-font: "Inter", "Segoe UI", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #2f6fd6, #3f86f0); --app-ink-rgb: 245, 249, 255;
+  --app-hero:
+    linear-gradient(180deg, rgba(106, 168, 255, 0.2), transparent);
+}
+.ctp-phone-app .agent-phone[data-screen="quests"] { /* Jobs: a fixer's board, black and work-light orange with hazard tape */
+  --app-bg: #120c06; --app-panel: #20160b;
+  --app-rgb: 255, 159, 67; --app-rgb2: 255, 80, 60; --app-rgb3: 255, 214, 90;
+  --app-text: #fff1e0; --app-muted: #a88560; --app-good: #39ff88;
+  --app-font: "Barlow Condensed", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: repeating-linear-gradient(-45deg, #ff9f43 0 12px, #1a1208 12px 24px); --app-ink-rgb: 255, 236, 210; --app-bar-text: #1a1208;
+  --app-hero:
+    radial-gradient(ellipse 80% 100% at 50% 0%, rgba(255, 159, 67, 0.24), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="settings"] { /* system: brushed steel and a blueprint grid */
+  --app-bg: #111417; --app-panel: #1c2126;
+  --app-rgb: 176, 190, 197; --app-rgb2: 120, 200, 255; --app-rgb3: 255, 214, 90;
+  --app-text: #eef2f4; --app-muted: #82909a; --app-good: #39ff88;
+  --app-font: "Inter", "Segoe UI", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(180deg, #3a434b, #262d33); --app-ink-rgb: 236, 241, 244;
+  --app-hero:
+    linear-gradient(180deg, rgba(120, 200, 255, 0.08), transparent);
+}
+.ctp-phone-app .agent-phone[data-screen="pool"] { /* App Store: Ziggurat blue, a stepped ziggurat rising behind the shelves */
+  --app-bg: #061230; --app-panel: #0e2050;
+  --app-rgb: 80, 160, 255; --app-rgb2: 255, 110, 199; --app-rgb3: 255, 209, 102;
+  --app-text: #eaf3ff; --app-muted: #7896c8; --app-good: #39ff88;
+  --app-font: "Oxanium", "Rajdhani", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(135deg, #2f7fe0, #123a7a); --app-ink-rgb: 255, 255, 255;
+  --app-hero:
+    radial-gradient(ellipse 90% 100% at 50% 0%, rgba(80, 160, 255, 0.26), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="agent"] { /* the AI: deep violet, rings pulsing out of a glowing core */
+  --app-bg: #110822; --app-panel: #1d1138;
+  --app-rgb: 180, 140, 255; --app-rgb2: 255, 110, 220; --app-rgb3: 140, 230, 255;
+  --app-text: #f2ebff; --app-muted: #9585c2; --app-good: #39ff88;
+  --app-font: "Oxanium", "Rajdhani", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #5b2fb8, #8a4fe0); --app-ink-rgb: 250, 245, 255;
+  --app-hero:
+    radial-gradient(circle at 50% 0%, rgba(180, 140, 255, 0.34), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="garden"] { /* The Garden: a lush green feed growing in from the corners */
+  --app-bg: #07170d; --app-panel: #0f2617;
+  --app-rgb: 111, 224, 138; --app-rgb2: 255, 120, 170; --app-rgb3: 230, 240, 120;
+  --app-text: #eafff0; --app-muted: #76a886; --app-good: #39ff88;
+  --app-font: "Nunito", "Segoe UI", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(135deg, #2c9a4b, #1e7a3c); --app-ink-rgb: 240, 255, 244;
+  --app-hero:
+    radial-gradient(ellipse 60% 100% at 0% 0%, rgba(111, 224, 138, 0.26), transparent 70%),
+    radial-gradient(ellipse 50% 80% at 100% 0%, rgba(111, 224, 138, 0.16), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="alex"] { /* Ask Alex: a search engine's clean sky blue, a lens scanning the Pool */
+  --app-bg: #04131e; --app-panel: #0a2333;
+  --app-rgb: 79, 195, 247; --app-rgb2: 154, 124, 255; --app-rgb3: 255, 214, 90;
+  --app-text: #e6f7ff; --app-muted: #71a0b8; --app-good: #39ff88;
+  --app-font: "Inter", "Segoe UI", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #0b7fc0, #4fc3f7); --app-ink-rgb: 255, 255, 255;
+  --app-hero:
+    radial-gradient(ellipse 70% 100% at 72% 0%, rgba(79, 195, 247, 0.26), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="screamsheet"] { /* DataPool: kiosk newsprint at night, a hot-pink masthead, halftone dots */
+  --app-bg: #121014; --app-panel: #1f1b22;
+  --app-rgb: 255, 46, 136; --app-rgb2: 243, 240, 230; --app-rgb3: 57, 255, 136;
+  --app-text: #f3f0e6; --app-muted: #a39aa6; --app-good: #39ff88;
+  --app-font: "Oswald", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #ff2e88, #c0392b); --app-ink-rgb: 255, 255, 255;
+  --app-hero:
+    radial-gradient(circle at 1px 1px, rgba(243, 240, 230, 0.10) 1px, transparent 1.5px) 0 0 / 6px 6px,
+    radial-gradient(ellipse 70% 100% at 30% 0%, rgba(255, 46, 136, 0.22), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="bangme"] { /* BangMe!: Eurobank navy and gold, a banknote's guilloche */
+  --app-bg: #0a1430; --app-panel: #14244c;
+  --app-rgb: 242, 193, 78; --app-rgb2: 106, 168, 255; --app-rgb3: 242, 193, 78;
+  --app-text: #f7f1de; --app-muted: #8d97bd; --app-good: #39ff88;
+  --app-font: "Barlow Condensed", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #f2c14e, #d9a21f); --app-ink-rgb: 15, 31, 69;
+  --app-hero:
+    linear-gradient(160deg, rgba(27, 58, 122, 0.7), transparent 75%);
+}
+.ctp-phone-app .agent-phone[data-screen="market"] { /* Great River (Ziggurat): drone delivery over a river at night, water blue on deep navy, two wave lines */
+  --app-bg: #06121f; --app-panel: #0c2236;
+  --app-rgb: 56, 189, 248; --app-rgb2: 45, 212, 191; --app-rgb3: 56, 189, 248;
+  --app-text: #e8f6ff; --app-muted: #7fa3bd; --app-good: #39ff88;
+  --app-font: "Barlow Condensed", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #38bdf8, #2dd4bf); --app-ink-rgb: 4, 20, 36;
+  --app-hero:
+    radial-gradient(ellipse 90% 100% at 50% 0%, rgba(45, 212, 191, 0.2), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="trauma"] { /* Trauma Team: clinical white and emergency red */
+  --app-bg: #eef2f7; --app-panel: #ffffff;
+  --app-rgb: 200, 16, 46; --app-rgb2: 13, 60, 110; --app-rgb3: 200, 120, 0;
+  --app-text: #0d1a2a; --app-muted: #5b6b80; --app-good: #1e7a3c;
+  --app-font: "Inter", "Segoe UI", sans-serif; --app-scheme: light;
+  --app-bar: linear-gradient(180deg, #ffffff, #e9eef5); --app-ink-rgb: 200, 16, 46;
+  --app-hero: none;
+}
+.ctp-phone-app .agent-phone[data-screen="watchbox"] { /* WatchBox: a security monitor, black, scanlines, the REC light */
+  --app-bg: #020202; --app-panel: #101010;
+  --app-rgb: 255, 70, 70; --app-rgb2: 255, 70, 70; --app-rgb3: 230, 230, 230;
+  --app-text: #e6e6e6; --app-muted: #808080; --app-good: #39ff88;
+  --app-font: "VT323", "Share Tech Mono", monospace; --app-scheme: dark;
+  --app-bar: #000; --app-ink-rgb: 255, 70, 70;
+  --app-hero:
+    radial-gradient(circle at 92% 0%, rgba(255, 70, 70, 0.22), transparent 45%);
+}
+.ctp-phone-app .agent-phone[data-screen="notes"] { /* Notes: a yellow legal pad, ruled lines, a red margin */
+  --app-bg: #fff4b8; --app-panel: #fff9d6;
+  --app-rgb: 120, 88, 0; --app-rgb2: 198, 40, 40; --app-rgb3: 160, 110, 0;
+  --app-text: #3b3000; --app-muted: #8a7a3a; --app-good: #2e7d32;
+  --app-font: "Special Elite", "Courier New", monospace; --app-scheme: light;
+  --app-bar: linear-gradient(180deg, #f5d65a, #eec63c); --app-ink-rgb: 74, 59, 0;
+  --app-hero: none;
+}
+.ctp-phone-app .agent-phone[data-screen="calendar"] { /* Calendar: a paper wall planner, red header, day squares */
+  --app-bg: #f6f6f4; --app-panel: #ffffff;
+  --app-rgb: 198, 40, 40; --app-rgb2: 30, 110, 200; --app-rgb3: 190, 130, 0;
+  --app-text: #1f1f1f; --app-muted: #757575; --app-good: #2e7d32;
+  --app-font: "Inter", "Segoe UI", sans-serif; --app-scheme: light;
+  --app-bar: linear-gradient(180deg, #e53935, #c62828); --app-ink-rgb: 255, 255, 255;
+  --app-hero:
+    linear-gradient(180deg, rgba(229, 57, 53, 0.1), transparent);
+}
+.ctp-phone-app .agent-phone[data-screen="weather"] { /* Weather: a stormy sky, cold blue into bruised violet, rain falling */
+  --app-bg: #0c1726; --app-panel: #16263c;
+  --app-rgb: 120, 190, 255; --app-rgb2: 255, 170, 60; --app-rgb3: 255, 226, 122;
+  --app-text: #eef6ff; --app-muted: #8aa2c0; --app-good: #39ff88;
+  --app-font: "Inter", "Segoe UI", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(135deg, #3a6ea5, #5a4f9a); --app-ink-rgb: 255, 255, 255;
+  --app-hero:
+    linear-gradient(180deg, rgba(58, 110, 165, 0.45), rgba(90, 79, 154, 0.2));
+}
+.ctp-phone-app .agent-phone[data-screen="ncpd"] { /* NCPD: police blue and white, a badge's shield and siren light */
+  --app-bg: #08122a; --app-panel: #101f42;
+  --app-rgb: 70, 130, 230; --app-rgb2: 255, 70, 70; --app-rgb3: 230, 235, 245;
+  --app-text: #eef3ff; --app-muted: #8496c0; --app-good: #39ff88;
+  --app-font: "Barlow Condensed", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #1c3f8a, #2a5bc0 60%, #1c3f8a); --app-ink-rgb: 255, 255, 255;
+  --app-hero:
+    radial-gradient(ellipse 45% 80% at 12% 0%, rgba(255, 70, 70, 0.24), transparent 70%),
+    radial-gradient(ellipse 45% 80% at 88% 0%, rgba(70, 130, 230, 0.34), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="hustool"] { /* HusTool: No/Brainer's hazard yellow on asphalt */
+  --app-bg: #14120a; --app-panel: #221e10;
+  --app-rgb: 242, 208, 36; --app-rgb2: 255, 140, 40; --app-rgb3: 240, 236, 220;
+  --app-text: #f6f2e2; --app-muted: #a39c80; --app-good: #39ff88;
+  --app-font: "Barlow Condensed", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #d9b400, #f2d024 60%, #d9b400); --app-ink-rgb: 26, 20, 0;
+  --app-hero:
+    radial-gradient(ellipse 60% 80% at 50% 0%, rgba(242, 208, 36, 0.22), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="fortify"] { /* 4Tify: SecSystems' site-survey orange on concrete */
+  --app-bg: #15110d; --app-panel: #241c15;
+  --app-rgb: 255, 140, 50; --app-rgb2: 255, 70, 70; --app-rgb3: 235, 225, 210;
+  --app-text: #f5ece0; --app-muted: #a5927d; --app-good: #39ff88;
+  --app-font: "Barlow Condensed", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #c9651a, #ff8c32 60%, #c9651a); --app-ink-rgb: 26, 14, 0;
+  --app-hero:
+    radial-gradient(ellipse 60% 80% at 50% 0%, rgba(255, 140, 50, 0.22), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="gladiator"] { /* Digital Gladiator: Segotari's arena, magenta neon on a dark grid */
+  --app-bg: #0e0714; --app-panel: #1c0f26;
+  --app-rgb: 255, 60, 110; --app-rgb2: 41, 227, 255; --app-rgb3: 255, 210, 63;
+  --app-text: #fbeaf2; --app-muted: #a07a95; --app-good: #39ff88;
+  --app-font: "Barlow Condensed", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #b3184a, #ff3c6e 60%, #b3184a); --app-ink-rgb: 255, 255, 255;
+  --app-hero:
+    radial-gradient(ellipse 60% 80% at 50% 0%, rgba(255, 60, 110, 0.24), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(41, 227, 255, 0.06) 0 1px, transparent 1px 24px);
+}
+.ctp-phone-app .agent-phone[data-screen="pigeon"] { /* Flappy Chrome: an arcade pixel dusk, magenta and chrome */
+  --app-bg: #13001f; --app-panel: #230734;
+  --app-rgb: 255, 60, 200; --app-rgb2: 200, 214, 224; --app-rgb3: 255, 230, 90;
+  --app-text: #fbeaff; --app-muted: #a07ab8; --app-good: #39ff88;
+  --app-font: "Silkscreen", "Share Tech Mono", monospace; --app-scheme: dark;
+  --app-bar: linear-gradient(180deg, #ff3cc8, #8a1fa0); --app-ink-rgb: 255, 255, 255;
+  --app-hero:
+    radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 60, 200, 0.28), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="ncart"] { /* NCART: transit signage, black and yellow with a teal route line */
+  --app-bg: #06090b; --app-panel: #10171b;
+  --app-rgb: 245, 228, 0; --app-rgb2: 95, 211, 201; --app-rgb3: 245, 228, 0;
+  --app-text: #f4f6f2; --app-muted: #80908f; --app-good: #39ff88;
+  --app-font: "Barlow Condensed", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: #f5e400; --app-ink-rgb: 10, 12, 14;
+  --app-hero:
+    linear-gradient(180deg, rgba(245, 228, 0, 0.1), transparent);
+}
+.ctp-phone-app .agent-phone[data-screen="redline"] { /* REDLINE: night asphalt, speed lines, a red racing stripe */
+  --app-bg: #0c0a10; --app-panel: #19151f;
+  --app-rgb: 255, 42, 61; --app-rgb2: 255, 255, 255; --app-rgb3: 255, 200, 60;
+  --app-text: #ffffff; --app-muted: #8e8598; --app-good: #39ff88;
+  --app-font: "Oxanium", "Rajdhani", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(100deg, #ff2a3d 0 70%, #fff 70% 73%, #ff2a3d 73%); --app-ink-rgb: 255, 255, 255;
+  --app-hero:
+    radial-gradient(ellipse 80% 100% at 100% 0%, rgba(255, 42, 61, 0.26), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="roach"] { /* Roach Race: a dusk-lit racetrack, violet sky over green turf, gold sun */
+  --app-bg: #140c1f; --app-panel: #22163a;
+  --app-rgb: 245, 197, 66; --app-rgb2: 120, 200, 90; --app-rgb3: 245, 197, 66;
+  --app-text: #fff6e0; --app-muted: #a896b8; --app-good: #39ff88;
+  --app-font: "VT323", "Share Tech Mono", monospace; --app-scheme: dark;
+  --app-bar: linear-gradient(180deg, #3a2a5a, #2a1d44); --app-ink-rgb: 245, 197, 66;
+  --app-hero:
+    radial-gradient(circle at 78% 70%, rgba(245, 197, 66, 0.5) 0 16px, rgba(245, 197, 66, 0.14) 20px, transparent 56px),
+    linear-gradient(180deg, rgba(74, 42, 74, 0.9), rgba(58, 42, 90, 0.3));
+}
+.ctp-phone-app .agent-phone[data-screen="breach"] { /* BREACH: Breach Protocol's own lime-on-black (the app paints its matrix) */
+  --app-bg: #0b0c10; --app-panel: #10121a;
+  --app-rgb: 208, 237, 87; --app-rgb2: 94, 246, 255; --app-rgb3: 208, 237, 87;
+  --app-text: #e9f2d0; --app-muted: #6f7a4a; --app-good: #39ff88;
+  --app-font: "Rajdhani", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, rgba(208, 237, 87, 0.2), transparent 70%); --app-ink-rgb: 208, 237, 87;
+  --app-hero: none;
+}
+.ctp-phone-app .agent-phone[data-screen="cabb"] { /* Combat Cabb: taxi yellow and black, a checker band, red armour */
+  --app-bg: #121212; --app-panel: #1d1d1d;
+  --app-rgb: 245, 196, 0; --app-rgb2: 255, 80, 60; --app-rgb3: 245, 196, 0;
+  --app-text: #ffffff; --app-muted: #9a9a9a; --app-good: #39ff88;
+  --app-font: "Barlow Condensed", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: #f5c400; --app-ink-rgb: 18, 18, 18;
+  --app-hero:
+    radial-gradient(ellipse 80% 100% at 50% 0%, rgba(255, 80, 60, 0.2), transparent 70%);
+}
+.ctp-phone-app .agent-phone[data-screen="map"] { /* Map: the NAV's night blue, contour lines, highway yellow */
+  --app-bg: #10112a; --app-panel: #1a1c42;
+  --app-rgb: 245, 211, 0; --app-rgb2: 255, 90, 160; --app-rgb3: 245, 211, 0;
+  --app-text: #f2f2ff; --app-muted: #8a8cc0; --app-good: #39ff88;
+  --app-font: "Barlow Condensed", "Arial Narrow", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #1a1c42, #24275a); --app-ink-rgb: 245, 211, 0;
+  --app-hero: none;
+}
+.ctp-phone-app .agent-phone[data-screen="achieve"] { /* Achieve!: a trophy case, gold spotlight on purple velvet */
+  --app-bg: #1a0b2c; --app-panel: #2a1546;
+  --app-rgb: 255, 209, 102; --app-rgb2: 255, 90, 110; --app-rgb3: 255, 209, 102;
+  --app-text: #fff6e2; --app-muted: #ab92c8; --app-good: #39ff88;
+  --app-font: "Oxanium", "Rajdhani", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(180deg, #ffd166, #e0a530); --app-ink-rgb: 42, 18, 60;
+  --app-hero:
+    radial-gradient(ellipse 70% 100% at 50% 0%, rgba(255, 209, 102, 0.32), transparent 70%),
+    linear-gradient(180deg, rgba(58, 29, 92, 0.6), transparent);
+}
+.ctp-phone-app .agent-phone[data-screen="gacha"] { /* Gacha: a candy-pink capsule machine, toys tumbling */
+  --app-bg: #1c0922; --app-panel: #2c1036;
+  --app-rgb: 255, 110, 199; --app-rgb2: 95, 211, 201; --app-rgb3: 255, 176, 32;
+  --app-text: #fff0fa; --app-muted: #b48aa8; --app-good: #39ff88;
+  --app-font: "Nunito", "Segoe UI", sans-serif; --app-scheme: dark;
+  --app-bar: linear-gradient(90deg, #ff6ec7, #ff9a5a); --app-ink-rgb: 40, 6, 30;
+  --app-hero:
+    radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 110, 199, 0.22), transparent 70%);
+}
+
+.ctp-phone-app .agent-phone[data-screen="cbk"] { /* CBK, the GM's pages: the catalogue's red bar on black (the player's page keeps the book's white, cbk.css) */
+  --app-bg: #120c0c; --app-panel: #1f1515;
+  --app-rgb: 240, 84, 72; --app-rgb2: 255, 255, 255; --app-rgb3: 255, 200, 60;
+  --app-text: #f6eeee; --app-muted: #a08a8a; --app-good: #39ff88;
+  --app-font: "Jost", "Futura", "Century Gothic", "Segoe UI", sans-serif; --app-scheme: dark;
+  --app-bar: #ce2d24; --app-ink-rgb: 255, 255, 255;
+  --app-hero:
+    radial-gradient(ellipse 90% 100% at 50% 0%, rgba(206, 45, 36, 0.26), transparent 70%);
+}
+
+/* The screen: the app's own flat colour over the skin's screen, under everything. */
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) {
+  isolation: isolate;
+}
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm)))::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--app-bg);
+}
+/*
+ * The app's header art: drawn at the top of the page's scrolling area (the first screenful), fading into the
+ * app's flat screen, and it scrolls away with the content. Nothing patterned sits behind what you read.
+ */
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) {
+  isolation: isolate;
+}
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) :is(.agent-info, .agent-inbox, .agent-alex-thread) {
+  position: relative;
+  isolation: isolate;
+}
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) {
+  isolation: isolate;
+}
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) :is(.agent-info, .agent-inbox, .agent-alex-thread):not(.agent-info .agent-info)::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 220px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 35%, var(--app-bg)), var(--app-hero);
+}
+/* The page takes the app's palette and font (the status bar and dock keep the phone's). */
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) > :not(.agent-statusbar, .agent-date, .agent-vitals, .agent-ad, .agent-dock, .agent-home-bar, .agent-topscreen, .agent-hinge) {
+  --agent-bg: var(--app-bg);
+  --agent-panel: var(--app-panel);
+  --agent-cyan-rgb: var(--app-rgb);
+  --agent-magenta-rgb: var(--app-rgb2);
+  --agent-yellow-rgb: var(--app-rgb3);
+  --agent-cyan: rgb(var(--agent-cyan-rgb));
+  --agent-magenta: rgb(var(--agent-magenta-rgb));
+  --agent-yellow: rgb(var(--agent-yellow-rgb));
+  --agent-text: var(--app-text);
+  --agent-muted: var(--app-muted);
+  --agent-good: var(--app-good);
+  --agent-font: var(--app-font);
+  color-scheme: var(--app-scheme);
+  color: var(--agent-text);
+  font-family: var(--agent-font);
+}
+/* The toolbar: a solid band in the app's colours, its title and buttons in the app's ink. */
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) > :is(.agent-inbox-bar, .agent-app-bar),
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) .agent-split-main > :is(.agent-inbox-bar, .agent-app-bar),
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) > * > :is(.agent-inbox-bar, .agent-app-bar):first-child {
+  --agent-cyan-rgb: var(--app-ink-rgb);
+  --agent-cyan: rgb(var(--app-ink-rgb));
+  --agent-muted: rgba(var(--app-ink-rgb), 0.75);
+  --agent-text: rgb(var(--app-ink-rgb));
+  min-height: 40px;
+  background: var(--app-bar);
+  border-bottom: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  color: rgb(var(--app-ink-rgb));
+}
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) :is(.agent-inbox-bar, .agent-app-bar) .agent-inbox-name {
+  color: var(--app-bar-text, rgb(var(--app-ink-rgb)));
+  letter-spacing: 1px;
+  text-shadow: none;
+}
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) :is(.agent-inbox-bar, .agent-app-bar) .agent-inbox-name::before {
+  content: none;
+}
+/* Hazard-tape toolbars: the title on a plate so it reads over the stripes. */
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone[data-screen="quests"] :is(.agent-inbox-bar, .agent-app-bar) .agent-inbox-name {
+  padding: 1px 8px;
+  background: #ff9f43;
+}
+
+/* Paper apps (light screens): the phone's status bar and date keep the phone's dark glass, so they read. */
+.ctp-phone-app:is(.skin-classic, .skin-zetatech, .skin-fieldTech):not(.theme-internal) .agent-phone:is([data-screen="notes"], [data-screen="calendar"], [data-screen="trauma"]) > :is(.agent-statusbar, .agent-date) {
+  background-color: var(--agent-bg);
+}
+
+/* Light skins: their own paper and plastic, washed with the app's colour. */
+.ctp-phone-app:is(.skin-dot, .skin-yourplay, .skin-fieldMed) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm))) {
+  isolation: isolate;
+}
+.ctp-phone-app:is(.skin-dot, .skin-yourplay, .skin-fieldMed) .agent-phone:is([data-screen="messages"], [data-screen="contacts"], [data-screen="quests"], [data-screen="settings"], [data-screen="pool"], [data-screen="agent"], [data-screen="garden"], [data-screen="alex"], [data-screen="screamsheet"], [data-screen="bangme"], [data-screen="market"], [data-screen="trauma"], [data-screen="watchbox"], [data-screen="notes"], [data-screen="calendar"], [data-screen="weather"], [data-screen="ncpd"], [data-screen="hustool"], [data-screen="fortify"], [data-screen="gladiator"], [data-screen="pigeon"], [data-screen="ncart"], [data-screen="redline"], [data-screen="roach"], [data-screen="breach"], [data-screen="cabb"], [data-screen="map"], [data-screen="achieve"], [data-screen="gacha"], [data-screen="cbk"]:where(:has(.agent-cbk-gm)))::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(var(--app-tint, var(--app-rgb)), 0.22), rgba(var(--app-tint, var(--app-rgb)), 0.08));
+}
+
+.ctp-phone-app .agent-phone[data-screen="notes"] { --app-tint: 245, 214, 90; }
+.ctp-phone-app .agent-phone[data-screen="calendar"] { --app-tint: 229, 57, 53; }
+.ctp-phone-app .agent-phone[data-screen="trauma"] { --app-tint: 200, 16, 46; }

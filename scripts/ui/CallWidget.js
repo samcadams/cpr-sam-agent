@@ -5,6 +5,8 @@ import { commsOn } from "../model/features.js";
 import { personaColor } from "../model/threads.js";
 import { store } from "../store.js";
 import { esc, formatDuration, initials } from "../util/text.js";
+import { describeControls } from "./a11y.js";
+import { directorTakesCalls } from "./director/state.js";
 
 /*
  * The minimised call: a small card by the phone button while you're on a call and your phone isn't
@@ -26,7 +28,7 @@ export const CallWidget = {
     const phoneOpen = phone.rendered && !phone._minimized;
     // A ringing call shows as a notification instead.
     const role = calls.some(r => r.ringing.length) ? null : calls.find(r => r.joined.length);
-    if (!role || phoneOpen) return this.hide();
+    if (!role || phoneOpen || directorTakesCalls()) return this.hide();
     this.render(role, phone);
   },
 
@@ -47,7 +49,7 @@ export const CallWidget = {
       </div>
       ${as}
       <ol class="ctp-call-widget-people">
-        ${live.map(p => `<li>${p.img ? `<img src="${esc(p.img)}">` : `<span class="ctp-call-widget-initials">${esc(initials(p.name))}</span>`}
+        ${live.map(p => `<li>${p.img ? `<img src="${esc(p.img)}" alt="">` : `<span class="ctp-call-widget-initials">${esc(initials(p.name))}</span>`}
           <span>${esc(p.name)}</span>${STATES[p.state] ? `<em>${STATES[p.state]}</em>` : ""}</li>`).join("")}
       </ol>
       <div class="ctp-call-widget-actions">
@@ -65,6 +67,7 @@ export const CallWidget = {
     for (const a of el.querySelectorAll("[data-leave]")) {
       a.addEventListener("click", () => store.request("call-hangup", { callId: call.id, key: a.dataset.leave }));
     }
+    describeControls(el);
     this.makeDraggable(el.querySelector(".ctp-call-widget-head"));
     el.hidden = false;
     this.place();

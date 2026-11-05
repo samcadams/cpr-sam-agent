@@ -1,13 +1,29 @@
 import { formDialog, formIn } from "./dialogs/formDialog.js";
 import { DIALOGS } from "../config.js";
+import { feature } from "../model/features.js";
+import { mapConfig, mapReady, mapRows, ownPins } from "../../apps/map/model.js";
 
 /*
  * Map locations: picking a map pin (or the sender's own position) to share, and jumping to one.
  */
 
+const MAP = "map";
+
+/**
+ * The Map app's Night City (apps/map) as one more "scene" to pick from: the pins this user has. Its places
+ * have no scene (the Map draws them); the scene it was seeded from isn't listed beside it.
+ */
+function mapChoice() {
+  if (!feature("app_map") || !mapReady()) return null;
+  const notes = ownPins().filter(p => p.name).map(p => ({ id: p.id, label: p.name })).sort((a, b) => a.label.localeCompare(b.label));
+  return notes.length ? { id: MAP, name: "Night City (the Map)", notes } : null;
+}
+
 function locationScenes() {
-  return game.scenes
-    .filter(s => s.notes.size && (game.user.isGM || s.navigation || s.testUserPermission(game.user, "LIMITED")))
+  const map = mapChoice();
+  const seeded = map ? mapConfig().seeded?.from : null;
+  const scenes = game.scenes
+    .filter(s => s.id !== seeded && s.notes.size && (game.user.isGM || s.navigation || s.testUserPermission(game.user, "LIMITED")))
     .map(s => ({
       id: s.id,
       name: s.navName || s.name,
@@ -17,6 +33,7 @@ function locationScenes() {
         .sort((a, b) => a.label.localeCompare(b.label))
     }))
     .filter(s => s.notes.length);
+  return map ? [map, ...scenes] : scenes;
 }
 
 /** Dialog listing map pins by scene. Resolves to a location or null. */
@@ -26,7 +43,7 @@ export async function pickLocation(current = null) {
     ui.notifications.warn("No map pins available to share.");
     return null;
   }
-  const shown = scenes.find(s => s.id === canvas.scene?.id) ?? scenes.find(s => /map/i.test(s.name)) ?? scenes[0];
+  const shown = scenes.find(s => s.id === MAP) ?? scenes.find(s => s.id === canvas.scene?.id) ?? scenes.find(s => /map/i.test(s.name)) ?? scenes[0];
   for (const scene of scenes) scene.shown = scene === shown;
 
   return formDialog({
@@ -52,6 +69,11 @@ export async function pickLocation(current = null) {
       if (!value) return null;
       if (value === "current") return current;
       const [sceneId, noteId] = value.split("|");
+      // A Map pin: no scene (the Map draws it), in the Map's px.
+      if (sceneId === MAP) {
+        const row = mapRows()[noteId];
+        return row ? { noteId, x: row.x, y: row.y, label: row.name || "Pin", sceneName: "Night City" } : null;
+      }
       const scene = game.scenes.get(sceneId);
       const note = scene?.notes.get(noteId);
       if (!note) return null;

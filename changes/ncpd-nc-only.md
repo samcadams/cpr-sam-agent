@@ -1,0 +1,1 @@
+- NCPD Crime Database: "Only works in Night City scenes" (GM Phone → Setup, on by default). The GM marks the scene being viewed as in or out of Night City; unmarked scenes follow "Unmarked scenes are in Night City" (on). Outside Night City a request is refused with "No NCPD uplink outside Night City." before any roll.

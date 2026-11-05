@@ -4,6 +4,29 @@ export const esc = str => Handlebars.escapeExpression(str);
 /** Trim user input and cap its length. */
 export const clean = (value, max) => String(value ?? "").trim().slice(0, max);
 
+/**
+ * Cut a long text into pieces of at most `max` characters, the way a phone splits a long message:
+ * at the last paragraph break, else the last sentence end, else the last space before the limit
+ * (a hard cut only for one unbroken run of characters). At most `limit` pieces; the rest is dropped.
+ */
+export function splitText(value, max, limit = Infinity) {
+  let rest = String(value ?? "").trim();
+  const parts = [];
+  while (rest && parts.length < limit) {
+    if (rest.length <= max) {
+      parts.push(rest);
+      break;
+    }
+    const head = rest.slice(0, max + 1);
+    const at = [/\n\s*\n(?=\S)/g, /[.!?…]["')\]]*\s(?=\S)/g, /\s(?=\S)/g]
+      .map(pattern => Math.max(0, ...[...head.matchAll(pattern)].map(m => m.index + m[0].length)))
+      .find(cut => cut > max / 3) ?? max;
+    parts.push(rest.slice(0, at).trim());
+    rest = rest.slice(at).trim();
+  }
+  return parts;
+}
+
 /** "Johnny Silverhand" → "JS", for avatars without a picture. */
 export function initials(name) {
   return String(name ?? "?")

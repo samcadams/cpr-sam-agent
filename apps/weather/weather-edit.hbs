@@ -1,0 +1,12 @@
+{{!-- Weather Control: set a day by hand (apps/weather/page.js `edit`). --}}
+<div class="agent-wx-edit" data-wx-edit="{{key}}">
+  <h4 class="agent-wx-subhead">Set {{label}}</h4>
+  <div class="agent-setting-row"><span>Temperature</span>{{> agent-dropdown temps}}</div>
+  <div class="agent-setting-row"><span>°F</span><input type="number" name="wxF" value="{{f}}" min="-20" max="130" step="1" placeholder="from the table" aria-label="Degrees Fahrenheit"></div>
+  <div class="agent-setting-row"><span>Condition</span>{{> agent-dropdown conds}}</div>
+  {{#if strange}}<div class="agent-setting-row"><span>How long ({{unit}}s)</span><input type="number" name="wxN" value="{{n}}" min="1" max="60" step="1" placeholder="roll it" aria-label="How long, in {{unit}}s"></div>{{/if}}
+  <div class="agent-wx-tools two">
+    <a class="go" data-action="wx-save"><i class="fas fa-floppy-disk"></i><span>Save</span></a>
+    <a data-action="wx-edit" data-key="{{key}}"><i class="fas fa-xmark"></i><span>Cancel</span></a>
+  </div>
+</div>

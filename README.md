@@ -1,17 +1,22 @@
-# Functional Agent: a working Agent for use with Cyberpunk RED
+# Sam's CPR Agent: a working Agent module for FoundryVTT
 
-## Macros
+## Sounds
 
-GMs can script texts, calls, Agent alerts, signal, money, jobs, Garden posts, Trauma Team and
-WatchBox from macros: see [API.md](API.md).
+The bundled phone sounds are public domain (CC0), from Kenney, OpenGameArt, BigSoundBank and
+Freesound's creators: see [sounds/CREDITS.md](sounds/CREDITS.md).
+
+## Gacha pictures
+
+The Gacha collectibles' pictures are from Wikimedia Commons, public domain, CC0, CC BY or CC BY-SA: see
+[images/gacha/CREDITS.md](images/gacha/CREDITS.md).
 
 ## AI disclosure
 
-This module was written with Claude (Anthropic's AI) under human direction and testing.
+This module was written with assistance from Claude (Anthropic's AI) under strict human direction and testing.
 
 ## License
 
-Copyright (C) 2026 samsamsamsam
+Copyright (C) 2026 samcadams
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation, either version 3 of the
@@ -22,5 +27,5 @@ FOR A PARTICULAR PURPOSE. See [LICENSE](LICENSE) for details.
 The license covers this module's code and text. Cyberpunk RED, its setting, and the names used from
 it belong to R. Talsorian Games.
 
-Functional Agent is unofficial content provided under the Homebrew Content Policy of R. Talsorian
+Sam's CPR Agent is unofficial content provided under the Homebrew Content Policy of R. Talsorian
 Games and is not approved or endorsed by RTG.

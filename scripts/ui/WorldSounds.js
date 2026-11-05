@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../config.js";
-import { playSound } from "../util/audio.js";
+import { playBlip, playSound } from "../util/audio.js";
 
 /*
  * Phones heard in the world: the host announces a sound at a token; each client plays it locally,
@@ -30,7 +30,7 @@ function volumeFor(data) {
   }
   if (nearest >= data.radius) return 0;
   const falloff = 1 - nearest / data.radius;
-  return game.settings.get(MODULE_ID, "worldVolume") * falloff * falloff;
+  return game.settings.get(MODULE_ID, "worldVolume") * (data.volume ?? 1) * falloff * falloff;
 }
 
 export const WorldSounds = {
@@ -40,6 +40,8 @@ export const WorldSounds = {
     if (data.muteFor?.includes(game.user.id)) return;
     const volume = volumeFor(data);
     if (!data.loop && volume <= 0) return;
+    // A synth blip (Flappy Chrome): no file, so it follows the core Ambient slider by hand.
+    if (data.blip) return playBlip(data.blip, volume * (game.settings.get("core", "globalAmbientVolume") ?? 1));
 
     const entry = { stopped: false, sound: null, timer: null };
     if (data.loop) this.active.set(data.id, entry);

@@ -1,6 +1,7 @@
 import { MODULE_ID, SOCKET } from "../config.js";
 import { agentType, getPhoneSettings, isPlayerCharacter } from "../model/agent.js";
 import { noSignalSince } from "../model/features.js";
+import { memberSound } from "../model/sounds.js";
 import { canActFor } from "../model/permissions.js";
 import { npcMember } from "../model/threads.js";
 
@@ -18,7 +19,7 @@ export const methods = {
   /** Play the text tone once at a recipient's token. */
   _ding(member) {
     if (!game.settings.get(MODULE_ID, "textToneAtToken")) return;
-    this._worldSound(member, game.settings.get(MODULE_ID, "sound"), { loop: false });
+    this._worldSound(member, memberSound(member, "text"), { loop: false });
   },
 
   /** In-world tone for whoever receives a direct message. Never reveals a hidden caller's location. */
@@ -32,11 +33,12 @@ export const methods = {
   /**
    * Ask every client to play a sound at a member's token on the active scene. Each client plays it
    * locally with distance falloff; users who already hear this phone in their own UI (`muteFor`) skip it.
+   * `blip`, `radius` and `volume`: see _worldSoundAt (the radius defaults to the ring radius).
    * @returns {string|null} id for stopping a looping sound
    */
-  _worldSound(member, path, { loop }) {
+  _worldSound(member, path, { loop, blip, radius = game.settings.get(MODULE_ID, "ringRadius"), volume }) {
     const scene = game.scenes.active;
-    if (!path || !scene) return null;
+    if (!(path || blip) || !scene) return null;
     // Internal Agents ring inside the user's head; silenced phones and phones with no signal make no sound at all.
     if (member.actorId) {
       const actor = game.actors.get(member.actorId);
@@ -49,18 +51,19 @@ export const methods = {
 
     const size = scene.grid.size;
     const at = { sceneId: scene.id, x: token.x + (token.width * size) / 2, y: token.y + (token.height * size) / 2 };
-    return this._worldSoundAt(at, path, { loop, radius: game.settings.get(MODULE_ID, "ringRadius"), muteFor: this._uiListeners(member) });
+    return this._worldSoundAt(at, path, { loop, blip, radius, volume, muteFor: this._uiListeners(member) });
   },
 
   /**
    * Play a sound at a point on a scene: each client plays it with distance falloff within `radius`
-   * (scene units). `muteFor`: users who hear it through their own phone instead.
+   * (scene units). `muteFor`: users who hear it through their own phone instead. `blip`: a synth blip
+   * (util/audio.js BLIPS) instead of a file at `path`, played once. `volume`: scales it (default 1).
    * @returns {string|null} id for stopping it (_stopWorldSound)
    */
-  _worldSoundAt({ sceneId, x, y }, path, { loop, radius, muteFor = [] }) {
+  _worldSoundAt({ sceneId, x, y }, path, { loop, blip, radius, volume = 1, muteFor = [] }) {
     const scene = game.scenes.get(sceneId);
-    if (!path || !scene) return null;
-    const sound = { id: foundry.utils.randomID(), sceneId, path, loop, x, y, radius: (radius / (Number(scene.grid.distance) || 1)) * scene.grid.size, muteFor };
+    if (!(path || blip) || !scene) return null;
+    const sound = { id: foundry.utils.randomID(), sceneId, path, blip, loop: !blip && loop, volume, x, y, radius: (radius / (Number(scene.grid.distance) || 1)) * scene.grid.size, muteFor };
     game.socket.emit(SOCKET, { type: "world-sound", sound });
     Hooks.callAll(`${MODULE_ID}.worldSound`, sound);
     return sound.id;

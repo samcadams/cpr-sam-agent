@@ -1,0 +1,21 @@
+{
+  "_id": "cpragentRecipe08",
+  "_key": "!macros!cpragentRecipe08",
+  "name": "Bill for a ride, then pay the crew",
+  "type": "script",
+  "scope": "global",
+  "img": "icons/svg/coins.svg",
+  "command": "// Recipe from API.md. GM only. Change \"V\" to one of your characters.\nconst agent = game.modules.get(\"cpr-sam-agent\").api;\nawait agent.money.request({ to: \"V\", from: \"Delamain\", amount: 50, note: \"Ride to Watson\" });\nfor (const { id } of agent.characters()) await agent.money.send({ to: id, from: \"Rogue\", amount: 2000, note: \"Totentanz\" });",
+  "author": null,
+  "folder": null,
+  "sort": 800000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "12.343",
+    "systemId": "cyberpunk-red-core",
+    "systemVersion": "0.92.4"
+  }
+}

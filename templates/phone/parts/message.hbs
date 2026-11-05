@@ -1,14 +1,16 @@
 {{!--
   One message in a conversation. Context: a message from datedMessages() plus
-  canReact (show the react button); optional sender, color and persona (groups: the sender's colour,
+  canReact (show the react button), sharing (picking texts to share: each text is a checkbox, and
+  picked marks the ones in the run); optional sender, color and persona (groups: the sender's colour,
   and whether to mark one of the GM's own NPCs with it), viewed and setViewed (direct: the "Viewed"
   label, and the GM's button to set it) and action (services).
 --}}
 {{#if dateLabel}}<div class="agent-date-sep">{{dateLabel}}</div>{{/if}}
 {{#if system}}
-  <div class="agent-system">{{#if call}}<i class="fas fa-phone"></i> {{/if}}{{text}} · {{time}}</div>
+  <div class="agent-system{{#if picked}} agent-share-picked{{/if}}">{{#if call}}<i class="fas fa-phone"></i> {{/if}}{{text}} · {{time}}</div>
 {{else}}
-  <div class="agent-msg {{#if mine}}mine{{else}}theirs{{/if}}{{#if persona}} persona{{/if}}" data-message-id="{{id}}"{{#if color}} style="--persona: {{color}}"{{/if}}>
+  <div class="agent-msg {{#if mine}}mine{{else}}theirs{{/if}}{{#if persona}} persona{{/if}}{{#if sharing}} agent-sharing{{/if}}{{#if picked}} agent-share-picked{{/if}}" data-message-id="{{id}}"{{#if color}} style="--persona: {{color}}"{{/if}}>
+    {{#if sharing}}<a class="agent-share-pick" data-action="share-pick" data-message-id="{{id}}" role="checkbox" aria-checked="{{#if picked}}true{{else}}false{{/if}}" aria-label="Share this text"></a>{{/if}}
     {{#if sender}}<div class="agent-msg-sender">{{sender}}</div>{{/if}}
     {{#if action}}
       <div class="agent-bubble agent-action-bubble"><i class="fas fa-play"></i> {{text}}</div>
@@ -54,8 +56,32 @@
             {{#if job.canOpen}}<a class="agent-job-open" data-action="job-open" data-quest-id="{{job.questId}}">Open in Jobs <i class="fas fa-chevron-right"></i></a>{{/if}}
           </div>
         {{/if}}
+        {{#if pkg}}
+          <div class="agent-pkg {{pkg.status}}">
+            <div class="agent-job-line">
+              <i class="fas fa-box"></i> <span class="agent-job-name">{{pkg.name}}</span>
+              <span class="agent-job-status">{{pkg.statusLabel}}</span>
+            </div>
+            {{#if pkg.canInstall}}<div class="agent-money-actions"><a class="pay" data-action="pool-pkg" data-message-id="{{id}}"><i class="fas fa-download"></i> Install</a></div>{{/if}}
+          </div>
+        {{/if}}
+        {{#if cbk}}
+          <div class="agent-pkg agent-cbk-invite {{cbk.status}}">
+            <div class="agent-job-line">
+              <i class="fas fa-receipt"></i> <span class="agent-job-name">{{cbk.market}}</span>
+              <span class="agent-job-status">{{#if cbk.accepted}}Accepted{{else}}CBK invite{{/if}}</span>
+            </div>
+            {{#if cbk.canAccept}}
+              <input type="text" data-cbk-code="{{id}}" maxlength="40" placeholder="Passcode" aria-label="Passcode for {{cbk.market}}" autocomplete="off">
+              <div class="agent-money-actions"><a class="pay" data-action="cbk-invite-accept" data-message-id="{{id}}"><i class="fas fa-key"></i> Accept</a></div>
+            {{/if}}
+          </div>
+        {{/if}}
         {{#if image}}<img class="agent-photo" src="{{image}}" data-action="open-photo" data-src="{{image}}" alt="Photo">{{/if}}
         {{#if location}}
+          {{!-- Inline NAV map (apps/map/embed.js, filled by page.js _mapEmbeds); the link below shows only when it can't be drawn. --}}
+          <div class="agent-mapembed" data-scene-id="{{location.sceneId}}" data-note-id="{{location.noteId}}"
+               data-x="{{location.x}}" data-y="{{location.y}}" data-label="{{location.label}}"></div>
           <a class="agent-location" data-action="open-location" data-scene-id="{{location.sceneId}}" data-note-id="{{location.noteId}}"
              data-x="{{location.x}}" data-y="{{location.y}}" title="Open on {{location.sceneName}}">
             <i class="fas fa-location-dot"></i><span class="agent-location-label">{{location.label}}</span><span class="agent-location-scene">{{location.sceneName}}</span>

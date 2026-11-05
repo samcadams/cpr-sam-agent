@@ -4,6 +4,8 @@ import { agentsOf, INTERNAL_THEMES, isSilenced, NOTIFY_STYLES, notifyStyle, SKIN
 import { DEFAULT_DOCK, DOCK_MAX, phoneApps } from "../../../model/apps.js";
 import { appearance, EMOJI_CATALOG, parseEmoji, updateAppearance } from "../../../model/appearance.js";
 import { commsOn, feature } from "../../../model/features.js";
+import { defaultSound, phoneSound, SOUND_KINDS, soundOptions, soundSrc } from "../../../model/sounds.js";
+import { previewSound } from "../../../util/audio.js";
 
 /** The emoji picker's groups, with the emoji already `chosen` lit. */
 export function emojiCatalog(chosen) {
@@ -20,6 +22,10 @@ export function emojiCatalog(chosen) {
  */
 
 export const actions = {
+  /** Play this phone's sound of a kind as it's set now (its own choice, or every phone's). */
+  "sound-preview"({ kind }) {
+    previewSound(phoneSound(this.context()?.settingsOwner, kind));
+  },
   "toggle-silent"() {
     const ctx = this.context();
     if (ctx) this._saveSettings({ silent: !isSilenced(ctx.settingsOwner) });
@@ -53,6 +59,16 @@ export const dropdowns = {
     this._saveSettings({ internalTheme: value });
   }
 };
+
+// This phone's sound of each kind ("sound-text", "sound-ring", …): saved, then played to hear it.
+for (const kind of Object.keys(SOUND_KINDS)) {
+  dropdowns[`sound-${kind}`] = function (value) {
+    const ctx = this.context();
+    if (!ctx) return;
+    this._saveSettings({ sounds: { ...ctx.settings.sounds, [kind]: value } });
+    previewSound(soundSrc(value) || defaultSound(kind));
+  };
+}
 
 export const inputs = {
   /** Which sections of Settings and Control are open (kept across redraws). */
@@ -109,7 +125,7 @@ export const inputs = {
       if (event.currentTarget.checked) current.add(id);
       else current.delete(id);
       // Kept in the phone's own app order.
-      const ids = phoneApps({ gm: ctx.perspective === "gm", internal: ctx.internal }).map(a => a.id).filter(a => current.has(a));
+      const ids = phoneApps({ gm: ctx.perspective === "gm", internal: ctx.internal, installed: this.installedApps(ctx) }).map(a => a.id).filter(a => current.has(a));
       this._saveSettings({ dockApps: ids.slice(0, DOCK_MAX) });
     }
   },
@@ -129,25 +145,26 @@ export const inputs = {
       if (label) label.textContent = `${Math.round(value * 100)}%`;
       if (event.type === "change") game.settings.set(MODULE_ID, "fontScale", value);
     }
+  },
+  /** Phone and in-world volume (this user's own): the label follows while dragging, saved on release. */
+  "input[data-volume]": {
+    "input change"(event) {
+      const input = event.currentTarget;
+      const label = input.parentElement.querySelector(".agent-range-value");
+      if (label) label.textContent = `${Math.round(Number(input.value) * 100)}%`;
+      if (event.type === "change") game.settings.set(MODULE_ID, input.dataset.volume, Number(input.value));
+    }
   }
 };
 
 export const methods = {
   settingsData(ctx) {
     const agents = agentsOf(ctx.subject.actor);
-    const emoji = this._emojiSet(ctx);
     return {
       owner: ctx.subject.name,
       agentChoice: agents.internal && agents.agent ? { internal: ctx.internal } : null,
       look: this.lookData(ctx),
-      comms: commsOn(), // quick replies and the reaction keyboard are for Messages
-      quickReplies: ctx.settings.quickReplies.join("\n"),
-      open: this.sectionsOpen(),
-      emoji: {
-        text: emoji.join(" "),
-        custom: !!ctx.settings.emoji?.length,
-        catalog: this.emojiCatalogOpen ? emojiCatalog(emoji) : null
-      }
+      open: this.sectionsOpen()
     };
   },
 
@@ -182,15 +199,25 @@ export const methods = {
       skin: dropdown("skin", Object.entries(SKINS).filter(([, k]) => !forced || k.hud).map(([value, k]) => ({ value, label: k.name, selected: value === skin })), { title: "Skin", cls: "agent-wide" }),
       blurb: forced ? `Your Internal Agent projects a HUD over your eyes. ${info.blurb}` : info.blurb,
       palette,
-      paletteNote: palette ? null : `${info.name} brings its own colours.`,
       canDockSide: !!info.dockSide,
       dockSide: ctx.look.dockSide,
       freeInternal: ctx.internal && feature("freeInternal") ? { on: !!s.freeInternal } : null,
       dock: this._dockChoices(ctx),
       homeNavigation: this.homeNavigation(ctx),
-      hudOpacity: hud || info.opacity ? game.settings.get(MODULE_ID, "hudOpacity") : null,
-      opacityLabel: hud ? "HUD opacity" : "Opacity",
+      hudOpacity: hud ? game.settings.get(MODULE_ID, "hudOpacity") : null,
+      opacityLabel: "HUD opacity",
       fontScale: { value: fontScale, percent: Math.round(fontScale * 100) },
+      // This phone's sounds; a WatchBox alarm only for a character's Agent (an Internal Agent has none).
+      sounds: Object.entries(SOUND_KINDS)
+        .filter(([kind]) => kind !== "alarm" || (ctx.perspective === "pc" && !ctx.internal))
+        .map(([kind, { label }]) => ({ kind, label, picker: dropdown(`sound-${kind}`, soundOptions(kind, s.sounds?.[kind] ?? "", { phone: true }), { title: label, cls: "agent-wide" }) })),
+      volumes: [
+        { key: "volume", label: "Phone volume" },
+        { key: "worldVolume", label: "In-world volume" }
+      ].map(v => {
+        const value = game.settings.get(MODULE_ID, v.key);
+        return { ...v, value, percent: Math.round(value * 100) };
+      }),
       notify: Object.entries(NOTIFY_STYLES).map(([value, label]) => ({ value, label, checked: value === notifyStyle(ctx.settingsOwner) })),
       lockScreen: !!s.lockScreen,
       // Messages' own: new-text notifications, split view and SIM tiles (while Communications are on).
@@ -210,7 +237,7 @@ export const methods = {
     const { dock } = this.dockSplit(ctx);
     const on = new Set(dock.map(a => a.id));
     const full = on.size >= DOCK_MAX;
-    const apps = phoneApps({ gm: ctx.perspective === "gm", internal: ctx.internal });
+    const apps = phoneApps({ gm: ctx.perspective === "gm", internal: ctx.internal, installed: this.installedApps(ctx) });
     return { apps: apps.map(a => ({ ...a, on: on.has(a.id), disabled: full && !on.has(a.id) })), max: DOCK_MAX };
   }
 };

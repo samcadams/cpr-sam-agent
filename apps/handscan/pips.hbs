@@ -1,0 +1,2 @@
+{{!-- A scan's pips (apps/handscan/model.js pipView): solid when counted, hollow while the GM hasn't confirmed. --}}
+<span class="agent-bio-pips" role="img" aria-label="{{count}} rounds">{{#each pips}}<span class="agent-bio-pip {{this}}" title="{{#if (eq this "ok")}}Counted{{else if (eq this "pending")}}Waiting for the GM{{else}}Not yet{{/if}}"></span>{{/each}}</span>

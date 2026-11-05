@@ -1,0 +1,214 @@
+/*
+ * The phone's hardware, on every skin with a body (not the Internal Agent's HUD). Choice A + B:
+ *  - the window header is the top bezel: it keeps its jobs (drag, close) and carries a notification
+ *    LED, an earpiece slot and a front camera (ui/phone/core/bezel.js puts them in);
+ *  - the resize bar along the bottom is the speaker grille, so the grip is the phone's chin;
+ *  - live hardware: the grille and earpiece glow in the ring colour while a call rings (pulsing) or is
+ *    on (steady), and the LED blinks: ring colour for a call, notification colour for unread texts.
+ * Loaded after the skins. Each skin's shell colours come in through the --bezel-* variables below.
+ */
+
+.ctp-phone-app {
+  --bezel-hole: #05070a; /* the inside of a slot or hole */
+  --bezel-mesh: #20272e; /* the grille's metal between its holes */
+  --bezel-rim: rgba(255, 255, 255, 0.08); /* light catching a hole's lower lip */
+  --bezel-led-off: #1a1f25;
+  --bezel-ring-rgb: var(--agent-magenta-rgb);
+  --bezel-note-rgb: var(--agent-cyan-rgb);
+  --bezel-chin: 18px;
+}
+
+/* Light shells: grey plastic holes, not black glass. */
+.ctp-phone-app.skin-dot,
+.ctp-phone-app.skin-yourplay,
+.ctp-phone-app.skin-fieldMed {
+  --bezel-hole: #3b3f45;
+  --bezel-mesh: #8e9196;
+  --bezel-rim: rgba(255, 255, 255, 0.55);
+  --bezel-led-off: #6d7075;
+}
+
+/* The Burner's LCD backlight is its only glow. */
+.ctp-phone-app.skin-burner {
+  --bezel-ring-rgb: 190, 235, 120;
+  --bezel-note-rgb: 190, 235, 120;
+}
+
+/* ---------- Top bezel: LED, earpiece, camera ---------- */
+
+.ctp-phone-app .window-header {
+  position: relative;
+}
+
+.ctp-phone-app .agent-bezel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transform: translate(-50%, -50%);
+  pointer-events: none; /* the header stays the drag handle */
+}
+
+.ctp-phone-app.skin-hud .agent-bezel {
+  display: none;
+}
+
+.ctp-phone-app .agent-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bezel-led-off);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+.ctp-phone-app .agent-earpiece {
+  width: 62px;
+  height: 7px;
+  border-radius: 4px;
+  background: radial-gradient(circle, var(--bezel-mesh) 0.8px, transparent 1.1px) 0 0 / 4px 4px, var(--bezel-hole);
+  box-shadow: inset 0 1px 2px #000, 0 1px 0 var(--bezel-rim);
+}
+
+.ctp-phone-app .agent-camera {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #3b5c8a 0 1.5px, #0d1a2c 2.5px, #04070c 5px);
+  box-shadow: 0 0 0 1.5px var(--bezel-mesh), 0 1px 0 var(--bezel-rim);
+}
+
+/* The Burner draws its own earpiece (burner.css); it keeps the LED and camera. */
+.ctp-phone-app.skin-burner .agent-earpiece {
+  visibility: hidden;
+}
+
+/* Neon's chamfered corner would clip the close key. */
+.ctp-phone-app.skin-classic .window-header {
+  padding-right: calc(var(--cut) + 2px);
+}
+
+/* Header buttons: small round keys on the bezel. Their words stay for screen readers. */
+.ctp-phone-app:not(.skin-hud) .window-header .header-button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  align-self: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 1px rgba(0, 0, 0, 0.5);
+  position: relative;
+  font-size: 0;
+}
+
+/* The icon covers the whole key and centres its glyph; the hidden label text would otherwise take a
+   grid row of its own and push the icon up. */
+.ctp-phone-app:not(.skin-hud) .window-header .header-button i {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* The close key's X fills its key; at 11px it sat as a speck in the middle. */
+.ctp-phone-app:not(.skin-hud) .window-header .header-button.close i {
+  font-size: 15px;
+}
+
+.ctp-phone-app:not(.skin-hud) .window-header .header-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* ---------- Chin: the speaker grille is the resize bar ---------- */
+
+.ctp-phone-app:not(.skin-hud, .minimized) .window-content {
+  margin-bottom: var(--bezel-chin);
+}
+
+/* Each skin keeps its chin colour (its background-color); the grille replaces its grip lines. */
+.ctp-phone-app:not(.skin-hud) .window-resizable-handle {
+  height: var(--bezel-chin);
+  background-image: none;
+}
+
+.ctp-phone-app:not(.skin-hud) .window-resizable-handle::before {
+  content: "";
+  width: clamp(60px, 45%, 150px);
+  height: 10px;
+  border-radius: 5px;
+  background:
+    radial-gradient(circle, var(--bezel-hole) 1.2px, var(--bezel-mesh) 1.4px, transparent 1.9px) center / 6px 5px,
+    var(--bezel-hole);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.9), 0 1px 0 var(--bezel-rim);
+  transition: box-shadow 0.2s;
+}
+
+.ctp-phone-app:not(.skin-hud) .window-resizable-handle:hover::before {
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(var(--bezel-note-rgb), 0.6);
+}
+
+.ctp-phone-app:not(.skin-hud) .window-resizable-handle i {
+  color: rgba(var(--bezel-note-rgb), 0.55);
+}
+
+/* ---------- Live hardware ---------- */
+
+.ctp-phone-app:is(.hw-ring, .hw-call) .agent-earpiece {
+  background: radial-gradient(circle, rgb(var(--bezel-ring-rgb)) 0.9px, transparent 1.2px) 0 0 / 4px 4px, var(--bezel-hole);
+  box-shadow: 0 0 8px rgba(var(--bezel-ring-rgb), 0.6);
+}
+
+.ctp-phone-app:not(.skin-hud):is(.hw-ring, .hw-call) .window-resizable-handle::before {
+  background:
+    radial-gradient(circle, rgb(var(--bezel-ring-rgb)) 1.2px, rgba(var(--bezel-ring-rgb), 0.35) 1.7px, transparent 2.2px) center / 6px 5px,
+    linear-gradient(rgba(var(--bezel-ring-rgb), 0.15), rgba(var(--bezel-ring-rgb), 0.15)),
+    var(--bezel-hole);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.6), 0 0 12px rgba(var(--bezel-ring-rgb), 0.7), 0 0 24px rgba(var(--bezel-ring-rgb), 0.3);
+}
+
+.ctp-phone-app.hw-unread .agent-led {
+  background: rgb(var(--bezel-note-rgb));
+  box-shadow: 0 0 6px 2px rgba(var(--bezel-note-rgb), 0.8);
+  animation: agent-led-blink 2.4s steps(1) infinite;
+}
+
+/* A call outranks unread texts. */
+.ctp-phone-app:is(.hw-ring, .hw-call) .agent-led {
+  background: rgb(var(--bezel-ring-rgb));
+  box-shadow: 0 0 6px 2px rgba(var(--bezel-ring-rgb), 0.8);
+  animation: none;
+}
+
+.ctp-phone-app.hw-ring .agent-led {
+  animation: agent-led-blink 0.8s steps(1) infinite;
+}
+
+.ctp-phone-app.hw-ring .agent-earpiece,
+.ctp-phone-app:not(.skin-hud).hw-ring .window-resizable-handle::before {
+  animation: agent-grille-pulse 1.2s ease-in-out infinite;
+}
+
+/* Minimised: only the bezel is left, and the LED still tells you what's waiting. */
+.ctp-phone-app.minimized .window-resizable-handle::before {
+  display: none;
+}
+
+@keyframes agent-led-blink {
+  50% {
+    background: var(--bezel-led-off);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.8);
+  }
+}
+
+@keyframes agent-grille-pulse {
+  50% {
+    filter: brightness(0.55);
+  }
+}

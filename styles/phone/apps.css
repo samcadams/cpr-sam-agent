@@ -11,6 +11,11 @@
 .ctp-phone-app .agent-info-label {
   display: block;
   margin: 8px 0 4px;
+  padding: 0;
+  border: none;
+  font-family: inherit;
+  font-weight: normal;
+  line-height: normal;
   color: var(--agent-muted);
   font-size: calc(11px * var(--agent-font-scale, 1));
   letter-spacing: 2px;
@@ -83,6 +88,15 @@
 .ctp-phone-app button.agent-wide-btn.danger {
   border-color: var(--agent-magenta);
   color: var(--agent-magenta);
+}
+
+/* Long lists cut to a handful (ui/phone/core/lists.js). */
+.ctp-phone-app .agent-short-hidden {
+  display: none !important;
+}
+
+.ctp-phone-app .agent-short-list {
+  display: contents;
 }
 
 .ctp-phone-app .agent-info textarea {
@@ -837,7 +851,7 @@
 }
 
 .ctp-phone-app .agent-section > summary::before {
-  content: "\f054";
+  content: "\f054" / "";
   font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro";
   font-weight: 900;
   font-size: calc(9px * var(--agent-font-scale, 1));
@@ -911,4 +925,79 @@
 
 .ctp-phone-app .agent-clear-row .agent-app-chip {
   border-color: rgba(var(--agent-magenta-rgb), 0.6);
+}
+
+/*
+ * A job popped out of the phone (ui/JobPopout.js): a see-through panel over the scene, as clear as
+ * the HUD opacity setting (Settings → Look), and solid while the pointer or focus is on it.
+ */
+.ctp-phone-app.ctp-job-popout {
+  min-width: 220px;
+  min-height: 160px;
+  border-color: rgba(var(--agent-cyan-rgb), 0.45);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--agent-bg) calc(var(--hud-alpha, 0.8) * 100%), transparent);
+  backdrop-filter: blur(2px);
+  transition: background-color 0.2s;
+}
+
+.ctp-phone-app.ctp-job-popout .window-header {
+  background: transparent;
+}
+
+.ctp-phone-app.ctp-job-popout .window-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 1px;
+}
+
+.ctp-phone-app.ctp-job-popout .window-content,
+.ctp-phone-app.ctp-job-popout .window-resizable-handle {
+  background-color: transparent;
+}
+
+.ctp-phone-app.ctp-job-popout:hover,
+.ctp-phone-app.ctp-job-popout:focus-within {
+  background-color: var(--agent-bg);
+}
+
+/* The window's header already names the job; players' status shows as the badge. */
+.ctp-phone-app.ctp-job-popout .agent-thread-name,
+.ctp-phone-app.ctp-job-popout.read-only .agent-thread-bar {
+  display: none;
+}
+
+.ctp-phone-app.ctp-job-popout .agent-thread-bar {
+  background: rgba(var(--agent-cyan-rgb), 0.05);
+}
+
+/*
+ * Black Chrome's "Requires CitiNet Access" keyword (apps/manifest.js `citinet`): the strip over such an app's
+ * page while the character has no signal, and the price categories ("Everyday") next to prices.
+ */
+.ctp-phone-app .agent-citinet-off {
+  flex: none;
+  margin: 4px 8px 0;
+  padding: 5px 8px;
+  border: 1px solid rgba(var(--agent-magenta-rgb), 0.5);
+  border-radius: 6px;
+  color: var(--agent-magenta);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+  position: relative;
+  z-index: 1;
+}
+.ctp-phone-app .agent-price-tier {
+  display: block;
+  color: var(--agent-muted);
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  font-style: italic;
+  letter-spacing: 0.03em;
+  text-transform: none;
+}
+.ctp-phone-app .agent-pool-citinet {
+  display: block;
+  margin-top: 2px;
+  color: var(--agent-muted);
+  font-size: calc(10px * var(--agent-font-scale, 1));
 }

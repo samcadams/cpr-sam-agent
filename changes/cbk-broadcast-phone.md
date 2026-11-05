@@ -1,0 +1,1 @@
+- CBK broadcasts stay on the phone: a raid warning covers the phone's screen (not yours) with its own alarm, and the Fixer's other broadcasts are a little popup in CBK. With the phone away they're ordinary notifications, and what's still running shows when you open it.

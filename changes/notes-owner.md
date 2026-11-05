@@ -1,0 +1,1 @@
+- Notes: a player given a character after its notes journal was made can now write there; opening Notes makes them an owner of it.

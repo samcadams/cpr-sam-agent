@@ -1,0 +1,1 @@
+- NCPD Crime Database (GM Phone): an Archive of NCPD records, no longer tied to a token or actor. Search by name, alias or affiliation; create, edit (with an optional linked actor) and delete records; "Keep in the archive" and "Use saved" work with it. Records saved per actor before are moved into the archive on load.

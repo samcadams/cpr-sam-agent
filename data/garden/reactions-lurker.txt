@@ -1,0 +1,9 @@
+# Stir reactions in the "lurker" mood. {place}, {thing}: see reactions-hype.txt.
+wait what happened at {place}
+anyone know more about the {thing}?
+heard something from {place} earlier, was that the {thing}?
+👀
+is {place} safe right now
+my cousin lives near {place}. hope she's ok
+saving this thread
+so is the {thing} still going on or

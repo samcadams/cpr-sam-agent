@@ -1,0 +1,341 @@
+{{!-- Digital Gladiator (apps/gladiator/page.js). --}}
+{{#if gladiator.fried}}
+  {{!-- A fried Agent is the whole phone: no app bar, no buttons. --}}
+  <div class="agent-gladiator-fried" role="status">
+    <i class="fas fa-bolt agent-gladiator-fried-icon" aria-hidden="true"></i>
+    <h3>No signal from device</h3>
+    <p>Fried in a Digital Gladiator match by {{gladiator.fried.by}}</p>
+    {{#if gladiator.fried.internal}}<p>The surge went through their head.</p>{{/if}}
+  </div>
+{{else}}
+{{> agent-app-bar gladiator.bar}}
+{{#if gladiator.battle}}
+  {{!-- The battle view: a player's duel (their side at the bottom, their moves), or watching (side a at the bottom). --}}
+  {{#with gladiator.battle}}
+  <div class="agent-info agent-app agent-gladiator agent-gladiator-battle" data-match="{{id}}">
+    <div class="agent-gladiator-battle-title">
+      <b>{{title}}{{#if watching}} · Watching{{/if}}</b>
+      {{#if pot}}<small>Pot {{pot}}</small>{{/if}}
+    </div>
+    {{#if result}}
+      <p class="agent-gladiator-result{{#if won}} won{{/if}}{{#if lost}} lost{{/if}}" role="status">
+        {{#if won}}<i class="fas fa-trophy" aria-hidden="true"></i>{{else if lost}}<i class="fas fa-skull" aria-hidden="true"></i>{{else}}<i class="fas fa-flag-checkered" aria-hidden="true"></i>{{/if}}
+        {{result}}
+      </p>
+    {{/if}}
+    {{#with top}}
+      <div class="agent-gladiator-fighter top wound-{{wound}}" style="--glad: {{colour}}">
+        <div class="agent-gladiator-fighter-name"><span class="agent-gladiator-swatch"></span><b>{{name}}</b> <small>{{who}}</small></div>
+        <div class="agent-gladiator-hp" role="meter" aria-label="{{name}} HP" aria-valuemin="0" aria-valuemax="{{maxHp}}" aria-valuenow="{{hp}}"><span style="width: {{pct}}%"></span></div>
+        <small>HP {{hp}}/{{maxHp}}{{#if woundLabel}} · <b class="agent-gladiator-wound">{{woundLabel}}</b>{{/if}} · SP {{spBody}} body / {{spHead}} head</small>
+      </div>
+    {{/with}}
+    <div class="agent-gladiator-stage">
+      <canvas class="agent-gladiator-arena" data-match="{{id}}" data-me="{{me}}" width="320" height="180" aria-label="The arena"></canvas>
+      <span class="agent-gladiator-band">{{band}}</span>
+    </div>
+    {{#with bottom}}
+      <div class="agent-gladiator-fighter bottom wound-{{wound}}" style="--glad: {{colour}}">
+        <div class="agent-gladiator-fighter-name"><span class="agent-gladiator-swatch"></span><b>{{name}}</b> <small>{{who}}</small></div>
+        <div class="agent-gladiator-hp" role="meter" aria-label="{{name}} HP" aria-valuemin="0" aria-valuemax="{{maxHp}}" aria-valuenow="{{hp}}"><span style="width: {{pct}}%"></span></div>
+        <small>HP {{hp}}/{{maxHp}}{{#if woundLabel}} · <b class="agent-gladiator-wound">{{woundLabel}}</b>{{/if}} · SP {{spBody}} body / {{spHead}} head</small>
+      </div>
+    {{/with}}
+    <ol class="agent-gladiator-log" aria-live="polite" aria-label="Battle log">
+      {{#each log}}<li{{#if last}} class="last"{{/if}}>{{text}}</li>{{/each}}
+    </ol>
+    {{#if turn}}<p class="agent-gladiator-turn">{{turn}}</p>{{/if}}
+    {{#if moves.length}}
+      <div class="agent-gladiator-moves">
+        {{#each moves}}
+          <button type="button" class="group-{{group}}" data-action="gladiator-move" data-move="{{id}}" {{#if disabled}}disabled title="{{why}}"{{/if}} aria-label="{{label}}: {{detail}}{{#if disabled}} ({{why}}){{/if}}">
+            <b>{{label}}</b><small>{{detail}}</small>
+          </button>
+        {{/each}}
+      </div>
+      {{#if more.length}}
+        <button type="button" class="agent-wide-btn" data-action="gladiator-more" aria-expanded="{{moreOpen}}">{{#if moreOpen}}Fewer moves{{else}}More moves ({{more.length}}){{/if}}</button>
+        {{#if moreOpen}}
+          <div class="agent-gladiator-moves list">
+            {{#each more}}
+              <button type="button" class="group-{{group}}" data-action="gladiator-move" data-move="{{id}}" {{#if disabled}}disabled title="{{why}}"{{/if}} aria-label="{{label}}: {{detail}}{{#if disabled}} ({{why}}){{/if}}">
+                <b>{{label}}</b><small>{{detail}}</small>
+              </button>
+            {{/each}}
+          </div>
+        {{/if}}
+      {{/if}}
+    {{/if}}
+    {{#if canPlay}}
+      {{#if theyOffered}}<p class="agent-info-note">{{theyOffered}}</p>{{/if}}
+      <div class="agent-btn-row">
+        <button type="button" class="agent-wide-btn" data-action="gladiator-concede" data-id="{{id}}"><i class="fas fa-flag" aria-hidden="true"></i> Concede</button>
+        <button type="button" class="agent-wide-btn" data-action="gladiator-draw" data-id="{{id}}" aria-pressed="{{offered}}">{{#if offered}}Take back the offer{{else}}Offer to call it off{{/if}}</button>
+      </div>
+    {{/if}}
+    {{#if over}}
+      <button type="button" class="agent-wide-btn" data-action="gladiator-leave" data-id="{{id}}"><i class="fas fa-door-open" aria-hidden="true"></i> Leave the arena</button>
+    {{else if watching}}
+      <button type="button" class="agent-wide-btn" data-action="gladiator-unwatch"><i class="fas fa-eye-slash" aria-hidden="true"></i> Stop watching</button>
+    {{/if}}
+  </div>
+  {{/with}}
+{{else if gladiator.gm}}
+  <div class="agent-info agent-app agent-gladiator">
+    <h3 class="agent-info-label">Settle matches</h3>
+    <div class="agent-gladiator-chips">
+      {{#each gladiator.settle}}<button type="button" class="agent-gladiator-chip{{#if on}} on{{/if}}" data-action="gladiator-settle" data-mode="{{id}}" aria-pressed="{{on}}">{{label}}</button>{{/each}}
+    </div>
+    <h3 class="agent-info-label">Matches</h3>
+    <ol class="agent-app-list">
+      {{#each gladiator.open}}
+        <li class="agent-app-item compact agent-gladiator-match-row" data-match="{{id}}">
+          <div class="agent-app-item-main">
+            <span>{{aWho}} <small>({{a.name}})</small> vs {{bWho}} <small>({{b.name}})</small></span>
+            <small>{{label}}{{#if pot}} · Pot {{pot}}{{/if}}</small>
+            <div class="agent-gladiator-actions">
+              {{#if toSettle}}
+                <button type="button" data-action="gladiator-mode" data-id="{{id}}" data-mode="gm">Decide it myself</button>
+                <button type="button" data-action="gladiator-mode" data-id="{{id}}" data-mode="play">Let them fight</button>
+              {{/if}}
+              {{#if watch}}
+                <button type="button" data-action="gladiator-watch" data-id="{{id}}"><i class="fas fa-eye" aria-hidden="true"></i> Watch</button>
+              {{/if}}
+              {{#if live}}
+                <button type="button" data-action="gladiator-declare" data-id="{{id}}" data-winner="{{a.actorId}}">{{aWho}} wins</button>
+                <button type="button" data-action="gladiator-declare" data-id="{{id}}" data-winner="{{b.actorId}}">{{bWho}} wins</button>
+              {{/if}}
+              <button type="button" data-action="gladiator-off" data-id="{{id}}">Call it off</button>
+            </div>
+          </div>
+        </li>
+      {{else}}
+        <li class="agent-empty">No open matches.</li>
+      {{/each}}
+    </ol>
+    <h3 class="agent-info-label">Results</h3>
+    <ol class="agent-app-list" data-short-list="gladiator-results">
+      {{#each gladiator.past}}
+        <li class="agent-app-item compact" data-match="{{id}}">
+          <div class="agent-app-item-main">
+            <span>{{aWho}} vs {{bWho}}</span>
+            <small>{{label}}{{#if winnerWho}} · Winner: {{winnerWho}}{{/if}}</small>
+            {{#if loserFried}}
+              <div class="agent-gladiator-actions">
+                <button type="button" data-action="gladiator-repair" data-actor-id="{{loser}}"><i class="fas fa-screwdriver-wrench" aria-hidden="true"></i> Repair Agent</button>
+              </div>
+            {{/if}}
+          </div>
+        </li>
+      {{else}}
+        <li class="agent-empty">No finished matches yet.</li>
+      {{/each}}
+    </ol>
+    <h3 class="agent-info-label">Gladiators</h3>
+    <ol class="agent-app-list" data-short-list="gladiators">
+      {{#each gladiator.builds}}
+        <li class="agent-app-item compact" data-gladiator="{{actorId}}">
+          <span class="agent-gladiator-swatch" style="--glad: {{look.colour}}"></span>
+          <div class="agent-app-item-main"><span>{{name}} <small>({{who}})</small></span>
+            <small>HP {{hp}} · SP {{spBody}}/{{spHead}} · {{weapons}}{{#unless legal}} · <b class="agent-gladiator-bad">{{problems.length}} problem(s): {{problems.[0]}}</b>{{/unless}}</small></div>
+        </li>
+      {{else}}
+        <li class="agent-empty">Nobody has built a Gladiator yet.</li>
+      {{/each}}
+    </ol>
+  </div>
+{{else if gladiator.draft}}
+  {{#with gladiator.draft}}
+  <div class="agent-info agent-app agent-gladiator agent-gladiator-builder">
+    <div class="agent-gladiator-head">
+      <span class="agent-gladiator-swatch big frame-{{look.frame}}" style="--glad: {{look.colour}}"></span>
+      <input type="text" data-gladiator-name value="{{name}}" placeholder="Gladiator name" maxlength="40" aria-label="Gladiator name">
+    </div>
+    <div class="agent-gladiator-looks">
+      {{#each colours}}<button type="button" class="agent-gladiator-colour{{#if on}} on{{/if}}" style="--glad: {{c}}" data-action="gladiator-look" data-colour="{{c}}" aria-label="Colour {{c}}" aria-pressed="{{on}}"></button>{{/each}}
+      {{#each frames}}<button type="button" class="agent-gladiator-frame{{#if on}} on{{/if}}" data-action="gladiator-look" data-frame="{{f}}" aria-pressed="{{on}}">{{f}}</button>{{/each}}
+    </div>
+    <div class="agent-gladiator-budget">
+      <span>STAT <b>{{left.stats}}</b></span><span>Skill <b>{{left.skills}}</b></span><span>CA <b>{{left.awareness}}</b></span><span><b>{{eb}}</b></span>
+      <span>HP <b>{{hp}}</b></span><span>Hum <b>{{humanity}}</b></span>
+    </div>
+    <div class="agent-gladiator-tabs" role="tablist">
+      {{#each tabs}}<button type="button" role="tab" class="{{#if on}}on{{/if}}" aria-selected="{{on}}" data-action="gladiator-tab" data-tab="{{id}}">{{label}}</button>{{/each}}
+    </div>
+
+    {{#if isStats}}
+      <div class="agent-gladiator-grid">
+        {{#each stats}}
+          <div class="agent-gladiator-step" data-stat-row="{{key}}">
+            <span>{{label}}</span>
+            <button type="button" data-action="gladiator-stat" data-stat="{{key}}" data-delta="-1" {{#unless canDown}}disabled{{/unless}} aria-label="{{label}} down">−</button>
+            <b>{{value}}</b>
+            <button type="button" data-action="gladiator-stat" data-stat="{{key}}" data-delta="1" {{#unless canUp}}disabled{{/unless}} aria-label="{{label}} up">+</button>
+          </div>
+        {{/each}}
+      </div>
+      <h3 class="agent-info-label">Combat Awareness (Solo, Rank 4)</h3>
+      {{#each awareness}}
+        <div class="agent-gladiator-step wide">
+          <span>{{label}} <small>{{costLabel}}</small></span>
+          <button type="button" data-action="gladiator-aware" data-key="{{key}}" data-delta="-1" {{#unless canDown}}disabled{{/unless}} aria-label="{{label}} down">−</button>
+          <b>{{level}}</b>
+          <button type="button" data-action="gladiator-aware" data-key="{{key}}" data-delta="1" {{#unless canUp}}disabled{{/unless}} aria-label="{{label}} up">+</button>
+        </div>
+      {{/each}}
+    {{/if}}
+
+    {{#if isSkills}}
+      <h3 class="agent-info-label">Arena skills</h3>
+      {{#each arenaSkills}}
+        <div class="agent-gladiator-step wide" data-skill-row="{{name}}">
+          <span>{{name}}{{#if x2}} <small>(x2)</small>{{/if}}{{#if basic}} <small>basic</small>{{/if}}</span>
+          <button type="button" data-action="gladiator-skill" data-skill="{{name}}" data-delta="-1" {{#unless canDown}}disabled{{/unless}} aria-label="{{name}} down">−</button>
+          <b>{{level}}</b>
+          <button type="button" data-action="gladiator-skill" data-skill="{{name}}" data-delta="1" {{#unless canUp}}disabled{{/unless}} aria-label="{{name}} up">+</button>
+        </div>
+      {{/each}}
+      <h3 class="agent-info-label">Other skills</h3>
+      {{#each otherSkills}}
+        <div class="agent-gladiator-step wide" data-skill-row="{{name}}">
+          <span>{{name}}{{#if x2}} <small>(x2)</small>{{/if}}{{#if basic}} <small>basic</small>{{/if}}</span>
+          <button type="button" data-action="gladiator-skill" data-skill="{{name}}" data-delta="-1" {{#unless canDown}}disabled{{/unless}} aria-label="{{name}} down">−</button>
+          <b>{{level}}</b>
+          <button type="button" data-action="gladiator-skill" data-skill="{{name}}" data-delta="1" {{#unless canUp}}disabled{{/unless}} aria-label="{{name}} up">+</button>
+        </div>
+      {{/each}}
+      <button type="button" class="agent-wide-btn" data-action="gladiator-all-skills">{{#if allSkills}}Fewer skills{{else}}Every skill{{/if}}</button>
+    {{/if}}
+
+    {{#if isGear}}
+      <h3 class="agent-info-label">Loadout</h3>
+      <ol class="agent-app-list">
+        {{#each cart}}
+          <li class="agent-app-item compact" data-cart="{{uuid}}">
+            <div class="agent-app-item-main"><span>{{name}}{{#if many}} x{{qty}}{{/if}}</span><small>{{cost}} · {{detail}}</small></div>
+            <button type="button" data-action="gladiator-remove" data-uuid="{{uuid}}" aria-label="Remove {{name}}"><i class="fas fa-minus"></i></button>
+          </li>
+        {{else}}
+          <li class="agent-empty">Nothing yet. Bare hands still count.</li>
+        {{/each}}
+      </ol>
+      <h3 class="agent-info-label">Shop</h3>
+      <div class="agent-gladiator-tabs">
+        {{#each kinds}}<button type="button" class="{{#if on}}on{{/if}}" aria-pressed="{{on}}" data-action="gladiator-shop" data-kind="{{id}}">{{label}}</button>{{/each}}
+      </div>
+      <ol class="agent-app-list agent-gladiator-shop">
+        {{#each shop}}
+          <li class="agent-app-item compact" data-shop="{{uuid}}">
+            <div class="agent-app-item-main"><span>{{name}}</span><small>{{cost}} · {{detail}}</small></div>
+            <button type="button" data-action="gladiator-add" data-uuid="{{uuid}}" {{#unless canAdd}}disabled{{/unless}} aria-label="Add {{name}}"><i class="fas fa-plus"></i></button>
+          </li>
+        {{/each}}
+      </ol>
+      <p class="agent-info-note">No explosives. Cyberware costs its Humanity at the book's fixed loss.</p>
+    {{/if}}
+
+    {{#if problems.length}}
+      <ul class="agent-gladiator-problems">{{#each problems}}<li>{{this}}</li>{{/each}}</ul>
+    {{else}}
+      <p class="agent-gladiator-ok"><i class="fas fa-check"></i> Arena legal.</p>
+    {{/if}}
+    <div class="agent-btn-row">
+      <button type="button" class="agent-wide-btn" data-action="gladiator-save"><i class="fas fa-floppy-disk"></i> Save</button>
+      <button type="button" class="agent-wide-btn" data-action="gladiator-cancel">Cancel</button>
+    </div>
+  </div>
+  {{/with}}
+{{else}}
+  <div class="agent-info agent-app agent-gladiator">
+    {{#if gladiator.saved}}
+      {{#with gladiator.saved}}
+        <div class="agent-gladiator-card" style="--glad: {{look.colour}}">
+          <span class="agent-gladiator-swatch big frame-{{look.frame}}"></span>
+          <div>
+            <b>{{name}}</b>
+            <small>HP {{hp}} · SP {{spBody}} body / {{spHead}} head · Humanity {{humanity}}</small>
+            <small>{{weapons}}</small>
+          </div>
+        </div>
+        {{#if legal}}
+          <p class="agent-gladiator-ok"><i class="fas fa-check"></i> Arena legal.</p>
+        {{else}}
+          <ul class="agent-gladiator-problems">{{#each problems}}<li>{{this}}</li>{{/each}}</ul>
+        {{/if}}
+      {{/with}}
+      {{#unless gladiator.match}}<button type="button" class="agent-wide-btn" data-action="gladiator-edit" {{#if gladiator.opening}}disabled{{/if}}>{{#if gladiator.opening}}<i class="fas fa-spinner fa-spin"></i> Loading the shop…{{else}}<i class="fas fa-pen"></i> Rebuild{{/if}}</button>{{/unless}}
+    {{else}}
+      <div class="agent-gladiator-card empty">
+        <i class="fas fa-khanda"></i>
+        <div><b>No Gladiator yet</b><small>A Rank 4 Solo: 62 STAT points, 86 skill points, 2,550eb, no explosives.</small></div>
+      </div>
+      <button type="button" class="agent-wide-btn" data-action="gladiator-edit" {{#if gladiator.opening}}disabled{{/if}}>{{#if gladiator.opening}}<i class="fas fa-spinner fa-spin"></i> Loading the shop…{{else}}<i class="fas fa-hammer"></i> Build a Gladiator{{/if}}</button>
+    {{/if}}
+    {{#if gladiator.match}}
+      {{#with gladiator.match}}
+        <div class="agent-gladiator-match" data-match="{{id}}">
+          <b>vs {{vs}}'s {{vsGladiator}}</b>
+          <small>{{label}}{{#if pot}} · Pot {{pot}}{{else if stake}} · Stake {{stake}}{{/if}}</small>
+          {{#if toAnswer}}
+            <div class="agent-gladiator-actions">
+              <button type="button" data-action="gladiator-accept" data-id="{{id}}"><i class="fas fa-check" aria-hidden="true"></i> Accept</button>
+              <button type="button" data-action="gladiator-decline" data-id="{{id}}"><i class="fas fa-xmark" aria-hidden="true"></i> Decline</button>
+            </div>
+          {{/if}}
+          {{#if canWithdraw}}
+            <div class="agent-gladiator-actions">
+              <button type="button" data-action="gladiator-withdraw" data-id="{{id}}">Withdraw</button>
+            </div>
+          {{/if}}
+          {{#if gmChoice}}<p class="agent-info-note">The GM will call the winner.</p>{{/if}}
+        </div>
+      {{/with}}
+    {{else if gladiator.nearby.length}}
+      <h3 class="agent-info-label">Live match nearby</h3>
+      <ol class="agent-app-list">
+        {{#each gladiator.nearby}}
+          <li class="agent-app-item compact" data-match="{{id}}">
+            <div class="agent-app-item-main">
+              <span>{{title}}</span><small>{{names}}</small>
+              <div class="agent-gladiator-actions">
+                <button type="button" data-action="gladiator-watch" data-id="{{id}}" aria-label="Watch {{title}}"><i class="fas fa-eye" aria-hidden="true"></i> Watch</button>
+              </div>
+            </div>
+          </li>
+        {{/each}}
+      </ol>
+    {{/if}}
+    {{#if gladiator.challenge}}
+      {{#with gladiator.challenge}}
+        <h3 class="agent-info-label">Challenge</h3>
+        {{#if foes.length}}
+          <div class="agent-gladiator-chips">
+            {{#each foes}}<button type="button" class="agent-gladiator-chip{{#if on}} on{{/if}}" data-action="gladiator-pick" data-actor-id="{{id}}" aria-pressed="{{on}}">{{name}}</button>{{/each}}
+          </div>
+          <label class="agent-gladiator-wager"><span>Wager (eb)</span>
+            <input type="number" data-gladiator-wager min="0" step="1" value="{{wager}}" aria-label="Wager in eb">
+          </label>
+          <button type="button" class="agent-wide-btn" data-action="gladiator-challenge" {{#unless ready}}disabled{{/unless}}><i class="fas fa-khanda" aria-hidden="true"></i> Challenge</button>
+          <p class="agent-info-note">The loser's Agent is fried.</p>
+        {{else}}
+          <p class="agent-empty">Nobody else to fight yet.</p>
+        {{/if}}
+      {{/with}}
+    {{/if}}
+    {{#if gladiator.history.length}}
+      <h3 class="agent-info-label">Recent matches</h3>
+      <ol class="agent-app-list" data-short-list="gladiator-history">
+        {{#each gladiator.history}}
+          <li class="agent-app-item compact" data-match="{{id}}">
+            <div class="agent-app-item-main">
+              <span>vs {{vs}} <small>({{vsGladiator}})</small></span>
+              <small>{{label}}{{#if won}} · <b class="agent-gladiator-won"><i class="fas fa-trophy" aria-hidden="true"></i> Won</b>{{/if}}{{#if lost}} · <b class="agent-gladiator-lost"><i class="fas fa-skull" aria-hidden="true"></i> Lost</b>{{/if}}</small>
+            </div>
+          </li>
+        {{/each}}
+      </ol>
+    {{/if}}
+    <p class="agent-info-note">Lose a match and your Agent is fried. By {{gladiator.publisher}}.</p>
+  </div>
+{{/if}}
+{{/if}}

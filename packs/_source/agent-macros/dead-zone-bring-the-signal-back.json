@@ -1,0 +1,21 @@
+{
+  "_id": "cpragentRecipe03",
+  "_key": "!macros!cpragentRecipe03",
+  "name": "Dead zone: bring the signal back",
+  "type": "script",
+  "scope": "global",
+  "img": "icons/svg/lightning.svg",
+  "command": "// Recipe from API.md. GM only. Pairs with \"Dead zone: cut the crew's signal\".\nconst agent = game.modules.get(\"cpr-sam-agent\").api;\nconst crew = agent.characters().map(c => c.id);\nawait agent.setSignal(crew, true);",
+  "author": null,
+  "folder": null,
+  "sort": 300000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "12.343",
+    "systemId": "cyberpunk-red-core",
+    "systemVersion": "0.92.4"
+  }
+}

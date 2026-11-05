@@ -1,0 +1,174 @@
+{{!-- Combat Cabb (apps/cabb/page.js). --}}
+{{!-- The map (the player's, and the GM's preview): the Map app's own (apps/map/navMap.js), drawn into .agent-cabb-navmap after the redraw (_cabbAttach). --}}
+{{#*inline "cabb-map"}}
+  <div class="agent-cabb-mapbox">
+    <div class="agent-navmap agent-cabb-navmap" tabindex="0" role="application" aria-roledescription="map"
+      aria-label="{{#if gm}}Map: the {{count}} places players see. Tap one to find it in the list.{{else}}Map, {{count}} places. Tap one to go there.{{/if}} Drag or use the arrow keys to move, the wheel or plus and minus to zoom."></div>
+    <div class="agent-cabb-zoom">
+      {{#if crew}}<button type="button" data-action="cabb-zoom" data-dir="crew" aria-label="Find the crew" title="Find the crew"><i class="fas fa-location-arrow"></i></button>{{/if}}
+      <button type="button" data-action="cabb-zoom" data-dir="in" aria-label="Zoom in" title="Zoom in"><i class="fas fa-plus"></i></button>
+      <button type="button" data-action="cabb-zoom" data-dir="out" aria-label="Zoom out" title="Zoom out"><i class="fas fa-minus"></i></button>
+      <button type="button" data-action="cabb-zoom" data-dir="fit" aria-label="{{#if trip}}Back to the trip{{else}}Back to every place{{/if}}" title="{{#if trip}}Back to the trip{{else}}Back to every place{{/if}}"><i class="fas fa-expand"></i></button>
+    </div>
+  </div>
+  {{!-- The map's marks in words: colour alone can't tell a combat zone from a pickup. --}}
+  <p class="agent-cabb-legend" aria-hidden="true">
+    <span><i class="agent-cabb-key zone"></i>Combat or hot zone</span>
+    <span><i class="agent-cabb-key from"></i>Pickup</span>
+    <span><i class="agent-cabb-key to"></i>{{#if gm}}Picked{{else}}Drop-off{{/if}}</span>
+    {{#if trip}}<span><i class="agent-cabb-key route"></i>The way</span>{{/if}}
+  </p>
+{{/inline}}
+{{!-- The app's own header in place of the phone's (skins restyle that one), with whose phone it is. --}}
+<div class="agent-cabb-logo agent-cabb-bar" role="heading" aria-level="2" aria-label="{{cabb.bar.name}}{{#if cabb.bar.owner}}: {{cabb.bar.owner}}{{/if}}">
+  <span aria-hidden="true">COMBAT</span><b aria-hidden="true">CABB</b><small aria-hidden="true">Armored. Armed. On time.</small>
+  {{#if cabb.bar.owner}}<small class="agent-cabb-owner" aria-hidden="true">{{cabb.bar.owner}}</small>{{/if}}
+</div>
+<div class="agent-info agent-app agent-cabb">
+  {{#if cabb.gm}}
+    {{#if cabb.open.length}}
+      <h3 class="agent-info-label">Rides</h3>
+      <ol class="agent-app-list">
+        {{#each cabb.open}}
+          <li class="agent-app-item agent-cabb-ride status-{{status}}">
+            <i class="fas fa-taxi agent-app-item-icon"></i>
+            <div class="agent-app-item-main">
+              <div class="agent-app-item-top"><b>{{who}}</b><span class="agent-row-time">Cabb {{cab}}</span></div>
+              <small>{{from.name}} → {{to.name}} · {{mi}} mi · {{fareLabel}}{{#if zoneLabel}} · {{zoneLabel}}{{/if}}</small>
+              <div>{{statusLabel}}{{#if countdown}} <span {{#if etaAt}}data-eta="{{etaAt}}"{{/if}}>{{countdown}}</span>{{/if}}{{#if untimed}} <small>· no timer</small>{{/if}}</div>
+              <div class="agent-money-actions">
+                {{#if enroute}}<a class="pay" data-action="cabb-gm" data-ride-id="{{id}}" data-act="here">Here now</a>{{/if}}
+                {{#if waiting}}<a class="pay" data-action="cabb-gm" data-ride-id="{{id}}" data-act="depart">Depart</a>{{/if}}
+                {{#if riding}}<a class="pay" data-action="cabb-gm" data-ride-id="{{id}}" data-act="arrived">Arrived now</a>{{/if}}
+                {{#if timeable}}<a data-action="cabb-time" data-ride-id="{{id}}" title="Set when it gets there, or take its timer away"><i class="fas fa-clock"></i> Set time</a>{{/if}}
+                <a class="decline" data-action="cabb-gm" data-ride-id="{{id}}" data-act="cancel">Cancel{{#if paid}} (refund){{/if}}</a>
+              </div>
+            </div>
+          </li>
+        {{/each}}
+      </ol>
+    {{/if}}
+
+    <h3 class="agent-info-label">Where the party is</h3>
+    {{#if cabb.onMap}}
+      {{#if cabb.crew}}
+        <p class="agent-info-note"><i class="fas fa-location-arrow"></i> The crew's GPS spot on the Map: cabs pick up {{cabb.crew.near}}.{{#if cabb.mapOn}} Move it on the Map.{{/if}}</p>
+        <div class="agent-money-actions">
+          {{#if cabb.mapOn}}<a class="pay" data-action="cabb-open-map"><i class="fas fa-map-location-dot"></i> On the Map</a>{{/if}}
+          <a class="decline" data-action="cabb-crew-clear"><i class="fas fa-xmark"></i> Clear</a>
+        </div>
+        <div class="agent-setting-row"><span>Or at</span>{{> agent-dropdown cabb.partyDropdown}}</div>
+      {{else}}
+        {{#if cabb.mapOn}}<button type="button" class="agent-wide-btn" data-action="cabb-open-map"><i class="fas fa-location-arrow"></i> Set the crew's spot on the Map</button>{{/if}}
+        <div class="agent-setting-row"><span>Or at</span>{{> agent-dropdown cabb.partyDropdown}}</div>
+      {{/if}}
+    {{else}}
+      <div class="agent-setting-row"><span>At</span>{{> agent-dropdown cabb.partyDropdown}}</div>
+    {{/if}}
+    <p class="agent-info-note">Cabs pick up where the party is. Until you say, players pick their own pickup.</p>
+
+    <h3 class="agent-info-label">Fares</h3>
+    <div class="agent-setting-row"><span>Flag fall</span><input type="number" data-cabb-setting="flagFall" value="{{cabb.cfg.flagFall}}" min="0"></div>
+    <div class="agent-setting-row"><span>Per mile</span><input type="number" data-cabb-setting="perMile" value="{{cabb.cfg.perMile}}" min="0" step="0.5"></div>
+    <div class="agent-setting-row"><span>Zone rate ×</span><input type="number" data-cabb-setting="zoneMult" value="{{cabb.cfg.zoneMult}}" min="1" step="0.5"></div>
+    <label class="agent-radio"><input type="checkbox" data-cabb-setting="zonePickup" {{#if cabb.cfg.zonePickup}}checked{{/if}}> Zone rate for pickups in a zone too</label>
+    <p class="agent-info-note">Distance is by road when the Map has its roads traced; otherwise straight between the places, plus 10–40% for the streets.</p>
+
+    <h3 class="agent-info-label">Timing (real seconds)</h3>
+    <div class="agent-setting-row"><span>Pickup in</span><input type="number" data-cabb-setting="etaMin" value="{{cabb.cfg.etaMin}}" min="0"> <small>to</small> <input type="number" data-cabb-setting="etaMax" value="{{cabb.cfg.etaMax}}" min="0"></div>
+    <label class="agent-radio"><input type="checkbox" data-cabb-setting="tripTimer" {{#if cabb.cfg.tripTimer}}checked{{/if}}> Trips on a timer</label>
+    <p class="agent-info-note">Off: once a cab departs, it arrives only when you say (Arrived now). Either way, Set time on a ride sets its pickup or arrival by hand, or takes its timer away.</p>
+    <div class="agent-setting-row"><span>Trip, per km</span><input type="number" data-cabb-setting="secPerKm" value="{{cabb.cfg.secPerKm}}" min="0"></div>
+    <div class="agent-setting-row"><span>Trip from</span><input type="number" data-cabb-setting="tripMin" value="{{cabb.cfg.tripMin}}" min="0"> <small>to</small> <input type="number" data-cabb-setting="tripMax" value="{{cabb.cfg.tripMax}}" min="0"></div>
+
+    <h3 class="agent-info-label">Places</h3>
+    <div class="agent-setting-row"><span>Where cabs go</span>{{> agent-dropdown cabb.sceneDropdown}}</div>
+    {{#if cabb.onMap}}
+      <p class="agent-info-note">The Map's pins that players can see are where cabs go: everyone's, or those you've shown to some characters. Mark the Combat Zones.</p>
+    {{else if cabb.noMapYet}}
+      <p class="agent-info-note">The Map has no map yet (open it to import one), so cabs go to Night City's districts for now.</p>
+    {{else}}
+      <p class="agent-info-note">No map: cabs go to Night City's districts (km from the city's north-west corner, as on the Map), picked from a list. Fares go straight between them, plus 10–40% for the streets. Pick the Map's pins to give players the map.</p>
+    {{/if}}
+    {{#if cabb.map}}
+      <details class="agent-section" data-section="cabbMap" {{#if cabb.mapOpen}}open{{/if}}>
+        <summary>The map players see</summary>
+        <p class="agent-info-note">Tap a place to find it in the list.</p>
+        {{> cabb-map cabb.map}}
+      </details>
+    {{/if}}
+
+    {{#if cabb.total}}
+      <div class="agent-search">
+        <i class="fas fa-magnifying-glass"></i>
+        <input type="search" name="cabbSearch" data-live value="{{cabb.search}}" placeholder="Search {{cabb.total}} places" aria-label="Search places" autocomplete="off">
+      </div>
+    {{/if}}
+    <ol class="agent-app-list agent-cabb-places" data-short-list="cabb-places">
+      {{#each cabb.places}}
+        <li class="agent-app-item compact agent-cabb-place{{#if picked}} picked{{/if}}" data-place="{{id}}">
+          <div class="agent-app-item-main"><b>{{name}}</b>{{#if ../cabb.editable}}<small>{{x}}, {{y}} km</small>{{/if}}</div>
+          {{> agent-dropdown zone}}
+          {{#if ../cabb.editable}}
+            <a class="agent-icon-btn" data-action="cabb-place-edit" data-place="{{id}}" title="Edit"><i class="fas fa-pen"></i></a>
+            <a class="agent-icon-btn" data-action="cabb-place-remove" data-place="{{id}}" title="Remove"><i class="fas fa-trash"></i></a>
+          {{/if}}
+        </li>
+      {{else}}
+        <li class="agent-empty">{{#if cabb.total}}No place matches “{{cabb.search}}”.{{else}}No pins players can see on the Map yet.{{/if}}</li>
+      {{/each}}
+    </ol>
+    {{#if cabb.more}}<p class="agent-info-note">{{cabb.more}} more. Search, or tap the map, to find one.</p>{{/if}}
+    {{#if cabb.editable}}
+      <button type="button" class="agent-wide-btn" data-action="cabb-place-add"><i class="fas fa-plus"></i> Add a place</button>
+      <a class="agent-card-more" data-action="cabb-places-reset">Back to the default places</a>
+    {{/if}}
+
+    {{#if cabb.recent.length}}
+      <h3 class="agent-info-label">Recent rides</h3>
+      <ol class="agent-app-list">
+        {{#each cabb.recent}}<li class="agent-app-item compact"><div class="agent-app-item-main">{{who}} · {{time}}<small>{{from.name}} → {{to.name}} · {{fareLabel}} · {{statusLabel}}</small></div></li>{{/each}}
+      </ol>
+    {{/if}}
+  {{else}}
+    {{#if cabb.map}}{{> cabb-map cabb.map}}{{/if}}
+
+    {{#if cabb.ride}}
+      {{#with cabb.ride}}
+        <div class="agent-cabb-status status-{{status}}">
+          <div><b>{{statusLabel}}</b>{{#if countdown}} <span class="agent-cabb-eta" {{#if etaAt}}data-eta="{{etaAt}}"{{/if}}>{{countdown}}</span>{{/if}}</div>
+          <small>Cabb {{cab}} · {{from.name}} → {{to.name}} · {{mi}} mi · {{fareLabel}}{{#if paid}} (paid){{/if}}</small>
+          {{#if enroute}}<a class="decline" data-action="cabb-cancel" data-ride-id="{{id}}">Cancel</a>{{/if}}
+        </div>
+      {{/with}}
+    {{else if cabb.noPlaces}}
+      <p class="agent-empty">Combat Cabb doesn't know this city yet. Ask your GM.</p>
+    {{else}}
+      {{#if cabb.party}}
+        <div class="agent-setting-row"><span>Pickup</span><b>{{cabb.party.name}}</b></div>
+      {{else}}
+        <div class="agent-setting-row"><span>Pickup</span>{{> agent-dropdown cabb.fromDropdown}}</div>
+      {{/if}}
+      <div class="agent-setting-row"><span>Where to</span>{{> agent-dropdown cabb.toDropdown}}</div>
+      {{#if cabb.quote}}
+        <div class="agent-cabb-quote">
+          <span title="{{#if cabb.quote.road}}By road{{else}}As the crow flies, plus the streets{{/if}}">{{cabb.quote.mi}} mi{{#if cabb.quote.road}} <i class="fas fa-route"></i>{{/if}}</span>
+          {{#if cabb.quote.free}}<b><s>{{cabb.quote.fare}}</s> Free</b>{{else}}<b>{{cabb.quote.fare}}</b>{{/if}}
+          {{#if cabb.quote.free}}<small class="agent-cabb-free"><i class="fas fa-ticket"></i> {{cabb.quote.free}}</small>
+          {{else if cabb.quote.creditNote}}<small class="agent-cabb-credit-note">{{cabb.quote.creditNote}}</small>{{/if}}
+          {{#if cabb.quote.zone}}<small><i class="fas fa-triangle-exclamation"></i> {{cabb.quote.zone}} rate ×{{cabb.quote.mult}}</small>{{/if}}
+        </div>
+        <button type="button" class="agent-wide-btn agent-cabb-call" data-action="cabb-book"><i class="fas fa-taxi"></i> Call a cab</button>
+      {{else}}
+        <p class="agent-info-note">Tap the map or pick where to. {{cabb.rates}}, charged when the cab picks you up.</p>
+      {{/if}}
+    {{/if}}
+
+    {{#if cabb.recent.length}}
+      <h3 class="agent-info-label">Your rides</h3>
+      <ol class="agent-app-list">
+        {{#each cabb.recent}}<li class="agent-app-item compact"><div class="agent-app-item-main">{{to.name}} · {{time}}<small>from {{from.name}} · {{fareLabel}} · {{statusLabel}}</small></div></li>{{/each}}
+      </ol>
+    {{/if}}
+  {{/if}}
+</div>

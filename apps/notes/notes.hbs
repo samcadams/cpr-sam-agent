@@ -1,0 +1,68 @@
+{{!-- Notes (apps/notes/page.js). --}}
+{{> agent-app-bar notes.bar}}
+<div class="agent-info agent-app agent-notes">
+  {{#if notes.picker}}<div class="agent-setting-row"><span>Whose notes</span>{{> agent-dropdown notes.picker}}</div>{{/if}}
+  {{#with notes.note}}
+    <div class="agent-notes-head">
+      <a class="agent-icon-btn" data-action="note-back" title="All notes"><i class="fas fa-chevron-left"></i></a>
+      {{#if editing}}
+        <input type="text" name="noteTitle" value="{{name}}" maxlength="100" placeholder="Title">
+      {{else}}
+        <b class="agent-notes-title">{{#if crew}}<i class="fas fa-people-group"></i> {{/if}}{{title}}</b>
+      {{/if}}
+    </div>
+    {{#if editing}}
+      {{#if formatted}}<p class="agent-info-note"><i class="fas fa-triangle-exclamation"></i> This note has formatting from the journal. Saving here keeps the text only.</p>{{/if}}
+      <textarea name="noteText" class="agent-notes-text" rows="14" placeholder="Write something…">{{text}}</textarea>
+      <div class="agent-money-actions">
+        <a class="pay" data-action="note-save"><i class="fas fa-floppy-disk"></i> Save</a>
+        <a data-action="note-cancel">Cancel</a>
+      </div>
+    {{else}}
+      <div class="agent-notes-body">{{#if empty}}<p class="agent-empty">Nothing written yet.</p>{{else}}{{{html}}}{{/if}}</div>
+      <small class="agent-row-time">{{#if edited}}Edited {{edited}}{{/if}}</small>
+      <div class="agent-money-actions">
+        {{#if canEdit}}<a class="pay" data-action="note-edit"><i class="fas fa-pen"></i> Edit</a>{{/if}}
+        <a data-action="note-journal" title="Open in the journal"><i class="fas fa-book-open"></i> Journal</a>
+        {{#if canDelete}}<a class="decline" data-action="note-delete"><i class="fas fa-trash"></i> Delete</a>{{/if}}
+      </div>
+    {{/if}}
+  {{else}}
+    {{#each notes.crew}}
+      <h3 class="agent-info-label"><i class="fas fa-people-group"></i> {{hqName}} Crew Notes</h3>
+      <ol class="agent-app-list" data-short-list="notes-crew-{{hqId}}">
+        {{#each notes}}
+          <li class="agent-app-item agent-notes-item" data-action="note-open" data-entry-id="{{entryId}}" data-page-id="{{pageId}}">
+            <i class="fas fa-people-group agent-app-item-icon"></i>
+            <div class="agent-app-item-main">
+              <div class="agent-app-item-top"><b>{{name}}</b><span class="agent-row-time">{{edited}}</span></div>
+              {{#if snippet}}<small>{{snippet}}</small>{{/if}}
+            </div>
+          </li>
+        {{else}}
+          <li class="agent-empty">No crew notes yet.</li>
+        {{/each}}
+      </ol>
+      <button type="button" class="agent-wide-btn" data-action="note-crew-new" data-hq-id="{{hqId}}"><i class="fas fa-plus"></i> New crew note</button>
+    {{/each}}
+    <h3 class="agent-info-label">{{#if notes.gm}}{{notes.actorName}}'s notes{{else}}My notes{{/if}}</h3>
+    {{#if notes.ready}}
+      <ol class="agent-app-list" data-short-list="notes-mine">
+        {{#each notes.notes}}
+          <li class="agent-app-item agent-notes-item" data-action="note-open" data-entry-id="{{entryId}}" data-page-id="{{pageId}}">
+            <i class="fas fa-note-sticky agent-app-item-icon"></i>
+            <div class="agent-app-item-main">
+              <div class="agent-app-item-top"><b>{{name}}</b><span class="agent-row-time">{{edited}}</span></div>
+              {{#if snippet}}<small>{{snippet}}</small>{{/if}}
+            </div>
+          </li>
+        {{else}}
+          <li class="agent-empty">No notes yet.</li>
+        {{/each}}
+      </ol>
+      {{#if notes.canWrite}}<button type="button" class="agent-wide-btn" data-action="note-new"><i class="fas fa-plus"></i> New note</button>{{/if}}
+    {{else}}
+      <p class="agent-empty">{{#if notes.gm}}No notes yet.{{else}}Setting up your notes…{{/if}}</p>
+    {{/if}}
+  {{/with}}
+</div>

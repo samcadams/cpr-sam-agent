@@ -1,0 +1,238 @@
+/*
+ * Achieve!: the app's page (apps/achieve/page.js, apps/achieve/achieve.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over.
+ */
+
+.ctp-phone-app .agent-achieve-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #c8102e, #7a0a1c);
+  color: #fff;
+}
+
+.ctp-phone-app .agent-achieve-logo {
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+  font-size: calc(16px * var(--agent-font-scale, 1));
+  letter-spacing: 2px;
+}
+
+.ctp-phone-app .agent-achieve-logo small,
+.ctp-phone-app .agent-achieve-count small {
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.ctp-phone-app .agent-achieve-count {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: calc(13px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-achieve-count b {
+  font-size: calc(22px * var(--agent-font-scale, 1));
+  line-height: 1;
+}
+
+.ctp-phone-app .agent-achieve-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px 6px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.ctp-phone-app .agent-achieve-badge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.ctp-phone-app .agent-achieve-badge img {
+  width: 60px;
+  height: 60px;
+  border: none;
+  filter: grayscale(1) brightness(0.55);
+  opacity: 0.6;
+  transition: transform 0.15s;
+}
+
+.ctp-phone-app .agent-achieve-badge.earned img {
+  filter: none;
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(255, 60, 80, 0.55));
+}
+
+.ctp-phone-app .agent-achieve-badge.spent img {
+  filter: sepia(0.6) brightness(0.8);
+  opacity: 0.8;
+}
+
+.ctp-phone-app .agent-achieve-badge.disabled {
+  opacity: 0.35;
+}
+
+.ctp-phone-app .agent-achieve-badge:hover img,
+.ctp-phone-app .agent-achieve-badge.open img {
+  transform: scale(1.08);
+}
+
+.ctp-phone-app .agent-achieve-badge span {
+  font-size: calc(9px * var(--agent-font-scale, 1));
+  line-height: 1.15;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-achieve-badge.earned span {
+  color: var(--agent-text);
+}
+
+.ctp-phone-app .agent-achieve-mark {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 22px;
+  text-shadow: 0 0 4px #000;
+  pointer-events: none;
+}
+
+.ctp-phone-app .agent-achieve-badge.spent .agent-achieve-mark {
+  top: 0;
+  left: auto;
+  right: 4px;
+  transform: none;
+  font-size: 13px;
+  color: #f5c400;
+}
+
+/* The open badge: a popup over the whole phone screen (outside the page, which scrolls). */
+.ctp-phone-app .agent-achieve-pop {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.ctp-phone-app .agent-achieve-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  cursor: default;
+}
+
+.ctp-phone-app .agent-achieve-detail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 16px 12px 12px;
+  border: 1px solid rgba(200, 16, 46, 0.7);
+  border-radius: 8px;
+  background: linear-gradient(rgba(200, 16, 46, 0.12), rgba(200, 16, 46, 0.12)), var(--agent-panel);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 18px rgba(200, 16, 46, 0.35);
+  color: var(--agent-text);
+  text-align: center;
+  animation: ctp-achieve-open 0.18s ease-out;
+}
+
+@keyframes ctp-achieve-open {
+  from { opacity: 0; transform: scale(0.92); }
+}
+
+.ctp-phone-app .agent-achieve-detail img {
+  width: 110px;
+  height: 110px;
+  border: none;
+  filter: grayscale(1) brightness(0.6);
+}
+
+.ctp-phone-app .agent-achieve-detail.earned img {
+  filter: drop-shadow(0 0 10px rgba(255, 60, 80, 0.7));
+}
+
+.ctp-phone-app .agent-achieve-detail > b {
+  font-size: calc(16px * var(--agent-font-scale, 1));
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ctp-phone-app .agent-achieve-detail p {
+  margin: 0;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-achieve-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+.ctp-phone-app .agent-achieve-earned {
+  color: var(--agent-good);
+}
+
+.ctp-phone-app .agent-achieve-spent {
+  color: #f5c400;
+}
+
+.ctp-phone-app .agent-achieve-locked {
+  color: var(--agent-muted);
+}
+
+/* Mr. Amaze's Mystery Boxes (the Mystery Boxes tab). */
+.ctp-phone-app .agent-box-amaze {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3d1466, #12051f);
+  color: #fff;
+}
+
+.ctp-phone-app .agent-box-amaze > i {
+  font-size: calc(26px * var(--agent-font-scale, 1));
+  color: #ffb020;
+}
+
+.ctp-phone-app .agent-box-amaze div {
+  display: flex;
+  flex-direction: column;
+}
+
+.ctp-phone-app .agent-box-amaze small {
+  opacity: 0.8;
+}
+
+.ctp-phone-app .agent-box-inside {
+  color: #ffb020;
+}
+
+.ctp-phone-app .agent-box.status-opening {
+  border-left: 3px solid #ffb020;
+}

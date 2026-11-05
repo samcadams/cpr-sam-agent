@@ -1,0 +1,134 @@
+{{!-- REDLINE (apps/redline/page.js). Players: the lobby, then the race on a canvas. The GM: switches and the track builder. --}}
+{{> agent-app-bar redline.bar}}
+{{#if redline.racing}}
+  <div class="agent-redline-track">
+    {{!-- The race reads out its moments (see _redlineSay). --}}
+    <canvas class="agent-redline-canvas" role="img" aria-label="REDLINE race: A and D steer, S brakes, Q and E punch from a bike, P pauses, X ends the race from the pause, M music."></canvas>
+    {{!-- The player's pause: drive on, or end the race here (shown by _redlinePause). --}}
+    <div class="agent-redline-pausebox" data-rl-pausebox hidden>
+      <button type="button" data-action="redline-resume"><i class="fas fa-play"></i> Drive on</button>
+      <button type="button" data-action="redline-end"><i class="fas fa-flag"></i> End the race</button>
+    </div>
+    <p class="agent-sr-only" aria-live="polite" data-redline-say></p>
+  </div>
+{{else if redline.gm}}
+  <div class="agent-info agent-app agent-redline-gm">
+    <h3 class="agent-info-label"><i class="fas fa-sliders"></i> Switches</h3>
+    <label class="agent-radio"><input type="checkbox" data-rl-setting="fighting" {{#if redline.cfg.fighting}}checked{{/if}}> Fighting (punches, kicks, rams do damage)</label>
+    <label class="agent-radio"><input type="checkbox" data-rl-setting="heat" {{#if redline.cfg.heat}}checked{{/if}}> Heat (NCPD chase rammers and checkpoint crashers)</label>
+    <div class="agent-setting-row"><span>Drive skill</span>{{> agent-dropdown redline.drives}}</div>
+    <label class="agent-radio"><input type="checkbox" data-rl-setting="paused" {{#if redline.cfg.paused}}checked{{/if}}> Pause all races</label>
+
+    <h3 class="agent-info-label"><i class="fas fa-route"></i> Track builder</h3>
+    {{#with redline.builder}}
+      <div class="agent-redline-builder">
+        <input type="text" name="redlineName" value="{{name}}" maxlength="40" aria-label="Track name" placeholder="Name">
+        {{#if locked}}
+          <canvas class="agent-redline-card big" data-rl-card="draft" aria-label="Layout of {{name}}"></canvas>
+        {{else}}
+          <a class="agent-redline-layout" data-action="redline-layout" title="Edit the layout">
+            <canvas class="agent-redline-card big" data-rl-card="draft" aria-label="Layout of {{name}}: open the layout editor"></canvas>
+            <span class="agent-redline-layout-hint"><i class="fas fa-up-right-and-down-left-from-center"></i> Edit layout</span>
+          </a>
+        {{/if}}
+        <small class="agent-hint">{{stats}}{{#if from}} · nominated by {{from}}{{/if}}</small>
+        {{#if locked}}
+          <p class="agent-hint">A {{status}} track keeps its layout (its board and ghosts are for this layout); only its name changes.</p>
+        {{else}}
+          <div class="agent-setting-row"><span>District</span>{{> agent-dropdown districts}}</div>
+          <small class="agent-hint">{{blurb}}</small>
+          <div class="agent-setting-row"><span>Kind</span>{{> agent-dropdown kinds}}</div>
+          <label class="agent-setting-row">{{#if circuit}}Lap length{{else}}Length{{/if}} (m)
+            <input type="number" data-rl-draft="length" min="{{range.min}}" max="{{range.max}}" step="100" value="{{length}}" aria-label="Length in metres">
+          </label>
+          {{#if circuit}}
+            <label class="agent-setting-row">Laps
+              <input type="number" data-rl-draft="laps" min="{{lapsRange.min}}" max="{{lapsRange.max}}" value="{{laps}}" aria-label="Laps">
+            </label>
+          {{/if}}
+          <div class="agent-setting-row"><span>Difficulty</span>{{> agent-dropdown difficulties}}</div>
+          {{#each families}}
+            <label class="agent-radio"><input type="checkbox" data-rl-family="{{id}}" {{#if on}}checked{{/if}}> {{name}}</label>
+          {{/each}}
+          <div class="agent-redline-buttons">
+            <button type="button" data-action="redline-layout"><i class="fas fa-bezier-curve"></i> Edit layout</button>
+            <button type="button" data-action="redline-reroll"><i class="fas fa-dice"></i> {{#if drawn}}Back to a random layout{{else}}Reroll the layout{{/if}}</button>
+          </div>
+        {{/if}}
+        <button type="button" class="agent-wide-btn" data-action="redline-preview" data-id="draft"><i class="fas fa-video"></i> Fly-through</button>
+        <div class="agent-redline-buttons">
+          {{#if editing}}
+            <button type="button" data-action="redline-save"><i class="fas fa-floppy-disk"></i> Save</button>
+          {{else}}
+            <button type="button" data-action="redline-save" data-status="draft"><i class="fas fa-floppy-disk"></i> Save draft</button>
+            <button type="button" data-action="redline-save" data-status="live"><i class="fas fa-flag-checkered"></i> Publish</button>
+          {{/if}}
+          <button type="button" data-action="redline-cancel"><i class="fas fa-xmark"></i> Cancel</button>
+        </div>
+      </div>
+    {{else}}
+      <button type="button" class="agent-wide-btn" data-action="redline-new"><i class="fas fa-plus"></i> New track</button>
+    {{/with}}
+
+    {{#if redline.nominated.length}}
+      <h3 class="agent-info-label"><i class="fas fa-hand-point-up"></i> Nominated by players</h3>
+      <ul class="agent-app-list">
+        {{#each redline.nominated}}
+          <li class="agent-app-item compact">
+            <div class="agent-app-item-main"><b>{{name}}</b> <small>{{district}}, {{km}} km, by {{by}}</small></div>
+            <a class="agent-icon-btn" data-action="redline-nominee" data-id="{{id}}" title="Build it"><i class="fas fa-hammer"></i></a>
+            <a class="agent-icon-btn" data-action="redline-dismiss" data-id="{{id}}" title="Dismiss"><i class="fas fa-xmark"></i></a>
+          </li>
+        {{/each}}
+      </ul>
+    {{/if}}
+
+    <h3 class="agent-info-label"><i class="fas fa-flag-checkered"></i> Tracks</h3>
+    {{#each redline.tracks}}
+      <div class="agent-redline-gm-track {{status}}">
+        <div class="agent-redline-card-row">
+          <canvas class="agent-redline-card" data-rl-card="{{id}}" aria-label="Layout of {{name}}"></canvas>
+          <div class="agent-app-item-main">
+            <b>{{name}}</b> <span class="agent-redline-status">{{status}}</span>
+            <small>{{district}} · {{line}}</small>
+            {{#if from}}<small>Nominated by {{from}}</small>{{/if}}
+          </div>
+        </div>
+        <div class="agent-redline-buttons">
+          {{#if draft}}<button type="button" data-action="redline-status" data-id="{{id}}" data-status="live"><i class="fas fa-flag-checkered"></i> Publish</button>{{/if}}
+          {{#if live}}<button type="button" data-action="redline-status" data-id="{{id}}" data-status="retired"><i class="fas fa-box-archive"></i> Retire</button>{{/if}}
+          {{#if retired}}<button type="button" data-action="redline-status" data-id="{{id}}" data-status="live"><i class="fas fa-rotate-left"></i> Reopen</button>{{/if}}
+          <button type="button" data-action="redline-edit" data-id="{{id}}"><i class="fas fa-pen"></i> Edit</button>
+          <button type="button" data-action="redline-preview" data-id="{{id}}"><i class="fas fa-video"></i> Fly-through</button>
+          {{#if runs.length}}<button type="button" data-action="redline-wipe" data-id="{{id}}"><i class="fas fa-eraser"></i> Wipe board</button>{{/if}}
+          {{#unless live}}<button type="button" data-action="redline-delete" data-id="{{id}}"><i class="fas fa-trash"></i> Delete</button>{{/unless}}
+        </div>
+        {{#if runs.length}}
+          <ol class="agent-app-list agent-redline-board" data-short-list="redline-runs-{{id}}">
+            {{#each runs}}
+              <li class="agent-app-item compact">
+                <span class="agent-redline-rank">{{rank}}</span>
+                <div class="agent-app-item-main"><b>{{tag}}</b> <small>{{who}}, {{clsName}}{{#if grid}}, grid {{grid}}{{/if}}</small></div>
+                <span class="agent-redline-time">{{time}}</span>
+                {{#if lapTime}}<span class="agent-redline-lap{{#if fastestLap}} fastest{{/if}}" title="Best lap{{#if fastestLap}} (fastest on the board){{/if}}">{{lapTime}}</span>{{/if}}
+                <a class="agent-icon-btn" data-action="redline-remove" data-id="{{../id}}" data-actor="{{actorId}}" title="Remove this run and its ghost"><i class="fas fa-xmark"></i></a>
+              </li>
+            {{/each}}
+          </ol>
+        {{/if}}
+      </div>
+    {{else}}
+      <p class="agent-empty">No tracks yet. Build one above, or wait for players to nominate Quick Race courses.</p>
+    {{/each}}
+  </div>
+{{else}}
+  {{!-- Players: the start menu, drawn on the canvas (apps/redline/menu.js); keys and clicks in page.js. --}}
+  <div class="agent-redline-track agent-redline-menu">
+    <canvas class="agent-redline-canvas" tabindex="0" role="application" aria-roledescription="game menu" aria-label="REDLINE menu: up and down choose, left and right change, Enter selects, M music."></canvas>
+    <div class="agent-sr-only">
+      <button type="button" data-action="redline-quick">Quick Race</button>
+      <button type="button" data-action="redline-race-picked">Race the picked Set Track</button>
+    </div>
+    <p class="agent-sr-only" aria-live="polite" data-redline-say></p>
+  </div>
+{{/if}}

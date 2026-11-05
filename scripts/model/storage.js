@@ -1,12 +1,15 @@
+import { APP_TABLES } from "../apps/manifest.js";
+
 /*
  * How the host keeps its data on the server: a folder in the world, split into small files so a save
  * only rewrites what changed (host/core.js compares each file with what it last wrote).
  *
- * worlds/<world>/slopphone/
+ * worlds/<world>/cpr-sam-agent/
  *   messages.json                 { version, requests, quests, files: [the files below it] }
  *   threads/<id>.json             one conversation each
- *   apps/<key>.json               subs, watch (one entry per character)
- *   apps/<key>-<YYYY-MM>.json     alerts, ledger, dispatches, queries, by the month they happened
+ *   apps/<table>.json             each app's tables (apps/manifest.js `tables`), e.g. subs, watch
+ *   apps/<table>-<YYYY-MM>.json   the tables marked `monthly` (alerts, ledger, rides…), by the month
+ *                                 each row happened
  *   garden.json                   { version, accounts, queue, paused, dating, files: [post files] }
  *   garden/posts-<YYYY-MM>.json   Garden posts, by the month they went up
  *   agent-photos/                 players' uploaded photos
@@ -14,15 +17,15 @@
  * The host can't delete files, so one that's no longer needed (a deleted conversation) is emptied.
  */
 
-export const DATA_FOLDER = "slopphone";
+export const DATA_FOLDER = "cpr-sam-agent";
 export const MESSAGES_FILE = "messages.json";
 export const GARDEN_FILE = "garden.json";
 export const SUBFOLDERS = ["threads", "apps", "garden", "agent-photos"];
 
 const VERSION = 6;
 
-/** App tables that only grow, split by month so old months are never rewritten. */
-const MONTHLY = new Set(["alerts", "ledger", "dispatches", "queries"]);
+/** App tables that only grow, split by month so old months are never rewritten (apps/manifest.js). */
+const MONTHLY = new Set(Object.entries(APP_TABLES).filter(([, table]) => table.monthly).map(([name]) => name));
 
 export const monthOf = ts => (Number.isFinite(ts) ? new Date(ts).toISOString().slice(0, 7) : "undated");
 

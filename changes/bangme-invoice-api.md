@@ -1,0 +1,1 @@
+- Macro API for BangMe! invoices: `money.invoice`, `money.canInvoice`, `money.invoices` and the `invoiceSettled` hook.

@@ -1,0 +1,166 @@
+/*
+ * REDLINE: the app's page (apps/redline/page.js, apps/redline/redline.hbs). Built from the
+ * phone's colour variables, so every skin and palette carries over; the race itself is a canvas.
+ */
+
+/* The race: the canvas fills the page. */
+.ctp-phone-app .agent-redline-track {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background: #05010f;
+}
+
+/* Its size is set in apps/redline/page.js (the field's shape, within limits). */
+.ctp-phone-app .agent-redline-canvas {
+  display: block;
+  flex: none;
+  user-select: none;
+  outline: none;
+}
+/* The start menu takes the keys while it has the focus: a thin line says so. */
+.ctp-phone-app .agent-redline-menu .agent-redline-canvas:focus-visible { box-shadow: 0 0 0 1px rgba(var(--agent-cyan-rgb), 0.6); }
+
+.ctp-phone-app .agent-redline-gm .agent-hint {
+  margin: 4px 0 8px;
+  color: var(--agent-muted);
+  font-size: calc(11px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-redline-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0;
+}
+.ctp-phone-app .agent-redline-buttons button {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* Track cards: the layout (fog of war) beside the name. */
+.ctp-phone-app .agent-redline-gm-track {
+  margin-bottom: 6px;
+  padding: 4px;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.25);
+}
+.ctp-phone-app .agent-redline-gm-track.retired { opacity: 0.6; }
+.ctp-phone-app .agent-redline-card-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  cursor: pointer;
+}
+.ctp-phone-app .agent-redline-card-row .agent-app-item-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ctp-phone-app .agent-redline-card-row small { color: var(--agent-muted); }
+.ctp-phone-app .agent-redline-card {
+  width: 72px;
+  height: 72px;
+  flex: none;
+  background: #07040f;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.2);
+}
+.ctp-phone-app .agent-redline-card.big { width: 100%; height: auto; aspect-ratio: 1; }
+
+/* The builder's layout: click it for the editor (apps/redline/editor.js). */
+.ctp-phone-app .agent-redline-layout {
+  position: relative;
+  display: block;
+  margin: 6px 0 2px;
+  cursor: pointer;
+}
+.ctp-phone-app .agent-redline-layout-hint {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 2px 6px;
+  background: rgba(5, 0, 15, 0.75);
+  color: var(--agent-cyan);
+  font-size: calc(10px * var(--agent-font-scale, 1));
+}
+.ctp-phone-app .agent-redline-layout:hover .agent-redline-card,
+.ctp-phone-app .agent-redline-layout:focus-visible .agent-redline-card { border-color: var(--agent-cyan); }
+
+/* The pause's buttons, over the race. */
+.ctp-phone-app .agent-redline-pausebox {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+.ctp-phone-app .agent-redline-pausebox[hidden] { display: none; }
+.ctp-phone-app .agent-redline-pausebox button { width: auto; white-space: nowrap; }
+.ctp-phone-app .agent-redline-status {
+  font-size: calc(10px * var(--agent-font-scale, 1));
+  text-transform: uppercase;
+  color: var(--agent-yellow);
+}
+
+.ctp-phone-app .agent-redline-gm .agent-setting-row input[type="number"] {
+  margin-left: auto;
+  width: 9em;
+}
+
+/* Boards. */
+.ctp-phone-app .agent-redline-board .agent-app-item { align-items: center; }
+.ctp-phone-app .agent-redline-rank {
+  width: 1.6em;
+  text-align: right;
+  margin-right: 6px;
+  color: var(--agent-muted);
+}
+.ctp-phone-app .agent-redline-time {
+  font-family: monospace;
+  font-weight: bold;
+  color: var(--agent-yellow);
+  margin-left: 6px;
+  white-space: nowrap;
+}
+.ctp-phone-app .agent-redline-lap {
+  font-family: monospace;
+  color: var(--agent-muted);
+  margin-left: 6px;
+  white-space: nowrap;
+}
+/* The fastest lap: a mark, not just a colour. */
+.ctp-phone-app .agent-redline-lap.fastest { color: var(--agent-magenta); }
+.ctp-phone-app .agent-redline-lap.fastest::before { content: "⚑ "; }
+
+/* The GM's layout editor (apps/redline/editor.js): its own window. */
+.agent-redline-editor .window-content { padding: 0; background: #07040f; }
+.agent-redline-editor .rl-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: #d8e6ff;
+  font-family: monospace;
+}
+.agent-redline-editor .rl-editor-bar {
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+}
+.agent-redline-editor .rl-editor-bar button { flex: none; width: auto; }
+.agent-redline-editor .rl-editor-spacer { flex: 1; }
+.agent-redline-editor .rl-editor-apply { border-color: #00f0ff; color: #00f0ff; }
+.agent-redline-editor .rl-editor-map { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+.agent-redline-editor .rl-editor-map canvas { position: absolute; inset: 0; display: block; touch-action: none; }
+.agent-redline-editor .rl-editor-info,
+.agent-redline-editor .rl-editor-help { margin: 0; padding: 4px 8px; font-size: 11px; }
+.agent-redline-editor .rl-editor-help { color: #8f88a8; padding-bottom: 8px; }

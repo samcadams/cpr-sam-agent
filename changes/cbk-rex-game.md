@@ -1,0 +1,1 @@
+- CBK Rex's game: on a market with the game switched on, a player can play for a listing once per market opening. The GM picks a coin flip or a card draw; a win is 20% off one buy of that listing (the bigger of that and a flash sale, no stacking), a loss changes nothing, and the result goes to chat.

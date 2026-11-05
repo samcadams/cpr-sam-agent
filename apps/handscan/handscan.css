@@ -1,0 +1,111 @@
+/*
+ * Handprint Scanner and Retina Scanner (forensic teal; the Retina Scanner's tile is amber, retinascan.css): the
+ * page both apps draw (apps/handscan/page.js, handscan.hbs). Built from the phone's colour variables, so every
+ * skin and palette carries over.
+ */
+
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-handscan { --app-rgb: 40, 190, 170; }
+
+.ctp-phone-app .agent-bioscan { --bio-rgb: 40, 190, 170; }
+.ctp-phone-app [data-screen="retinascan"] .agent-bioscan { --bio-rgb: 235, 170, 50; }
+
+.ctp-phone-app .agent-bio-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  align-items: baseline;
+  margin: 2px 0 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(var(--bio-rgb));
+  background: rgba(var(--bio-rgb), 0.12);
+  box-shadow: inset 0 0 0 1px rgba(var(--bio-rgb), 0.4);
+}
+.ctp-phone-app .agent-bio-banner small { font-weight: normal; text-transform: none; letter-spacing: 0; color: var(--agent-muted); }
+
+/* Who to scan. */
+.ctp-phone-app .agent-bio-tokens { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; margin-bottom: 6px; }
+.ctp-phone-app .agent-bio-token {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(var(--bio-rgb), 0.3);
+  text-align: center;
+  cursor: pointer;
+}
+.ctp-phone-app .agent-bio-token img { width: 48px; height: 48px; object-fit: contain; border: 0; }
+.ctp-phone-app .agent-bio-token.offmap i { font-size: 30px; line-height: 48px; color: var(--agent-muted); }
+.ctp-phone-app .agent-bio-token span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85em; }
+.ctp-phone-app .agent-bio-token.offmap span { white-space: normal; }
+.ctp-phone-app .agent-bio-token.picked { background: rgba(var(--bio-rgb), 0.25); box-shadow: inset 0 0 0 2px rgb(var(--bio-rgb)); }
+.ctp-phone-app .agent-bio-far { margin: 4px 0; color: var(--agent-yellow, #e0b030); }
+
+.ctp-phone-app .agent-bio-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 3px 0; }
+.ctp-phone-app .agent-bio-row > input[type=text] { flex: 1 1 90px; min-width: 0; }
+.ctp-phone-app .agent-bioscan > input[name=bioLabel] { width: 100%; margin: 4px 0; }
+.ctp-phone-app .agent-bio-choice { flex: 1 1 0; padding: 5px 8px; border-radius: 8px; text-align: center; box-shadow: inset 0 0 0 1px rgba(var(--bio-rgb), 0.35); cursor: pointer; }
+.ctp-phone-app .agent-bio-choice.on { background: rgba(var(--bio-rgb), 0.25); box-shadow: inset 0 0 0 2px rgb(var(--bio-rgb)); font-weight: bold; }
+
+/* Pips: solid when the GM counted the round, hollow while it waits, faint when not taken yet. */
+.ctp-phone-app .agent-bio-pips { display: inline-flex; gap: 5px; align-items: center; margin: 3px 0; }
+.ctp-phone-app .agent-bio-pip { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(var(--bio-rgb), 0.35); }
+.ctp-phone-app .agent-bio-pip.ok { background: rgb(var(--bio-rgb)); box-shadow: none; }
+.ctp-phone-app .agent-bio-pip.pending { box-shadow: inset 0 0 0 2px rgb(var(--bio-rgb)); background: repeating-linear-gradient(45deg, transparent 0 2px, rgba(var(--bio-rgb), 0.35) 2px 4px); }
+
+/* The scan screen. */
+.ctp-phone-app .agent-bio-scanner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 8px;
+  padding: 14px 8px 10px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 50% 40%, rgba(var(--bio-rgb), 0.18), transparent 70%);
+  box-shadow: inset 0 0 0 1px rgba(var(--bio-rgb), 0.35);
+  overflow: hidden;
+}
+.ctp-phone-app .agent-bio-glyph { font-size: 54px; color: rgb(var(--bio-rgb)); opacity: 0.85; }
+.ctp-phone-app .agent-bio-scanner .agent-bio-pip { width: 16px; height: 16px; }
+.ctp-phone-app .agent-bio-count { font-weight: bold; letter-spacing: 0.08em; color: rgb(var(--bio-rgb)); }
+.ctp-phone-app .agent-bio-round.ok small { color: var(--agent-green, #4caf50); }
+.ctp-phone-app .agent-bio-round.fail small,
+.ctp-phone-app .agent-bio-round.void small { color: var(--agent-red, #e53935); }
+
+/* The vault: a record card, with a scan sweep when it has just been saved. */
+.ctp-phone-app .agent-bio-record { position: relative; display: flex; gap: 8px; align-items: center; overflow: hidden; }
+.ctp-phone-app .agent-bio-record-icon { font-size: 22px; color: rgb(var(--bio-rgb)); }
+.ctp-phone-app .agent-bio-record.fresh::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(var(--bio-rgb), 0.55) 50%, transparent 60%);
+  background-size: 100% 300%;
+  animation: agent-bio-sweep 1.2s ease-out 2;
+  pointer-events: none;
+}
+@keyframes agent-bio-sweep { from { background-position: 0 100%; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .ctp-phone-app .agent-bio-record.fresh::after { animation: none; display: none; } }
+.reduce-motion .ctp-phone-app .agent-bio-record.fresh::after, .ctp-phone-app.reduce-motion .agent-bio-record.fresh::after { animation: none; display: none; }
+
+/* The GM's page. */
+.ctp-phone-app .agent-bio-group { margin: 6px 0; }
+.ctp-phone-app .agent-bio-group-name { font-weight: bold; color: rgb(var(--bio-rgb)); }
+.ctp-phone-app :is(.agent-bio-noticed, .agent-bio-stale-tag) {
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+}
+.ctp-phone-app .agent-bio-noticed { color: var(--agent-yellow, #e0b030); box-shadow: inset 0 0 0 1px currentColor; }
+.ctp-phone-app .agent-bio-stale-tag { color: var(--agent-red, #e53935); box-shadow: inset 0 0 0 1px currentColor; }
+.ctp-phone-app .agent-bio-stale { opacity: 0.85; }

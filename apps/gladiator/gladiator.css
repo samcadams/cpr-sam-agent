@@ -1,0 +1,264 @@
+/*
+ * Digital Gladiator (Segotari arena magenta): the app's page (apps/gladiator/page.js, apps/gladiator/gladiator.hbs).
+ * Built from the phone's colour variables, so every skin and palette carries over. `--glad` is a Gladiator's colour.
+ */
+
+/* Its home-screen tile, and the content folder's full-colour icon while it keeps its default icon (as 4Tify's). */
+.ctp-phone-app :is(.agent-home-app, .agent-app-tile).app-gladiator { --app-rgb: 255, 60, 110; }
+body.agent-art-gladiator .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-gladiator .agent-home-icon:has(> i.fa-khanda),
+body.agent-art-gladiator .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-gladiator > i.fa-khanda { --app-picture: var(--agent-art-gladiator); }
+body.agent-art-gladiator .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-gladiator .agent-home-icon:has(> i.fa-khanda) {
+  border-color: transparent;
+  background: var(--app-picture) center / cover no-repeat;
+}
+body.agent-art-gladiator .ctp-phone-app:not(.skin-burner) :is(.agent-home-app, .agent-app-tile).app-gladiator .agent-home-icon > i.fa-khanda { visibility: hidden; }
+body.agent-art-gladiator .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-gladiator > i.fa-khanda {
+  display: inline-block;
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 0.3em;
+  background: var(--app-picture) center / cover no-repeat;
+}
+body.agent-art-gladiator .ctp-phone-app:not(.skin-burner) .agent-dock-app.app-gladiator > i.fa-khanda::before { content: none; }
+
+.ctp-phone-app .agent-gladiator { --glad-rgb: 255, 60, 110; }
+
+/* A Gladiator's colour chip; `big` on cards, with the frame as its outline. */
+.ctp-phone-app .agent-gladiator-swatch {
+  flex: none;
+  width: 0.9em;
+  height: 0.9em;
+  border-radius: 50%;
+  background: var(--glad);
+  box-shadow: 0 0 0.5em var(--glad);
+}
+.ctp-phone-app .agent-gladiator-swatch.big { width: 2.6em; height: 2.6em; border-radius: 0.4em; border: 2px solid rgba(255, 255, 255, 0.7); }
+.ctp-phone-app .agent-gladiator-swatch.frame-heavy { border-radius: 0.1em; border-width: 4px; }
+.ctp-phone-app .agent-gladiator-swatch.frame-blade { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.ctp-phone-app .agent-gladiator-swatch.frame-runner { border-radius: 50% 0; }
+
+.ctp-phone-app .agent-gladiator-card {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  margin-bottom: 0.6em;
+  padding: 0.7em;
+  border: 1px solid rgba(var(--glad-rgb), 0.55);
+  border-radius: 0.6em;
+  background: linear-gradient(135deg, rgba(var(--glad-rgb), 0.16), transparent 70%);
+}
+.ctp-phone-app .agent-gladiator-card > div { display: flex; flex-direction: column; gap: 0.15em; min-width: 0; }
+.ctp-phone-app .agent-gladiator-card.empty > i { font-size: 2em; color: rgb(var(--glad-rgb)); }
+
+.ctp-phone-app .agent-gladiator-head { display: flex; align-items: center; gap: 0.6em; margin-bottom: 0.4em; }
+.ctp-phone-app .agent-gladiator-head input { flex: 1; min-width: 0; }
+
+.ctp-phone-app .agent-gladiator-looks { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; margin-bottom: 0.5em; }
+.ctp-phone-app .agent-gladiator-looks > button { flex: 0 0 auto; width: auto; margin: 0; }
+.ctp-phone-app button.agent-gladiator-colour {
+  width: 1.6em;
+  height: 1.6em;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: var(--glad);
+}
+.ctp-phone-app button.agent-gladiator-frame { padding: 0.1em 0.5em; text-transform: capitalize; }
+.ctp-phone-app :is(button.agent-gladiator-colour, button.agent-gladiator-frame).on { border-color: currentColor; outline: 2px solid rgb(var(--glad-rgb)); }
+
+/* Budgets: always in view while building. */
+.ctp-phone-app .agent-gladiator-budget {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2em 0.8em;
+  margin: 0 -0.2em 0.5em;
+  padding: 0.35em 0.5em;
+  border-radius: 0.4em;
+  background: var(--agent-panel, #222);
+  font-size: 0.85em;
+}
+.ctp-phone-app .agent-gladiator-budget b { color: rgb(var(--glad-rgb)); }
+
+.ctp-phone-app .agent-gladiator-tabs { display: flex; gap: 0.3em; margin-bottom: 0.5em; }
+.ctp-phone-app .agent-gladiator-tabs button { flex: 1; }
+.ctp-phone-app .agent-gladiator-tabs button.on { background: rgba(var(--glad-rgb), 0.35); border-color: rgb(var(--glad-rgb)); }
+
+.ctp-phone-app .agent-gladiator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3em 0.8em; margin-bottom: 0.6em; }
+.ctp-phone-app .agent-gladiator-step { display: flex; align-items: center; gap: 0.35em; }
+.ctp-phone-app .agent-gladiator-step.wide { margin-bottom: 0.25em; }
+.ctp-phone-app .agent-gladiator-step > span { flex: 1; min-width: 0; }
+.ctp-phone-app .agent-gladiator-step > b { min-width: 1.4em; text-align: center; }
+.ctp-phone-app .agent-gladiator-step > button { flex: none; width: 1.8em; height: 1.8em; padding: 0; line-height: 1; }
+
+.ctp-phone-app .agent-gladiator-shop { max-height: 18em; overflow-y: auto; }
+.ctp-phone-app .agent-gladiator .agent-app-item > button { flex: 0 0 auto; width: 2.2em; margin: 0; }
+.ctp-phone-app .agent-gladiator .agent-app-item > .agent-app-item-main { flex: 1; min-width: 0; }
+
+.ctp-phone-app .agent-gladiator-problems { margin: 0.6em 0; padding-left: 1.2em; color: #ff8080; font-size: 0.9em; }
+.ctp-phone-app .agent-gladiator-bad { color: #ff8080; font-weight: normal; }
+.ctp-phone-app .agent-gladiator-ok { margin: 0.6em 0; color: var(--app-good, #39ff88); }
+
+/* Challenge picks (the GM's settle modes too): chips that wrap; the chosen one is outlined and filled, not just coloured. */
+.ctp-phone-app .agent-gladiator-chips { display: flex; flex-wrap: wrap; gap: 0.3em; margin-bottom: 0.5em; }
+.ctp-phone-app .agent-gladiator-chips > button { flex: 0 0 auto; width: auto; margin: 0; padding: 0.15em 0.6em; max-width: 100%; }
+.ctp-phone-app .agent-gladiator-chip.on { background: rgba(var(--glad-rgb), 0.35); border-color: rgb(var(--glad-rgb)); outline: 2px solid rgb(var(--glad-rgb)); font-weight: bold; }
+.ctp-phone-app .agent-gladiator-wager { display: flex; align-items: center; gap: 0.5em; margin-bottom: 0.5em; }
+.ctp-phone-app .agent-gladiator-wager > span { flex: none; }
+.ctp-phone-app .agent-gladiator-wager > input { flex: 1; min-width: 0; }
+
+/* Match rows and the player's match panel: text buttons keep their own width (the icon-button rule above would fix it). */
+.ctp-phone-app .agent-gladiator .agent-app-item > .agent-app-item-main { display: flex; flex-direction: column; gap: 0.2em; }
+.ctp-phone-app .agent-gladiator-actions { display: flex; flex-wrap: wrap; gap: 0.3em; margin-top: 0.2em; }
+.ctp-phone-app .agent-gladiator .agent-gladiator-actions > button,
+.ctp-phone-app .agent-gladiator .agent-app-item .agent-gladiator-actions > button { flex: 0 0 auto; width: auto; margin: 0; padding: 0.15em 0.6em; }
+.ctp-phone-app .agent-gladiator-match {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  margin-bottom: 0.6em;
+  padding: 0.7em;
+  border: 1px solid rgba(var(--glad-rgb), 0.55);
+  border-radius: 0.6em;
+  background: linear-gradient(135deg, rgba(var(--glad-rgb), 0.16), transparent 70%);
+}
+.ctp-phone-app .agent-gladiator-match .agent-info-note { margin: 0.2em 0 0; }
+
+/* Results: the icon and the word both say who won; colour only adds to it. */
+.ctp-phone-app .agent-gladiator-won { color: var(--app-good, #39ff88); font-weight: bold; }
+.ctp-phone-app .agent-gladiator-lost { color: #ff8080; font-weight: bold; }
+
+/* The battle view: foe on top, the arena, your fighter, the log, the moves. Wounds are words as well as colours. */
+.ctp-phone-app .agent-gladiator-battle { display: flex; flex-direction: column; gap: 0.45em; }
+.ctp-phone-app .agent-gladiator-battle-title { display: flex; justify-content: space-between; gap: 0.5em; font-size: 0.9em; }
+.ctp-phone-app .agent-gladiator-result {
+  margin: 0;
+  padding: 0.4em 0.6em;
+  border: 2px solid rgb(var(--glad-rgb));
+  border-radius: 0.4em;
+  background: rgba(var(--glad-rgb), 0.2);
+  font-size: 1.15em;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+}
+.ctp-phone-app .agent-gladiator-result.won { border-color: var(--app-good, #39ff88); }
+.ctp-phone-app .agent-gladiator-result.lost { border-color: #ff8080; }
+.ctp-phone-app .agent-gladiator-fighter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  padding: 0.35em 0.5em;
+  border-left: 4px solid var(--glad);
+  border-radius: 0.3em;
+  background: var(--agent-panel, #222);
+}
+.ctp-phone-app .agent-gladiator-fighter.top { margin-right: 18%; }
+.ctp-phone-app .agent-gladiator-fighter.bottom { margin-left: 18%; }
+.ctp-phone-app .agent-gladiator-fighter-name { display: flex; align-items: center; gap: 0.4em; min-width: 0; }
+.ctp-phone-app .agent-gladiator-fighter-name > small { margin-left: auto; opacity: 0.75; }
+.ctp-phone-app .agent-gladiator-hp { height: 0.55em; border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 0.3em; overflow: hidden; background: rgba(0, 0, 0, 0.45); }
+.ctp-phone-app .agent-gladiator-hp > span { display: block; height: 100%; background: var(--app-good, #39ff88); transition: width 0.25s ease-out; }
+.ctp-phone-app .wound-serious .agent-gladiator-hp > span { background: #ffd23f; }
+.ctp-phone-app :is(.wound-mortal, .wound-dead) .agent-gladiator-hp > span { background: #ff5050; }
+.ctp-phone-app .agent-gladiator-wound { color: #ffd23f; }
+.ctp-phone-app :is(.wound-mortal, .wound-dead) .agent-gladiator-wound { color: #ff8080; }
+.ctp-phone-app .agent-gladiator-stage { position: relative; }
+.ctp-phone-app canvas.agent-gladiator-arena {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(var(--glad-rgb), 0.55);
+  border-radius: 0.4em;
+  background:
+    repeating-linear-gradient(0deg, rgba(var(--glad-rgb), 0.18) 0 1px, transparent 1px 20px),
+    repeating-linear-gradient(90deg, rgba(var(--glad-rgb), 0.18) 0 1px, transparent 1px 20px),
+    radial-gradient(ellipse at 50% 60%, #1c1424, #07060a 85%);
+}
+.ctp-phone-app .agent-gladiator-band {
+  position: absolute;
+  left: 0.4em;
+  bottom: 0.3em;
+  padding: 0.05em 0.4em;
+  border-radius: 0.3em;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 0.75em;
+}
+/* The text box: the newest line last, marked. */
+.ctp-phone-app .agent-gladiator-log {
+  margin: 0;
+  padding: 0.4em 0.6em;
+  list-style: none;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 0.4em;
+  background: rgba(0, 0, 0, 0.55);
+  font-size: 0.85em;
+}
+.ctp-phone-app .agent-gladiator-log > li { opacity: 0.7; }
+.ctp-phone-app .agent-gladiator-log > li.last { opacity: 1; font-weight: bold; }
+.ctp-phone-app .agent-gladiator-log > li.last::before { content: "▶ "; color: rgb(var(--glad-rgb)); }
+.ctp-phone-app .agent-gladiator-turn { margin: 0; font-weight: bold; text-align: center; }
+.ctp-phone-app .agent-gladiator-moves { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3em; }
+.ctp-phone-app .agent-gladiator-moves.list { grid-template-columns: 1fr; }
+.ctp-phone-app .agent-gladiator-moves > button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  margin: 0;
+  padding: 0.3em 0.5em;
+  text-align: left;
+  line-height: 1.2;
+}
+.ctp-phone-app .agent-gladiator-moves > button.group-attack { border-color: rgb(var(--glad-rgb)); }
+.ctp-phone-app .agent-gladiator-moves > button > small { opacity: 0.8; font-size: 0.75em; }
+@media (prefers-reduced-motion: reduce) {
+  .ctp-phone-app .agent-gladiator-hp > span { transition: none; }
+}
+body.ctp-reduce-motion .ctp-phone-app .agent-gladiator-hp > span { transition: none; }
+
+/* A fried Agent: a dead screen with scanlines, a crack and a slow flicker. Purely visual. */
+.ctp-phone-app .agent-gladiator-fried {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: 100%;
+  padding: 2em 1.2em;
+  overflow: hidden;
+  text-align: center;
+  color: #c8c8d0;
+  background:
+    linear-gradient(115deg, transparent 46%, rgba(255, 255, 255, 0.18) 46.3%, transparent 46.8%),
+    linear-gradient(62deg, transparent 58%, rgba(255, 255, 255, 0.12) 58.3%, transparent 58.8%),
+    linear-gradient(158deg, transparent 30%, rgba(255, 60, 110, 0.2) 30.3%, transparent 30.9%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at 50% 40%, #1a1a22, #050507 80%);
+  animation: agent-gladiator-flicker 4s steps(1, end) infinite;
+}
+.ctp-phone-app .agent-gladiator-fried::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0 2px, transparent 2px 4px);
+}
+.ctp-phone-app .agent-gladiator-fried > * { position: relative; z-index: 1; margin: 0; }
+.ctp-phone-app .agent-gladiator-fried h3 { font-size: 1.15em; letter-spacing: 0.08em; text-transform: uppercase; text-shadow: 2px 0 rgba(255, 60, 110, 0.8), -2px 0 rgba(60, 220, 255, 0.6); }
+.ctp-phone-app .agent-gladiator-fried-icon { font-size: 2.4em; color: rgb(255, 60, 110); }
+@keyframes agent-gladiator-flicker {
+  0%, 100% { opacity: 1; }
+  91% { opacity: 0.75; }
+  93% { opacity: 1; }
+  96% { opacity: 0.55; }
+  97% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ctp-phone-app .agent-gladiator-fried { animation: none; }
+}
+body.ctp-reduce-motion .ctp-phone-app .agent-gladiator-fried { animation: none; }

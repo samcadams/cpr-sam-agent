@@ -1,13 +1,21 @@
 import { canSendImages, feature } from "../model/features.js";
-import { clean } from "../util/text.js";
+import { clean, splitText } from "../util/text.js";
 
 /* Checks on what clients send the host. */
 
 /** Mark a request handler as GM only (see host/index.js). */
 export const gm = name => ({ name, gmOnly: true });
 
+/** One text bubble. Longer texts become several bubbles (`textParts`), at most MAX_PARTS. */
 export const MAX_LENGTH = 2000;
+export const MAX_PARTS = 10;
 export const MAX_NAME = 60;
+
+/** A sent text as its bubbles: [""] when there is no text (a bare photo, location or job). */
+export function textParts(text) {
+  const parts = splitText(text, MAX_LENGTH, MAX_PARTS);
+  return parts.length ? parts : [""];
+}
 
 /** A shared map location: a Note (map pin) on a scene, or a bare point. Returns null if invalid. */
 export function cleanLocation(loc) {

@@ -74,3 +74,49 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Fields dialogs: documents dropped in with a price (BangMe! pay point goods). */
+.ctp-fields-form .ctp-drops {
+  flex: 1;
+}
+
+.ctp-fields-form .ctp-drop-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ctp-fields-form .ctp-drop-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.ctp-fields-form .ctp-drop-row img {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  object-fit: contain;
+}
+
+.ctp-fields-form .ctp-drop-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ctp-fields-form .ctp-drop-amount {
+  flex: 0 0 5em;
+}
+
+.ctp-fields-form .ctp-drop-zone {
+  margin: 4px 0 0;
+  padding: 6px;
+  border: 1px dashed var(--color-border-light-primary, #999);
+  border-radius: 6px;
+  text-align: center;
+  opacity: 0.7;
+}
