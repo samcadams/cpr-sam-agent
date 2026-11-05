@@ -27,7 +27,7 @@ import { hasProfile } from "./writer.js";
  */
 
 const TABS = { feed: "Feed", news: "News", dating: "Dating" };
-// Drafts and Writer feed the garden-writer skill on Sam's machine: release builds leave them out (tools/bundle.mjs --release).
+// Drafts, Writer and the Accounts feather feed the garden-writer skill on Sam's machine: release builds leave them out (tools/bundle.mjs --release).
 const RELEASE = globalThis.CPR_SAM_AGENT_RELEASE === true;
 const WRITER_TABS = RELEASE ? {} : { drafts: "Drafts", writer: "Writer" };
 const GM_TABS = { ...TABS, accounts: "Accounts", queue: "Queue", ...WRITER_TABS, control: "Control" };
@@ -662,7 +662,7 @@ export const methods = {
     else if (tab === "accounts") {
       data.accounts = accounts.sort((a, b) => !!b.pinned - !!a.pinned || (a.kind === b.kind ? a.handle.localeCompare(b.handle) : a.kind.localeCompare(b.kind))).map(a => ({
         ...this._gardenAccountRow(a), owner: a.actorId ? displayName(game.actors.get(a.actorId)) : null, followersLabel: Number(a.followers).toLocaleString(),
-        attitude: ATTITUDES[a.mood] ?? null, profiled: hasProfile(a.writer)
+        attitude: ATTITUDES[a.mood] ?? null, profiled: hasProfile(a.writer), writerEdit: !RELEASE
       }));
     } else if (tab === "writer") data.writer = this._gardenWriterData();
     else if (tab === "drafts") data.drafts = this._gardenDraftsData();

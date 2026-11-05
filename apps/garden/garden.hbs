@@ -199,7 +199,7 @@
             {{#unless actorId}}
               <a class="agent-icon-btn" data-action="garden-post-as" data-account-id="{{id}}" title="Post as {{handle}}"><i class="fas fa-pen-nib"></i></a>
               <a class="agent-icon-btn" data-action="garden-account-edit" data-account-id="{{id}}" title="Edit"><i class="fas fa-pen"></i></a>
-              <a class="agent-icon-btn{{#if profiled}} active{{/if}}" data-action="garden-writer-edit" data-account-id="{{id}}" title="Writer profile{{#if profiled}} (set){{/if}}"><i class="fas fa-feather"></i></a>
+              {{#if writerEdit}}<a class="agent-icon-btn{{#if profiled}} active{{/if}}" data-action="garden-writer-edit" data-account-id="{{id}}" title="Writer profile{{#if profiled}} (set){{/if}}"><i class="fas fa-feather"></i></a>{{/if}}
             {{/unless}}
             <a class="agent-icon-btn" data-action="garden-account-delete" data-account-id="{{id}}" title="Delete"><i class="fas fa-trash"></i></a>
           </li>
