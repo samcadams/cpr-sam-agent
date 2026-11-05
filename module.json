@@ -30,6 +30,14 @@
         "id": "foundryvtt-simple-calendar",
         "type": "module",
         "reason": "In-world timestamps on texts."
+      },
+      {
+        "id": "cpr-hq",
+        "type": "module",
+        "reason": "Crew HQs: Crew Notes, downtime on the Calendar, Lifestyle taxi perks, HusTool hustles, and Trauma Team and app subscriptions on the HQ bill.",
+        "compatibility": {
+          "minimum": "1.0.0"
+        }
       }
     ]
   },
