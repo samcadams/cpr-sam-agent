@@ -5,10 +5,13 @@ import { AgentPhone } from "./ui/phone/AgentPhone.js";
 import { applyReduceMotion } from "./ui/a11y.js";
 import { APP_SETTINGS } from "./apps/manifest.js";
 import * as clients from "../apps/clients.js";
+import { registerSettingsMenus } from "./ui/settings/menus.js";
 
 /*
- * The module's settings. The ones with config: true are in Foundry's settings window; the rest are set
- * from the phones (Control, the apps' own settings) and kept out of sight.
+ * The module's settings, and Configure Settings' submenus (ui/settings/menus.js, after the settings). The ones
+ * with config: true are in Foundry's settings window; the submenus show others (ui/settings/groups.js); the rest
+ * are set from the phones (Control, the apps' own settings) or are the module's own records, kept out of sight.
+ * Every one has a name and hint, so the submenus, the Director and api.settings can show it.
  */
 
 export function registerSettings() {
@@ -17,27 +20,33 @@ export function registerSettings() {
   const world = (key, data) => game.settings.register(MODULE_ID, key, { scope: "world", config: true, ...data });
   const client = (key, data) => game.settings.register(MODULE_ID, key, { scope: "client", config: true, ...data });
 
-  // Every phone's default sounds (Control → Every phone; each phone can pick its own): a bundled
+  // Every phone's default sounds (Configure Settings → Sounds; each phone can pick its own): a bundled
   // sound's id or a file path. See model/sounds.js.
-  for (const [kind, { setting }] of Object.entries(SOUND_KINDS)) {
-    world(setting, { config: false, type: String, default: SOUND_DEFAULTS[kind] });
+  for (const [kind, { label, setting }] of Object.entries(SOUND_KINDS)) {
+    world(setting, {
+      config: false,
+      name: label,
+      hint: `Every phone's ${label.toLowerCase()}: a bundled sound, or a file of the GM's own. Each phone can pick its own.`,
+      type: String,
+      default: SOUND_DEFAULTS[kind]
+    });
   }
   world("textToneAtToken", {
-    config: false, // set in Control → Every phone
+    config: false, // set in Configure Settings → Sounds
     name: "Text tone in the world",
     hint: "Play the text sound around the recipient's token on the active scene.",
     type: Boolean,
     default: true
   });
   world("ringAtToken", {
-    config: false, // set in Control → Every phone
+    config: false, // set in Configure Settings → Sounds
     name: "Ring in the world",
     hint: "While a call rings, play the ringtone around the recipient's token on the active scene.",
     type: Boolean,
     default: true
   });
   world("ringRadius", {
-    config: false, // set in Control → Every phone
+    config: false, // set in Configure Settings → Sounds
     name: "In-world sound radius",
     hint: "How far rings and text tones carry around the token, in scene distance units.",
     type: Number,
@@ -62,7 +71,7 @@ export function registerSettings() {
     type: String,
     default: "Internal Agent"
   });
-  // The GM's toggles (config: false: a settings menu shows them).
+  // The GM's toggles (config: false: Configure Settings → Phone rules shows them).
   const redrawPhones = () => {
     for (const phone of AgentPhone.all()) phone.refresh();
   };
@@ -77,7 +86,7 @@ export function registerSettings() {
   world("citinetApps", {
     config: false,
     name: "Apps that need the CitiNet",
-    hint: "Per app: whether it stops working without a signal ({ appId: true/false }, only what differs from the app's own default; model/features.js needsCitinet).",
+    hint: "Per app: whether it stops working without a signal. Only what differs from the app's own default is saved.",
     type: Object,
     default: {},
     onChange: redrawPhones
@@ -107,8 +116,7 @@ export function registerSettings() {
     onChange: redrawPhones
   });
 
-  client("volume", {
-    config: false, // set from the phone: Settings → Look (This GM Phone in Control)
+  client("volume", { // also on the phone: Settings → Look (This GM Phone in Control)
     name: "Phone volume",
     hint: "Your own phone: text tones and ringtones (0 mutes them). Also scaled by Foundry's Interface volume.",
     type: Number,
@@ -116,8 +124,7 @@ export function registerSettings() {
     default: 0.5,
     onChange: () => CallAudio.applyVolume()
   });
-  client("worldVolume", {
-    config: false, // set from the phone: Settings → Look (This GM Phone in Control)
+  client("worldVolume", { // also on the phone: Settings → Look (This GM Phone in Control)
     name: "In-world phone volume",
     hint: "Phones ringing and buzzing near your tokens (0 mutes them). Also scaled by Foundry's Ambient volume.",
     type: Number,
@@ -149,7 +156,9 @@ export function registerSettings() {
     onChange: value => document.getElementById("ctp-agent-monitor")?.style.setProperty("--monitor-alpha", value)
   });
   // The Agent Monitor's dismissed history: { cleared: { [actorId]: ts }, hidden: [did id], off: bool }.
-  game.settings.register(MODULE_ID, "monitorHistory", { scope: "client", config: false, type: Object, default: {} });
+  client("monitorHistory", {
+    config: false, name: "Agent Monitor's cleared history", hint: "What the GM cleared or hid in the Agent Monitor's log.", type: Object, default: {}
+  });
   client("reduceMotion", {
     name: "Reduce motion",
     hint: "Stop the phone's blinking, pulsing, shaking and sliding, and show text all at once. Always on when your device asks for less motion.",
@@ -164,7 +173,6 @@ export function registerSettings() {
     default: false
   });
   client("gmPopupSeconds", {
-    config: false, // set in Control → This GM Phone
     name: "GM pop-ups close after",
     hint: "Seconds before the GM's notification pop-ups close themselves (0 keeps the usual timing). Ringing calls stay until answered.",
     type: Number,
@@ -172,13 +180,12 @@ export function registerSettings() {
     default: 30
   });
   client("gmPopupAnswers", {
-    config: false, // set in Control → This GM Phone
     name: "GM pop-ups that ask for an answer close too",
+    hint: "With a time above: pop-ups waiting for the GM's answer (requests, approvals) close after it as well. Off: they stay until answered.",
     type: Boolean,
     default: true
   });
-  client("fontScale", {
-    config: false, // set from the phone: Settings → Look (This GM Phone in Control)
+  client("fontScale", { // also on the phone: Settings → Look (This GM Phone in Control)
     name: "Phone text size",
     hint: "How big the text is on your phone.",
     type: Number,
@@ -189,25 +196,35 @@ export function registerSettings() {
     }
   });
 
-  game.settings.register(MODULE_ID, "services", { scope: "world", config: false, type: Array, default: [] });
+  // The module's own records and the GM's Object settings, set from the phones and the submenus.
+  const hidden = (scope, key, data) => game.settings.register(MODULE_ID, key, { scope, config: false, ...data });
+  hidden("world", "services", {
+    name: "Services", hint: "The services in the Contacts app: Trauma Team, fixers, shops (the GM Phone's Contacts → Services).", type: Array, default: []
+  });
   // Ids of the built-in services already added to this world (model/services.js seedDefaultServices).
-  game.settings.register(MODULE_ID, "seededServices", { scope: "world", config: false, type: Array, default: [] });
-  // Set from the GM Phone's Control app.
-  game.settings.register(MODULE_ID, "features", { scope: "world", config: false, type: Object, default: {} });
-  game.settings.register(MODULE_ID, "appearance", { scope: "world", config: false, type: Object, default: {} });
-  // Where the phones' clock comes from (Control → Every phone → Clock; util/agentTime.js).
-  game.settings.register(MODULE_ID, "clock", { scope: "world", config: false, type: Object, default: {} });
+  hidden("world", "seededServices", { name: "Built-in services added", hint: "Which built-in services this world already has, so they're added once.", type: Array, default: [] });
+  // The world switches (model/features.js): the apps' (Control → Apps, Configure Settings → Apps), Configure
+  // Settings → Phone rules and Integrations.
+  hidden("world", "features", { name: "World switches", hint: "Which apps and phone features are on in this world.", type: Object, default: {} });
+  // Set from the GM Phone's Control app: emoji, labels, app names, icons, the money format.
+  hidden("world", "appearance", { name: "Look of every phone", hint: "Reaction emoji, labels, app names, icons and how money is written (Control).", type: Object, default: {} });
+  // Where the phones' clock comes from (Configure Settings → Clock; util/agentTime.js).
+  hidden("world", "clock", {
+    name: "Phones' clock", hint: "Where the phones' time and date come from: Simple Calendar, SmallTime, system time, or the GM's own.", type: Object, default: {}
+  });
   // BrainGen's sponsored content, one per line (empty: the built-in lines; see model/agent.js).
-  game.settings.register(MODULE_ID, "brainGenAds", { scope: "world", config: false, type: String, default: "" });
+  hidden("world", "brainGenAds", { name: "Sponsored Cybereye ad lines", hint: "One per line; empty uses the built-in lines (Control → Labels).", type: String, default: "" });
   // What players see instead of the name when the GM hides caller ID (Control → Labels).
-  game.settings.register(MODULE_ID, "unknownLabel", { scope: "world", config: false, type: String, default: "Unknown Number" });
-  game.settings.register(MODULE_ID, "noSignal", { scope: "world", config: false, type: Object, default: {} });
-  game.settings.register(MODULE_ID, "buttonPosition", { scope: "client", config: false, type: Object, default: null });
-  game.settings.register(MODULE_ID, "gmButtonPosition", { scope: "client", config: false, type: Object, default: null });
-  game.settings.register(MODULE_ID, "directorButtonPosition", { scope: "client", config: false, type: Object, default: null });
-  game.settings.register(MODULE_ID, "questsSeen", { scope: "client", config: false, type: Number, default: 0 });
+  hidden("world", "unknownLabel", { name: "Hidden caller ID", hint: "What players see instead of a name when the GM hides caller ID (Control → Labels).", type: String, default: "Unknown Number" });
+  hidden("world", "noSignal", { name: "Characters without signal", hint: "Whose cellular service the GM cut, and when (Control → Characters).", type: Object, default: {} });
+  hidden("client", "buttonPosition", { name: "Phone button position", hint: "Where you dragged the phone button.", type: Object, default: null });
+  hidden("client", "gmButtonPosition", { name: "GM Phone button position", hint: "Where you dragged the GM Phone button.", type: Object, default: null });
+  hidden("client", "directorButtonPosition", { name: "Director button position", hint: "Where you dragged the Director button.", type: Object, default: null });
+  hidden("client", "questsSeen", { name: "Jobs seen", hint: "When you last looked at Jobs, for its new-job badge.", type: Number, default: 0 });
   // Where the minimised call card was dragged to (ui/CallWidget.js).
-  game.settings.register(MODULE_ID, "callWidgetPosition", { scope: "client", config: false, type: Object, default: null });
+  hidden("client", "callWidgetPosition", { name: "Call card position", hint: "Where you dragged the minimised call card.", type: Object, default: null });
+
+  registerSettingsMenus();
 }
 
 /**

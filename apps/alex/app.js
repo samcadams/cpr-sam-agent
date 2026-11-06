@@ -15,6 +15,11 @@ export default {
     // browser: world settings reach every player.
     alexAi: { scope: "client", type: Object, default: {} },
     // Whether Claude's drafts speak in the asker's Agent personality. World-wide so players' Ask Alex says so.
-    alexAgentVoice: { scope: "world", type: Boolean, default: true, redraw: "all" }
+    // Also in Configure Settings → Integrations.
+    alexAgentVoice: {
+      scope: "world", type: Boolean, default: true, redraw: "all",
+      name: "Claude's drafts in the Agent's voice",
+      hint: "Claude's Ask Alex drafts answer in the asker's Agent personality."
+    }
   }
 };

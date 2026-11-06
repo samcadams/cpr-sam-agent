@@ -1,0 +1,25 @@
+{{!-- Configure Settings → Sounds (ui/settings/menus.js SoundsMenu). Changes save at once. --}}
+<form class="ctp-config" autocomplete="off">
+  <p class="notes">{{hint}}</p>
+  <fieldset class="ctp-config-group">
+    <legend>Default sounds</legend>
+    {{#each kinds}}
+      <div class="form-group">
+        <label>{{label}}</label>
+        <div class="form-fields">
+          <select data-sound-kind="{{kind}}" aria-label="{{label}}">
+            {{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+          </select>
+          <button type="button" data-sound-play="{{kind}}" title="Play"><i class="fas fa-play"></i></button>
+          <button type="button" data-sound-file="{{kind}}" title="Use a file of your own"><i class="fas fa-file-audio"></i></button>
+        </div>
+      </div>
+    {{/each}}
+    <p class="notes">Each phone can pick its own in its Settings; these are what "Same as every phone" plays.</p>
+  </fieldset>
+  <fieldset class="ctp-config-group">
+    <legend>Sounds in the world</legend>
+    {{{world}}}
+  </fieldset>
+  <footer class="sheet-footer flexrow"><button type="button" data-close><i class="fas fa-check"></i> Close</button></footer>
+</form>

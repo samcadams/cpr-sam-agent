@@ -1,0 +1,44 @@
+{{!-- Configure Settings → Clock (ui/settings/menus.js ClockMenu, ui/settings/clock.js). Changes save at once. --}}
+<form class="ctp-config" autocomplete="off">
+  <p class="notes">{{hint}}</p>
+  <fieldset class="ctp-config-group">
+    <legend>Clock</legend>
+    <div class="form-group">
+      <label>Time from</label>
+      <div class="form-fields">
+        <select name="clockSource">
+          {{#each sources}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+        </select>
+      </div>
+      {{#if noCalendar}}<p class="notes">Simple Calendar isn't active: using system time.</p>{{/if}}
+    </div>
+    {{#if system}}
+      <div class="form-group">
+        <label>On another date</label>
+        <div class="form-fields"><input type="checkbox" name="clockOtherDate" {{#if system.otherDate}}checked{{/if}}></div>
+      </div>
+      {{#if system.otherDate}}
+        <div class="form-group">
+          <label>Date</label>
+          <div class="form-fields"><input type="date" name="clockSystemDate" value="{{system.date}}"></div>
+        </div>
+      {{/if}}
+    {{/if}}
+    {{#if custom}}
+      <div class="form-group">
+        <label>Date</label>
+        <div class="form-fields"><input type="date" name="clockDate" value="{{custom.date}}"></div>
+      </div>
+      <div class="form-group">
+        <label>Time</label>
+        <div class="form-fields"><input type="time" name="clockTime" value="{{custom.time}}"></div>
+      </div>
+    {{/if}}
+    <div class="form-group">
+      <label>"Day" before the date's number</label>
+      <div class="form-fields"><input type="checkbox" name="clockDayPrefix" {{#if dayPrefix}}checked{{/if}}></div>
+    </div>
+    <p class="notes" data-clock-now>Now: {{now.time}}{{#if now.date}} · {{now.date}}{{/if}}. Automatic: Simple Calendar, else SmallTime's world time, else system time.</p>
+  </fieldset>
+  <footer class="sheet-footer flexrow"><button type="button" data-close><i class="fas fa-check"></i> Close</button></footer>
+</form>

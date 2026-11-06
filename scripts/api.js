@@ -18,6 +18,7 @@ import { Director } from "./ui/director/Director.js";
 import { detach } from "./ui/director/detach.js";
 import { AgentPhone } from "./ui/phone/AgentPhone.js";
 import { openLocation } from "./ui/location.js";
+import { fields, getSetting, groups, setSetting } from "./ui/settings/groups.js";
 import { embedPlace, mapEmbed } from "../apps/map/embed.js";
 import { plainSheet } from "../apps/screamsheet/model.js";
 import { patchSetting } from "./util/settings.js";
@@ -585,6 +586,28 @@ const screamsheet = {
   }
 };
 
+/**
+ * The module's settings in groups (ui/settings/groups.js), as Configure Settings' submenus show them:
+ * `groups` is [{ id, label, hint?, menu?, keys, sections?: [{ label, keys }] }] (`menu`: the submenu, in
+ * game.settings.menus as "cpr-sam-agent.<menu>"). A key is a registered setting ("ringRadius") or a switch in
+ * an Object setting ("features.app_garden", "citinetApps.garden"), which `fields` describes:
+ * { key: { name, hint, type, default, requires? } }. `get(key)` reads one; `set(key, value)` changes one
+ * (world settings, dotted keys included: GM).
+ */
+const settings = {
+  get groups() {
+    return groups();
+  },
+  get fields() {
+    return fields();
+  },
+  get: getSetting,
+  set(key, value) {
+    if (key.includes(".") || game.settings.settings.get(`${MODULE_ID}.${key}`)?.scope !== "client") requireGM("Changing world settings");
+    return setSetting(key, value);
+  }
+};
+
 /** GM: open the GM Phone on a character's conversation with a contact. */
 function openConversation({ to, from, hidden = false } = {}) {
   requireGM("Opening conversations");
@@ -625,6 +648,7 @@ export const api = Object.freeze({
   monitor: Object.freeze(monitor),
   screamsheet: Object.freeze(screamsheet),
   director: Object.freeze(director),
+  settings: Object.freeze(settings),
   // Internals, for debugging; not part of the API (they change between versions).
   store, AgentPhone
 });

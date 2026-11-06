@@ -30,49 +30,23 @@
     </div>
     <p class="agent-info-note">Each app's own options are behind the gear in its header.</p>
     <p class="agent-info-note">Communications is {{appearance.names.contacts}}, {{appearance.names.messages}} and calls together.</p>
+    <button type="button" class="agent-wide-btn" data-action="open-settings-menu" data-menu="apps"><i class="fas fa-mobile-screen"></i> Apps in Configure Settings</button>
   </details>
 
   <details class="agent-section" data-section="gmPhone" {{#if control.open.gmPhone}}open{{/if}}>
     <summary>This GM Phone</summary>
     {{> agent-look-settings control.phone}}
-    <h3 class="agent-info-label">Pop-ups</h3>
-    <div class="agent-setting-row">
-      <span>Close after <span class="agent-range-value">{{#if control.popups.seconds}}{{control.popups.seconds}}s{{else}}Usual{{/if}}</span></span>
-      <input type="range" data-gm-popup="seconds" min="0" max="60" step="1" value="{{control.popups.seconds}}" aria-label="GM pop-ups close after (seconds)">
-    </div>
-    <label class="agent-radio agent-sub-option{{#unless control.popups.seconds}} disabled{{/unless}}"><input type="checkbox" data-gm-popup="answers" {{#if control.popups.answers}}checked{{/if}} {{#unless control.popups.seconds}}disabled{{/unless}}> Also ones that ask for an answer</label>
-    <p class="agent-info-note">A bar along the bottom fills up until a pop-up closes; the pointer on it holds it open. Ringing calls stay. 0 keeps the usual timing.</p>
-    <h3 class="agent-info-label">Tools</h3>
-    <label class="agent-radio"><input type="checkbox" data-feature="anthropic" {{#if control.anthropic}}checked{{/if}}> Enable Anthropic API Tools</label>
-    <p class="agent-info-note">Draft with Claude in Ask Alex and DataPool, and Ask Alex's Optional Anthropic API settings. Off hides them all.</p>
+    <button type="button" class="agent-wide-btn" data-action="open-settings-menu" data-menu="integrations"><i class="fas fa-plug"></i> Integrations</button>
+    <p class="agent-info-note">Pop-up timing, volume and text size are also in Configure Settings.</p>
   </details>
 
   <details class="agent-section" data-section="everyPhone" {{#if control.open.everyPhone}}open{{/if}}>
     <summary>Every phone</summary>
-    {{#each control.features}}
-      <label class="agent-radio{{#if sub}} agent-sub-option{{/if}}{{#if disabled}} disabled{{/if}}"><input type="checkbox" data-feature="{{key}}" {{#if on}}checked{{/if}} {{#if disabled}}disabled{{/if}}> {{label}}</label>
-      {{#if note}}<p class="agent-info-note">{{note}}</p>{{/if}}
-    {{/each}}
-    <label class="agent-radio"><input type="checkbox" data-feature="blood" {{#if control.blood.on}}checked{{/if}}> Blood overlay when hurt</label>
-    <div class="agent-setting-row"><span>Preview here</span>{{> agent-dropdown control.blood.preview}}</div>
-
-    <h3 class="agent-info-label">Default sounds</h3>
-    {{#each control.defaultSounds}}
-      <div class="agent-setting-row agent-sound-row">
-        <span>{{label}}</span>
-        {{> agent-dropdown picker}}
-        <a class="agent-icon-btn" data-action="default-sound-preview" data-kind="{{kind}}" title="Play"><i class="fas fa-play"></i></a>
-        <a class="agent-icon-btn" data-action="default-sound-file" data-kind="{{kind}}" title="Use a file of your own"><i class="fas fa-file-audio"></i></a>
-      </div>
-    {{/each}}
-
-    <h3 class="agent-info-label">Sounds in the world</h3>
-    <label class="agent-radio"><input type="checkbox" data-world-setting="textToneAtToken" {{#if control.worldSounds.textTone}}checked{{/if}}> Text tone in the world</label>
-    <label class="agent-radio"><input type="checkbox" data-world-setting="ringAtToken" {{#if control.worldSounds.ring}}checked{{/if}}> Ring in the world</label>
-    <div class="agent-setting-row">
-      <span>Sound radius <span class="agent-range-value">{{control.worldSounds.radius}} {{control.worldSounds.units}}</span></span>
-      <input type="range" data-world-setting="ringRadius" min="1" max="60" step="1" value="{{control.worldSounds.radius}}">
-    </div>
+    <button type="button" class="agent-wide-btn" data-action="open-settings-menu" data-menu="phoneRules"><i class="fas fa-scale-balanced"></i> Phone rules</button>
+    <button type="button" class="agent-wide-btn" data-action="open-settings-menu" data-menu="sounds"><i class="fas fa-volume-high"></i> Sounds</button>
+    <button type="button" class="agent-wide-btn" data-action="open-settings-menu" data-menu="clock"><i class="fas fa-clock"></i> Clock</button>
+    <p class="agent-info-note">Messages' extras, Jobs, Agents, Library Search, CitiNet, default sounds and the clock are in Configure Settings.</p>
+    <div class="agent-setting-row"><span>Blood preview here</span>{{> agent-dropdown control.blood.preview}}</div>
 
     <div class="agent-control-field">
       <span class="agent-control-field-head">Reaction emoji
@@ -81,24 +55,6 @@
       <textarea name="emoji" rows="3" aria-label="Reaction emoji" placeholder="Separated by spaces">{{control.emoji}}</textarea>
     </div>
     {{#if control.catalog}}{{> agent-emoji-catalog control.catalog}}{{/if}}
-
-    <div class="agent-clock">
-      <h3 class="agent-info-label">Clock</h3>
-      <div class="agent-setting-row"><span>Time from</span>{{> agent-dropdown control.clock.source}}</div>
-      {{#if control.clock.noCalendar}}<p class="agent-info-note">Simple Calendar isn't active: using system time.</p>{{/if}}
-      {{#if control.clock.system}}
-        <label class="agent-radio"><input type="checkbox" name="clockOtherDate" {{#if control.clock.system.otherDate}}checked{{/if}}> On another date</label>
-        {{#if control.clock.system.otherDate}}
-          <div class="agent-setting-row"><span>Date</span><input type="date" name="clockSystemDate" value="{{control.clock.system.date}}"></div>
-        {{/if}}
-      {{/if}}
-      {{#if control.clock.custom}}
-        <div class="agent-setting-row"><span>Date</span><input type="date" name="clockDate" value="{{control.clock.custom.date}}"></div>
-        <div class="agent-setting-row"><span>Time</span><input type="time" name="clockTime" value="{{control.clock.custom.time}}"></div>
-      {{/if}}
-      <label class="agent-radio"><input type="checkbox" name="clockDayPrefix" {{#if control.clock.dayPrefix}}checked{{/if}}> "Day" before the date's number</label>
-      <p class="agent-info-note">Now: {{control.clock.now.time}}{{#if control.clock.now.date}} · {{control.clock.now.date}}{{/if}}. Automatic: Simple Calendar, else SmallTime's world time, else system time.</p>
-    </div>
   </details>
 
   <details class="agent-section" data-section="labels" {{#if control.open.labels}}open{{/if}}>

@@ -15,6 +15,15 @@ import { features } from "../../../model/features.js";
 export const PLAYER_ROLES = () => [CONST.USER_ROLES.PLAYER, CONST.USER_ROLES.TRUSTED];
 export const playersCanUpload = () => PLAYER_ROLES().every(r => game.permissions?.FILES_UPLOAD?.includes(r));
 
+/** Give Players and Trusted Players that permission, or take it away (Control's switch, Configure Settings → Phone rules). */
+export async function setPlayerUploads(on) {
+  const permissions = foundry.utils.deepClone(game.permissions ?? {});
+  const roles = new Set(permissions.FILES_UPLOAD ?? []);
+  for (const role of PLAYER_ROLES()) on ? roles.add(role) : roles.delete(role);
+  permissions.FILES_UPLOAD = [...roles].sort();
+  await game.settings.set("core", "permissions", permissions);
+}
+
 /** Which apps have a settings page, and what's on it (`this` is the phone). */
 const PAGES = {
   messages(ctx, on) {

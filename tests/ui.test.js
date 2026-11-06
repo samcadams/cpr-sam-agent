@@ -173,7 +173,7 @@ test("the dock follows the Jobs switch, and only the GM Phone has Control", asyn
   assert.ok(data.page.control);
   assert.deepEqual(data.control.characters.map(c => c.name), ["V", "Judy"]);
   assert.deepEqual(data.control.apps.slice(0, 2).map(a => a.key), ["comms", "jobs"], "Communications and Jobs are switched on and off with the other apps");
-  assert.deepEqual(data.control.features.map(f => f.key), ["freeInternal", "shareTexts", "agentChat", "agentChatWhisper"]);
+  assert.equal(data.control.features, undefined, "the other world switches are in Configure Settings → Phone rules");
   // Label and icon fields show what's in use, defaults included.
   assert.equal(data.control.labels.find(l => l.key === "noSignal").value, "NO SIGNAL");
   assert.equal(data.control.icons.find(i => i.key === "call").value, "fas fa-phone");
@@ -203,18 +203,16 @@ test("the dock follows the Jobs switch, and only the GM Phone has Control", asyn
   assert.ok(phone.getData().page.home, "players have no Control app");
 });
 
-test("Control's Anthropic API Tools switch: off by default, it hides Claude in Ask Alex and DataPool", async () => {
+test("the Anthropic API Tools switch (Configure Settings → Integrations): off by default, it hides Claude in Ask Alex and DataPool", async () => {
   actAs(gm);
   await game.settings.set("cpr-sam-agent", "alexAi", { key: "sk-ant-test" });
   await game.settings.set("cpr-sam-agent", "features", { app_alex: true, app_screamsheet: true });
   const gmPhone = inMessages("console");
   const view = app => (gmPhone.app = app, gmPhone.getData());
-  assert.equal(view("control").control.anthropic, false);
   assert.equal(view("alex").alex.anthropic, false, "the Optional Anthropic API section is hidden");
   assert.equal(view("screamsheet").screamsheet.anthropic, false, "no Draft with Claude on the desk");
 
   await game.settings.set("cpr-sam-agent", "features", { app_alex: true, app_screamsheet: true, anthropic: true });
-  assert.equal(view("control").control.anthropic, true);
   assert.equal(view("alex").alex.anthropic, true);
   assert.equal(view("screamsheet").screamsheet.anthropic, true);
 });
