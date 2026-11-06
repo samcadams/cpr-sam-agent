@@ -7,6 +7,7 @@ import { store } from "../../scripts/store.js";
 import { agentMods, BIG_SAAI, librarySearchBase } from "../alex/model.js";
 import { hasAddon } from "../pool/model.js";
 import { hqApi } from "../notes/model.js";
+import { anthropicOn } from "../../scripts/model/features.js";
 import { addSpend, aiSettings, overCap } from "../alex/page.js";
 import { reputationOf } from "../garden/model.js";
 import { fieldsDialog } from "../../scripts/ui/dialogs/forms.js";
@@ -309,13 +310,14 @@ export const methods = {
     const tab = this.screamTab in GM_TABS ? this.screamTab : "desk";
     const crawls = store.apps.screamCrawls ?? {};
     const desk = crawls[DESK] ?? {};
+    const anthropic = anthropicOn();
     const published = clips.filter(c => c.status === "published").sort(newest);
     const row = c => ({
       ...clipRow(c), title: c.title || clipRow(c).headline, source: SOURCES[c.source?.kind] ?? "", sourceLabel: c.source?.label ?? "",
       reach: REACHES[c.reach] ?? "", subjects: (c.subjects ?? []).map(id => displayName(game.actors.get(id))).filter(Boolean).join(", "),
       pulled: (c.actorIds ?? []).map(id => displayName(game.actors.get(id))).filter(Boolean).join(", "),
       at: c.at ? Math.max(0, Math.round((c.at - game.time.worldTime) / 360) / 10) : null, front: !!c.everyone,
-      writing: !!this.screamAi?.[c.id]?.busy
+      writing: !!this.screamAi?.[c.id]?.busy, anthropic
     });
     const drafts = clips.filter(c => c.status === "draft").sort((a, b) => b.ts - a.ts);
     const deep = playerCharacters().map(actor => ({ actor, row: crawls[actor.id] })).filter(({ row: r }) => r?.deep?.status === "review").map(({ actor, row: r }) => ({
@@ -325,7 +327,7 @@ export const methods = {
     }));
     const made = new Set(desk.journal ?? []);
     return {
-      bar, gm: true,
+      bar, gm: true, anthropic,
       writing: !!this.screamAi?.new?.busy,
       tabs: this._screamTabs(GM_TABS, tab, { desk: deep.length }),
       tab: { [tab]: true },

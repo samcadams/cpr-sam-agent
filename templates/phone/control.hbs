@@ -42,6 +42,9 @@
     </div>
     <label class="agent-radio agent-sub-option{{#unless control.popups.seconds}} disabled{{/unless}}"><input type="checkbox" data-gm-popup="answers" {{#if control.popups.answers}}checked{{/if}} {{#unless control.popups.seconds}}disabled{{/unless}}> Also ones that ask for an answer</label>
     <p class="agent-info-note">A bar along the bottom fills up until a pop-up closes; the pointer on it holds it open. Ringing calls stay. 0 keeps the usual timing.</p>
+    <h3 class="agent-info-label">Tools</h3>
+    <label class="agent-radio"><input type="checkbox" data-feature="anthropic" {{#if control.anthropic}}checked{{/if}}> Enable Anthropic API Tools</label>
+    <p class="agent-info-note">Draft with Claude in Ask Alex and DataPool, and Ask Alex's Optional Anthropic API settings. Off hides them all.</p>
   </details>
 
   <details class="agent-section" data-section="everyPhone" {{#if control.open.everyPhone}}open{{/if}}>

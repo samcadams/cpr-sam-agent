@@ -221,6 +221,7 @@ export const methods = {
         { key: "agentChatWhisper", label: "Only the GM sees it (whispered)", on: on.agentChatWhisper, sub: true, disabled: !on.agentChat }
       ],
       comms: on.comms,
+      anthropic: on.anthropic,
       apps: [
         // Contacts, Messages and Calls are one switch: none of them works without the others.
         {

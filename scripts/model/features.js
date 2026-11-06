@@ -19,6 +19,7 @@ export const FEATURE_DEFAULTS = {
   agentChat: false, // chat says when someone takes out or puts away a carried Agent (ui/agentShown.js)
   agentChatWhisper: false, // ...whispered to the GM (and only the GM sees the bubble)
   shareTexts: true, // a few texts from a conversation can be shared to chat (model/share.js)
+  anthropic: false, // the GM's Anthropic API tools: Claude drafts in Ask Alex and DataPool, and Ask Alex's key settings
   // Every app (apps/manifest.js): on, unless the manifest says it starts off.
   ...Object.fromEntries(APP_IDS.map(id => [`app_${id}`, !APP_MANIFEST[id].off]))
 };
@@ -55,6 +56,9 @@ export async function settleAppsOff(existing) {
 }
 
 export const commsOn = () => !!feature("comms");
+
+/** Are the GM's Anthropic API tools (Claude drafts in Ask Alex and DataPool) shown? */
+export const anthropicOn = () => !!feature("anthropic");
 
 /**
  * Requests the host refuses while Communications are off (host/index.js). Ending a call, reading,

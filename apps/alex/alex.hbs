@@ -85,6 +85,7 @@
       <p class="agent-info-note">A question that mentions one lists the entry under it. Pick one with Use to put its text in the answer (secret blocks and the keywords line left out). Nothing goes to the player until you answer, so you can ask for a roll first.</p>
       <button type="button" class="agent-wide-btn" data-action="alex-example"><i class="fas fa-book-open"></i> Create an example entry</button>
     </details>
+    {{#if alex.anthropic}}
     <details class="agent-section" data-section="alexAi" {{#if alex.open.alexAi}}open{{/if}}>
       <summary>Optional Anthropic API</summary>
       <p class="agent-info-note">Additionally, if you have an Anthropic API key, you can integrate Haiku, the current cheapest model, to serve as a draft-tool for your responses.</p>
@@ -109,6 +110,7 @@
       {{/if}}
       <p class="agent-info-note">Claude tells only what's public, and lists anything it drew from a secret block (Data Pool or Locations) under "From secrets". Model: {{alex.settings.model}}.</p>
     </details>
+    {{/if}}
   </div>
 {{else}}
   {{#with alex.saai}}

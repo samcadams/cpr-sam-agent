@@ -7,6 +7,7 @@ import { hasAddon, poolConfig, priceLabel, rowsOf } from "../pool/model.js";
 import { API_URL, costOf, DEFAULT_DOMAINS, DEFAULT_MODEL, DEFAULT_RULES, draftRequest, errorText, runDraft } from "./ai.js";
 import { agentLabel, personalityOf } from "../../scripts/model/apps.js";
 import { displayName } from "../../scripts/model/threads.js";
+import { anthropicOn } from "../../scripts/model/features.js";
 import { store } from "../../scripts/store.js";
 import { ago } from "../../scripts/util/text.js";
 
@@ -427,13 +428,16 @@ export const methods = {
       const pool = waiting.length ? dataPool(undefined, { secrets: "mark" }) : [];
       const open = this.sectionsOpen();
       const shown = new Map(pool.length ? dataPool().map(e => [e.id, e.text]) : []);
+      const anthropic = anthropicOn();
       return {
         gm: true,
+        anthropic,
         bar: appBar("alex"),
         waiting: waiting.map(q => {
           const actor = game.actors.get(q.actorId);
           const base = librarySearchBase(actor, actor && hasAddon(store.apps.installs, actor.id, BIG_SAAI));
-          const ai = this.alexAi?.[q.id] ?? {};
+          // Anthropic tools off (Control): no Claude draft, notes or suggestions at all.
+          const ai = anthropic ? this.alexAi?.[q.id] ?? {} : {};
           const r = ai.result;
           const personality = actor ? personalityOf(actor) : null;
           const matches = poolMatches(q.text, pool).map(m => {
@@ -445,7 +449,7 @@ export const methods = {
             draft: this.alexDrafts?.[q.id] ?? "", image: this.alexImages?.[q.id] ?? null,
             ai: {
               ...ai,
-              ready: !!settings.key,
+              ready: anthropic && !!settings.key,
               // Claude's suggested roll, offered while no roll's been asked for.
               rollDv: r?.needsRoll && q.status === "crawling" ? r.dv ?? 13 : null,
               cost: r ? `$${ai.cost.toFixed(4)}` : null
@@ -455,7 +459,7 @@ export const methods = {
             agent: actor ? {
               label: agentLabel(actor),
               personality: personality ? `${personality.name}${personality.voice ? `: ${personality.voice}` : ""}` : "Factory default",
-              voices: settings.agentVoice && !!personality?.voice
+              voices: anthropic && settings.agentVoice && !!personality?.voice
             } : null
           };
         }),
@@ -471,7 +475,7 @@ export const methods = {
       };
     }
     return {
-      bar: appBar("alex", { owner: ctx.subject.name, tag: game.settings.get(MODULE_ID, "alexAgentVoice") ? "Alex uses your Agent's personality." : null }),
+      bar: appBar("alex", { owner: ctx.subject.name, tag: anthropicOn() && game.settings.get(MODULE_ID, "alexAgentVoice") ? "Alex uses your Agent's personality." : null }),
       draft: this.alexDraft ?? "",
       online: this.online,
       saai: this._alexSaaiData(ctx.actorId),

@@ -11,7 +11,7 @@
   <div class="agent-scream-actions">
     <a data-action="scream-edit" data-id="{{id}}"><i class="fas fa-pen"></i> Edit</a>
     {{#unless date}}<a data-action="scream-publish" data-id="{{id}}"><i class="fas fa-paper-plane"></i> Publish</a>
-    <a data-action="scream-claude" data-id="{{id}}" title="Claude rewrites the text in the outlet's voice"><i class="fas {{#if writing}}fa-spinner fa-spin{{else}}fa-wand-magic-sparkles{{/if}}"></i> {{#if writing}}Writing…{{else}}Redraft{{/if}}</a>{{/unless}}
+    {{#if anthropic}}<a data-action="scream-claude" data-id="{{id}}" title="Claude rewrites the text in the outlet's voice"><i class="fas {{#if writing}}fa-spinner fa-spin{{else}}fa-wand-magic-sparkles{{/if}}"></i> {{#if writing}}Writing…{{else}}Redraft{{/if}}</a>{{/if}}{{/unless}}
     <a data-action="scream-delete" data-id="{{id}}"><i class="fas fa-trash"></i> {{#if date}}Take down{{else}}Bin{{/if}}</a>
   </div>
 </div>

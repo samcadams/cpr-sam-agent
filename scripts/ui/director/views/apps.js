@@ -519,7 +519,7 @@ function alexPageHtml(director, a) {
     <div>${label("Answered")}${listOf(a.recent.map(q => row({ main: `<strong>${esc(q.name)}</strong>: “${esc(q.text)}”`, small: q.none ? "No results" : esc(q.answer?.text ?? "") })), "Nothing yet.")}
       ${label("Data Pool keywords")}<p class="director-note">Put a line <b>Data Pool Keywords: merc bar, rogue</b> in any journal entry, or keep the entry in a <b>${esc(a.folder)}</b> folder. Its name counts as a keyword too. A question that mentions one lists the entry under it.</p>
       <div class="director-toolbar">${phoneBtn("alex-example", "Create an example entry", { icon: "fa-book-open" })}</div>
-      ${label("Optional Anthropic API")}
+      ${a.anthropic ? `${label("Optional Anthropic API")}
       <div class="director-ncpd-line"><input type="password" data-alex-setting="key" data-director="input:[data-alex-setting]" value="${esc(st.key ?? "")}" placeholder="sk-ant-…" autocomplete="off" aria-label="Anthropic API key">${phoneBtn("alex-ai-test", "Test", { icon: "fa-plug", title: "Test the key" })}</div>
       <label class="director-check-row"><input type="checkbox" data-alex-remember data-director="input:input[data-alex-remember]" ${st.remember ? "checked" : ""}> Remember the key in this browser</label>
       <p class="director-note">Never sent to the Foundry server or players. Set a spend limit on its workspace in the Anthropic Console.</p>
@@ -530,14 +530,14 @@ function alexPageHtml(director, a) {
       ${set("cap", "Session cap ($, 0 = none)", `type="number" min="0" step="0.5" value="${esc(String(st.cap ?? ""))}"`)}
       <p class="director-sub">This session: ${esc(st.spend)} · model ${esc(st.model)}</p>
       <div class="director-toolbar">${phoneBtn("alex-rules", `${st.rulesOpen ? "Hide" : "View"} base instructions${st.rulesCustom ? " (edited)" : ""}`, { icon: "fa-scroll" })}</div>
-      ${st.rulesOpen ? `<textarea data-alex-setting="rules" data-director="input:[data-alex-setting]" data-draft="alex-rules" rows="14">${esc(st.rulesText)}</textarea>${st.rulesCustom ? `<div class="director-toolbar">${phoneBtn("alex-rules-reset", "Back to the default", { icon: "fa-rotate-left" })}</div>` : ""}` : ""}</div>
+      ${st.rulesOpen ? `<textarea data-alex-setting="rules" data-director="input:[data-alex-setting]" data-draft="alex-rules" rows="14">${esc(st.rulesText)}</textarea>${st.rulesCustom ? `<div class="director-toolbar">${phoneBtn("alex-rules-reset", "Back to the default", { icon: "fa-rotate-left" })}</div>` : ""}` : ""}` : ""}</div>
   </div>`;
 }
 
 const alex = {
   data: alexData,
   count: a => a.waiting.length,
-  head: () => pageHead("Ask Alex Anything", "Players' questions, the Data Pool, and Claude's drafts"),
+  head: a => pageHead("Ask Alex Anything", a.anthropic ? "Players' questions, the Data Pool, and Claude's drafts" : "Players' questions and the Data Pool"),
   page: alexPageHtml,
   shape: a => (a.settings.rulesOpen ? "alex-rules" : "alex")
 };
@@ -606,7 +606,7 @@ function clipHtml(c) {
     <strong>${esc(c.title)}</strong>
     <p class="director-sub">${c.source ? `${esc(c.source)}${c.sourceLabel ? `: ${esc(c.sourceLabel)}` : ""} · ` : ""}${esc(c.reach ?? "")}${c.subjects ? ` · About ${esc(c.subjects)}` : ""}${c.at != null ? ` · goes out in ${c.at} h` : ""}${c.date ? ` · ${esc(c.date)}` : ""}${c.pulled ? ` · Pulled by ${esc(c.pulled)}` : ""}</p>
     <div class="director-toolbar">${phoneBtn("scream-edit", "Edit", { data: { id: c.id }, icon: "fa-pen" })}
-      ${c.date ? "" : phoneBtn("scream-publish", "Publish", { data: { id: c.id }, icon: "fa-paper-plane", cls: "primary" }) + phoneBtn("scream-claude", c.writing ? "Writing…" : "Redraft", { data: { id: c.id }, icon: c.writing ? "fa-spinner fa-spin" : "fa-wand-magic-sparkles", title: "Claude rewrites the text in the outlet's voice" })}
+      ${c.date ? "" : phoneBtn("scream-publish", "Publish", { data: { id: c.id }, icon: "fa-paper-plane", cls: "primary" }) + (c.anthropic ? phoneBtn("scream-claude", c.writing ? "Writing…" : "Redraft", { data: { id: c.id }, icon: c.writing ? "fa-spinner fa-spin" : "fa-wand-magic-sparkles", title: "Claude rewrites the text in the outlet's voice" }) : "")}
       ${phoneBtn("scream-delete", c.date ? "Take down" : "Bin", { data: { id: c.id }, icon: "fa-trash", cls: "danger" })}</div>
   </article>`;
 }
@@ -623,7 +623,7 @@ function screamPageHtml(director, d) {
     tools: phoneBtn("scream-open-entry", "Open", { data: { id: j.id }, icon: "fa-book-open" }) + phoneBtn("scream-journal", "Make a draft", { data: { id: j.id }, icon: "fa-file-import" })
   })), "") : "";
   return `<div class="director-toolbar">${phoneBtn("scream-write", "Write one", { icon: "fa-pen-nib", cls: "primary" })}
-      ${phoneBtn("scream-claude", d.writing ? "Writing…" : "Draft with Claude", { icon: d.writing ? "fa-spinner fa-spin" : "fa-wand-magic-sparkles", title: "Claude writes a draft in an outlet's voice, with your spin (your Ask Alex key)" })}
+      ${d.anthropic ? phoneBtn("scream-claude", d.writing ? "Writing…" : "Draft with Claude", { icon: d.writing ? "fa-spinner fa-spin" : "fa-wand-magic-sparkles", title: "Claude writes a draft in an outlet's voice, with your spin (your Ask Alex key)" }) : ""}
       ${phoneBtn("scream-crawl-now", "Crawl now", { icon: "fa-rotate", title: "Every character's Agent crawls the Pool for Headlines now" })}</div>
     <div class="director-bangme">
       <div>${deep ? label("Deep crawls") + deep : ""}${d.suggested.length ? label("Suggested") + d.suggested.map(clipHtml).join("") : ""}

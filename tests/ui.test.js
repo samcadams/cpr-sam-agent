@@ -203,6 +203,22 @@ test("the dock follows the Jobs switch, and only the GM Phone has Control", asyn
   assert.ok(phone.getData().page.home, "players have no Control app");
 });
 
+test("Control's Anthropic API Tools switch: off by default, it hides Claude in Ask Alex and DataPool", async () => {
+  actAs(gm);
+  await game.settings.set("cpr-sam-agent", "alexAi", { key: "sk-ant-test" });
+  await game.settings.set("cpr-sam-agent", "features", { app_alex: true, app_screamsheet: true });
+  const gmPhone = inMessages("console");
+  const view = app => (gmPhone.app = app, gmPhone.getData());
+  assert.equal(view("control").control.anthropic, false);
+  assert.equal(view("alex").alex.anthropic, false, "the Optional Anthropic API section is hidden");
+  assert.equal(view("screamsheet").screamsheet.anthropic, false, "no Draft with Claude on the desk");
+
+  await game.settings.set("cpr-sam-agent", "features", { app_alex: true, app_screamsheet: true, anthropic: true });
+  assert.equal(view("control").control.anthropic, true);
+  assert.equal(view("alex").alex.anthropic, true);
+  assert.equal(view("screamsheet").screamsheet.anthropic, true);
+});
+
 test("a phone without signal shows it and can't send", async () => {
   await game.settings.set("cpr-sam-agent", "noSignal", { pcA: 1 });
   actAs(alice, gm);

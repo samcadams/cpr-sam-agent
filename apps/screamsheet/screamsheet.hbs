@@ -15,7 +15,7 @@
         {{#if tab.desk}}
           <div class="agent-scream-tools">
             <a class="agent-btn" data-action="scream-write"><i class="fas fa-pen-nib"></i> Write one</a>
-            <a class="agent-btn{{#if writing}} disabled{{/if}}" data-action="scream-claude" title="Claude writes a draft in an outlet's voice, with your spin (your Ask Alex key)"><i class="fas {{#if writing}}fa-spinner fa-spin{{else}}fa-wand-magic-sparkles{{/if}}"></i> {{#if writing}}Claude is writing…{{else}}Draft with Claude{{/if}}</a>
+            {{#if anthropic}}<a class="agent-btn{{#if writing}} disabled{{/if}}" data-action="scream-claude" title="Claude writes a draft in an outlet's voice, with your spin (your Ask Alex key)"><i class="fas {{#if writing}}fa-spinner fa-spin{{else}}fa-wand-magic-sparkles{{/if}}"></i> {{#if writing}}Claude is writing…{{else}}Draft with Claude{{/if}}</a>{{/if}}
             <a class="agent-btn" data-action="scream-crawl-now" title="Every character's Agent crawls the Pool for Headlines now"><i class="fas fa-rotate"></i> Crawl now</a>
           </div>
 
