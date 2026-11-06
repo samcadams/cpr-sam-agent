@@ -147,6 +147,7 @@ globalThis.Application = class {
   }
   render() {}
 };
+globalThis.FormApplication = class extends globalThis.Application {};
 globalThis.canvas = { tokens: { controlled: [] } };
 
 export function addUser({ id, isGM = false, active = true }) {

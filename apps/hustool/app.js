@@ -19,5 +19,10 @@ export default {
   settings: {
     // Pay, trouble, errands per gig hour and the GM's errand list (apps/hustool/model.js HUSTOOL_DEFAULTS).
     hustool: { scope: "world", type: Object, default: {}, redraw: "all" }
-  }
+  },
+  rules: [
+    { key: "hustool", path: "pay", label: "Pay per errand (eb)", type: "number", range: { min: 0, max: 1000, step: 1 }, default: 10 },
+    { key: "hustool", path: "perHour", label: "Hustles per gig hour", type: "number", range: { min: 1, max: 10, step: 1 }, default: 2 },
+    { key: "hustool", path: "trouble", label: "Trouble on a 10 (an encounter)", type: "boolean", default: true }
+  ]
 };

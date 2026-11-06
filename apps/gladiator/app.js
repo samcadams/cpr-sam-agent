@@ -21,5 +21,8 @@ export default {
   settings: {
     // How a match is settled: ask each time, always the GM's call, or always the duel (model.js SETTLE_MODES).
     gladiatorSettle: { scope: "world", type: String, default: "ask", redraw: "all" }
-  }
+  },
+  rules: [
+    { key: "gladiatorSettle", path: "", label: "Settle matches", type: "string", choices: { ask: "Ask each match", gm: "Always GM choice", play: "Always gameplay" }, default: "ask" }
+  ]
 };

@@ -22,5 +22,12 @@ export default {
   settings: {
     // DV, rounds, partial prints, GM confirms, MicroVideo per character (model.js BIOSCAN_DEFAULTS).
     bioscan: { scope: "world", type: Object, default: {}, redraw: "all" }
-  }
+  },
+  rules: [
+    { key: "bioscan", path: "dv", label: "DV", type: "number", range: { min: 1, max: 40, step: 1 }, default: 13 },
+    { key: "bioscan", path: "handRounds", label: "Handprint rounds", type: "number", range: { min: 1, max: 20, step: 1 }, default: 3 },
+    { key: "bioscan", path: "retinaRounds", label: "Retina rounds", type: "number", range: { min: 1, max: 20, step: 1 }, default: 5 },
+    { key: "bioscan", path: "partialPrints", label: "Partial prints needed", type: "number", range: { min: 1, max: 20, step: 1 }, default: 5 },
+    { key: "bioscan", path: "confirm", label: "I confirm each good round", hint: "\"Target can't move\" always waits for you.", type: "boolean", default: true }
+  ]
 };

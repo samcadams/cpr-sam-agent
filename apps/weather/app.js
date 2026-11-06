@@ -21,5 +21,13 @@ export default {
   settings: {
     // The GM's options (Weather Control): wrong forecasts, apply automatically, the daily radio post, units.
     weather: { scope: "world", type: Object, default: {}, redraw: ["weather"] }
-  }
+  },
+  rules: [
+    { key: "weather", path: "wrong", label: "Forecasts can be wrong", type: "boolean", default: false },
+    { key: "weather", path: "wrongChance", label: "Chance a day turns out different (%)", type: "number", range: { min: 0, max: 100, step: 5 }, default: 25 },
+    { key: "weather", path: "autoApply", label: "Apply new weather automatically (to the same characters)", type: "boolean", default: false },
+    { key: "weather", path: "blackoutSignal", label: "A Blackout cuts the signal (no calls, no Data Pool)", type: "boolean", default: true },
+    { key: "weather", path: "radio", label: "Morro Rock Radio posts the forecast in The Garden every morning", type: "boolean", default: true },
+    { key: "weather", path: "units", label: "Temperatures in", type: "string", choices: { both: "°F and °C", f: "°F", c: "°C" }, default: "both" }
+  ]
 };

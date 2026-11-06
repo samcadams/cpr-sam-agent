@@ -1858,3 +1858,78 @@ body.ctp-director-window {
 .ctp-director .director [data-query] textarea {
   width: 100%;
 }
+
+/* The generic settings form (ui/config/): the Director's Config tab and the App rules submenu. */
+.ctp-config .ctp-config-group {
+  margin: 0 0 12px;
+}
+
+.ctp-config .ctp-config-field {
+  padding: 3px 0;
+}
+
+.ctp-config .ctp-config-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ctp-config .ctp-config-name {
+  flex: 1;
+}
+
+.ctp-config .ctp-config-row > input[type="text"],
+.ctp-config .ctp-config-row > select {
+  flex: 0 1 260px;
+}
+
+.ctp-config .ctp-config-row > input[type="number"] {
+  flex: 0 0 90px;
+}
+
+.ctp-config .ctp-config-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 1 260px;
+}
+
+.ctp-config .ctp-config-range output {
+  min-width: 3em;
+  text-align: right;
+}
+
+.ctp-config .ctp-config-hint {
+  margin: 2px 0 0;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.ctp-config .ctp-config-client,
+.ctp-config .ctp-config-elsewhere {
+  opacity: 0.7;
+}
+
+.ctp-config-menu .window-content {
+  overflow-y: auto;
+}
+
+.ctp-config-menu .ctp-config-group {
+  border: 1px solid var(--color-border-light-tertiary, #999);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.ctp-director .ctp-config-hint {
+  color: var(--agent-muted);
+  opacity: 1;
+}
+
+.ctp-config .ctp-config-section {
+  margin: 8px 0 2px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.8;
+}

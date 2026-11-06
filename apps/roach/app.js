@@ -20,5 +20,12 @@ export default {
     roachBoard: { scope: "world", type: Object, default: { scores: [] }, redraw: ["roach"] },
     // Whether this player wants the music (M in a run).
     roachMusic: { scope: "client", type: Boolean, default: true }
-  }
+  },
+  rules: [
+    { key: "roach", path: "out", label: "Out of order (nobody plays)", type: "boolean", default: false },
+    { key: "roach", path: "freePlay", label: "Free play (no pass needed)", type: "boolean", default: false },
+    { key: "roach", path: "price", label: "Day pass (eb)", type: "number", range: { min: 0, max: 99999, step: 1 }, default: 20 },
+    { key: "roach", path: "record", label: "House Record (0: none)", type: "number", range: { min: 0, max: 999999, step: 1 }, default: 3354 },
+    { key: "roach", path: "prize", label: "Prize for beating the record", type: "string", default: "a Roach Whisperer jacket" }
+  ]
 };

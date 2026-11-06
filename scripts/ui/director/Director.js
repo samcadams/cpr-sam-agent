@@ -5,11 +5,14 @@ import * as apps from "./views/apps.js";
 import { callStrip, callTimers, actions as callActions } from "./views/calls.js";
 import { agentStrip } from "./views/strip.js";
 import * as comms from "./views/comms.js";
+import * as config from "./views/config.js";
 import * as dashboard from "./views/dashboard.js";
 import * as economy from "./views/economy.js";
 import * as garden from "./views/garden.js";
 import * as world from "./views/world.js";
 import * as directors from "../../../apps/directors.js";
+import { registerAppRulesMenu } from "../config/menu.js";
+import { CONFIG_MODULES } from "../config/settings.js";
 import { MODULE_ID } from "../../config.js";
 
 /*
@@ -40,10 +43,11 @@ const TABS = [
   ["garden", "Garden", "fa-seedling"],
   ["economy", "Economy", "fa-coins"],
   ["world", "World", "fa-city"],
-  ["apps", "Apps", "fa-table-cells"]
+  ["apps", "Apps", "fa-table-cells"],
+  ["config", "Config", "fa-sliders"]
 ];
 
-const VIEWS = { dashboard, comms, garden, economy, world, apps };
+const VIEWS = { dashboard, comms, garden, economy, world, apps, config };
 
 /** Every control's handler: the frame's, the call strip's, the views', then the apps'. */
 function allActions() {
@@ -205,6 +209,7 @@ export class Director extends Application {
 /** The Director follows the message data, calls, players' activity and settings. */
 export function installDirector() {
   Hooks.once("init", () => {
+    registerAppRulesMenu();
     game.keybindings.register(MODULE_ID, "director", {
       name: "Director (GM)",
       hint: "Open or close the GM Director, the wide GM control window.",
@@ -231,5 +236,12 @@ export function installDirector() {
   });
   // Who the GM speaks as in each group is a user flag, saved after the pick redraws (speakAs).
   Hooks.on("updateUser", (user, changes) => user.isSelf && changes.flags?.[MODULE_ID] && refresh({ user: true }));
-  Hooks.on("updateSetting", setting => setting.key.startsWith(`${MODULE_ID}.`) && refresh({ settings: true }));
+  // Config shows the other modules' settings too; client settings fire no hook, so Configure Settings closing redraws it.
+  const settingChanged = setting => {
+    const ns = setting.key.split(".")[0];
+    if (ns === MODULE_ID || (Director.instance?.tab === "config" && CONFIG_MODULES.includes(ns))) refresh({ settings: true });
+  };
+  Hooks.on("updateSetting", settingChanged);
+  Hooks.on("createSetting", settingChanged);
+  Hooks.on("closeSettingsConfig", () => Director.instance?.tab === "config" && refresh({ settings: true }));
 }

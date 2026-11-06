@@ -1,0 +1,2 @@
+- Director: a Config tab with every module's settings by section (from each module's `api.settings`), mirrored from Configure Settings, and App rules.
+- Configure Settings → App rules: each app's simple values (prices, timers, DVs, switches) in one window.

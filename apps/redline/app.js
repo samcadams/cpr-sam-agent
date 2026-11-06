@@ -22,5 +22,10 @@ export default {
     redlineBoard: { scope: "world", type: Object, default: {}, redraw: ["redline"] },
     // Whether this player wants the race music (M in a race).
     redlineMusic: { scope: "client", type: Boolean, default: true }
-  }
+  },
+  rules: [
+    { key: "redline", path: "fighting", label: "Fighting (punches, kicks, rams do damage)", type: "boolean", default: true },
+    { key: "redline", path: "heat", label: "Heat (NCPD chase rammers and checkpoint crashers)", type: "boolean", default: true },
+    { key: "redline", path: "drive", label: "Drive skill", type: "string", choices: { off: "Off", grid: "Grid roll" }, default: "grid" }
+  ]
 };

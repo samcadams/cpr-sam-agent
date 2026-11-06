@@ -8,7 +8,7 @@ import globals from "globals";
 
 /** What Foundry puts on window. */
 const foundry = Object.fromEntries(
-  ["game", "foundry", "Hooks", "ui", "canvas", "PIXI", "Handlebars", "Application", "Dialog", "FilePicker", "TextEditor",
+  ["game", "foundry", "Hooks", "ui", "canvas", "PIXI", "Handlebars", "Application", "FormApplication", "SettingsConfig", "Dialog", "FilePicker", "TextEditor",
    "loadTemplates", "renderTemplate", "fromUuid", "fromUuidSync", "ImagePopout", "Actor", "AudioHelper", "CONFIG", "CONST", "Roll", "ChatMessage", "saveDataToFile", "Folder", "JournalEntry", "JournalSheet", "$", "jQuery"].map(n => [n, "readonly"])
 );
 

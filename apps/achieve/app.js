@@ -16,5 +16,8 @@ export default {
     achieve: { scope: "world", type: Object, default: {} },
     // Older worlds kept earned achievements here; the host empties it once (apps/achieve/host.js).
     achievements: { scope: "world", type: Object, default: { crews: {} } }
-  }
+  },
+  rules: [
+    { key: "achieve", path: "chat", label: "Announce in chat", type: "boolean", default: true }
+  ]
 };

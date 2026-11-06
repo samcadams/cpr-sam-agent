@@ -16,5 +16,9 @@ export default {
   settings: {
     // The Garden's outcome types and word lists (Garden → Control; apps/garden/model.js gardenConfig).
     gardenConfig: { scope: "world", type: Object, default: {} }
-  }
+  },
+  rules: [
+    { key: "gardenConfig", path: "mergeNews", label: "Merge Feed & News", type: "boolean", default: false },
+    { key: "gardenConfig", path: "dating", label: "The Garden Dating", type: "boolean", default: true }
+  ]
 };

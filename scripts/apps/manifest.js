@@ -71,6 +71,11 @@
  *   partials?           more templates in its folder: { [partial name]: file }
  *   settings?           its settings: { [key]: Foundry's setting data (config false and scope world unless
  *                       said), plus `redraw`: change flags to redraw phones on when it changes, or "all" }
+ *   rules?              its simple values for the App rules submenu and the Director's Config (ui/config/):
+ *                       [{ key, path, label, hint?, type: "boolean" | "number" | "string", choices?, range?, default }]
+ *                         key: one of its settings; path: dot path in that object ("" = the whole value);
+ *                         default: what the app uses while nothing is saved there
+ *                         with?: other values saved with it ({ [path]: value }; Gacha's odds set perMille)
  * }
  */
 
@@ -99,6 +104,9 @@ export const APP_PARTIALS = Object.fromEntries(
 
 /** Every app's settings: [{ key, app, ...setting }]. */
 export const APP_SETTINGS = Object.entries(APP_MANIFEST).flatMap(([app, { settings = {} }]) => Object.entries(settings).map(([key, data]) => ({ key, app, ...data })));
+
+/** Every app's rules, for the apps that have some: { [id]: [rule] }. In home-screen order. */
+export const APP_RULES = Object.fromEntries(Object.entries(APP_MANIFEST).filter(([, app]) => app.rules?.length).map(([id, app]) => [id, app.rules]));
 
 /** BangMe!'s ledger kinds the apps add: { kind: label }. */
 export const APP_LEDGER = Object.assign({}, ...Object.values(APP_MANIFEST).map(app => app.ledger ?? {}));

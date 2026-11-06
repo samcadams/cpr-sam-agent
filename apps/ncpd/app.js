@@ -22,5 +22,13 @@ export default {
   settings: {
     // Hours, warning, default skill and DV (apps/ncpd/model.js NCPD_DEFAULTS).
     ncpd: { scope: "world", type: Object, default: {}, redraw: "all" }
-  }
+  },
+  rules: [
+    { key: "ncpd", path: "minutes", label: "Results after (world minutes)", type: "number", range: { min: 0, max: 1440, step: 1 }, default: 60 },
+    { key: "ncpd", path: "warn", label: "Remind me (minutes before)", type: "number", range: { min: 0, max: 120, step: 1 }, default: 10 },
+    { key: "ncpd", path: "skill", label: "Shot skill", type: "string", default: "Photography/Film" },
+    { key: "ncpd", path: "dv", label: "Shot DV", type: "number", range: { min: 1, max: 40, step: 1 }, default: 13 },
+    { key: "ncpd", path: "nightCityOnly", label: "Only works in Night City scenes", type: "boolean", default: true },
+    { key: "ncpd", path: "nightCityDefault", label: "Unmarked scenes are in Night City", hint: "While it only works in Night City scenes.", type: "boolean", default: true }
+  ]
 };
