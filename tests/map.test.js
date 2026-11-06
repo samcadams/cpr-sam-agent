@@ -8,6 +8,7 @@ import { emptyApps } from "../scripts/model/apps.js";
 import { emptyGarden } from "../apps/garden/model.js";
 import { clampAlpha, clampSize, cleanPinChange, configFromScene, isTempPin, mapPicture, mapPin, mapReady, ownPicture, ownPins, ownRoute, journalName, mapKmPerPx, matchJournals, NO_DISTRICT, pinsByDistrict, ownCabbRoad, pinFromNote, rowSeenBy, rowShared, pinFromRow, seedFromNav, TERRITORY_SCALE } from "../apps/map/model.js";
 import { roadNetwork } from "../apps/map/route.js";
+import { CLUSTER_MIN, expandedAt, isExpanded, pinGroups } from "../apps/map/clusters.js";
 import { categoryIcon, isCategoryIcon, playersLevel, setJournalShared, sharedDoc } from "../apps/map/editor.js";
 import { existsSync, readFileSync } from "node:fs";
 import { resolveMapPaths } from "../scripts/model/content.js";
@@ -584,4 +585,42 @@ test("Map: the category icons are the module's", () => {
   const inModule = path => existsSync(new URL(path.replace(/^modules\/cpr-sam-agent\//, ""), root));
   assert.ok(isCategoryIcon(categoryIcon("bar")) && inModule(categoryIcon("bar")), "category icons are the module's");
   assert.ok(isCategoryIcon("r20import/icons/bar.svg"), "an imported NAV pin's icon still counts as a category icon");
+});
+
+test("Map clusters: pins grouped by district, at the district's name (or their middle)", () => {
+  const pins = [
+    { id: "w", name: "Watson", x: 100, y: 100, big: true, district: null },
+    { id: "a", name: "A", x: 0, y: 0, district: "Watson" },
+    { id: "b", name: "B", x: 200, y: 40, district: "Watson" },
+    { id: "c", name: "C", x: 1000, y: 1000, district: "Outskirts" },
+    { id: "d", name: "D", x: 1200, y: 1400, district: "Outskirts" },
+    { id: "e", name: "E", x: 5, y: 5, district: null }
+  ];
+  const groups = pinGroups(pins);
+  assert.deepEqual(groups.map(g => [g.key, g.pins.map(p => p.id), g.label?.id ?? null]), [["Watson", ["a", "b"], "w"], ["Outskirts", ["c", "d"], null], [null, ["e"], null]]);
+  assert.deepEqual(groups[0].box, { x0: 0, y0: 0, x1: 200, y1: 40 });
+  assert.deepEqual(groups[0].at, { x: 100, y: 100 }, "the district's name");
+  assert.deepEqual(groups[1].at, { x: 1100, y: 1200 }, "no name: the pins' middle");
+});
+
+test("Map clusters: a group opens zoomed in on it (or past NAMES_AT) while in view; small groups never shut", () => {
+  const spot = i => ({ id: `p${i}`, x: 1000 + i * 100, y: 1000, district: "Watson" });
+  const [big] = pinGroups(Array.from({ length: CLUSTER_MIN }, (_, i) => spot(i)));
+  const [small] = pinGroups([spot(0)]);
+  const [w, h, namesAt] = [400, 800, 0.45];
+  const at = expandedAt(big, w, h);
+  assert.equal(at, 0.5 * 400 / 200);
+  assert.ok(at > namesAt);
+  assert.equal(isExpanded(small, { cx: 0, cy: 0, scale: 0.01 }, w, h, namesAt), true, "a small group");
+  assert.equal(isExpanded(big, { cx: 0, cy: 0, scale: 0.01 }, w, h, namesAt), false, "zoomed out");
+  assert.equal(isExpanded(big, { cx: 1100, cy: 1000, scale: namesAt }, w, h, namesAt), true, "every name shows");
+  assert.equal(isExpanded(big, { cx: 1100, cy: 50000, scale: namesAt }, w, h, namesAt), false, "every name shows, but off screen");
+  const wide = pinGroups(Array.from({ length: 5 }, (_, i) => ({ id: `q${i}`, x: i * 1000, y: 0, district: "Wide" })))[0];
+  const near = expandedAt(wide, w, h);
+  assert.ok(near < namesAt);
+  assert.equal(isExpanded(wide, { cx: 2000, cy: 0, scale: near }, w, h, namesAt), true, "zoomed in on it");
+  assert.equal(isExpanded(wide, { cx: 2000, cy: 50000, scale: near }, w, h, namesAt), false, "the same zoom, off screen");
+  assert.equal(isExpanded(wide, { cx: 2000, cy: 0, scale: near * 0.9 }, w, h, namesAt), false, "not quite close enough");
+  assert.equal(isExpanded(wide, { cx: 2000, cy: 0, scale: near * 0.9 }, w, h, namesAt, true), true, "open, it stays open a little further out");
+  assert.equal(isExpanded(wide, { cx: 2000, cy: 0, scale: near * 0.7 }, w, h, namesAt, true), false, "and shuts past that");
 });

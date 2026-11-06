@@ -786,6 +786,42 @@ test("Map (GM): a pin for some characters shows only to their players", async ({
   }
 });
 
+test("Map (GM): zoomed out, a district's pins hide behind its count; a picked one still shows; tapping the count opens it", async ({ gm }) => {
+  await skipUnless(gm, "map");
+  const result = await gm.run(async () => {
+    const p = await phone();
+    await go("map");
+    const m = await until(() => p._navMap?.root && p._navMap._groups?.length && p._navMap, "the map");
+    m.fit();
+    await sleep(500);
+    const seen = x => !!m.root.querySelector(`.agent-navmap-pin[data-pin="${CSS.escape(x.id)}"]`)?.getClientRects().length;
+    // A shut district whose count is on screen (not under the filter panel).
+    const hitOf = g => {
+      const b = g.badge?.getBoundingClientRect();
+      return b?.width && document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2) === g.badge ? b : null;
+    };
+    const g = await until(() => m._groups.find(g => g.open === false && g.n && !g.badge.hidden && hitOf(g)), "a shut district's count on screen");
+    const plain = g.pins.filter(x => !x.temp && x.id !== m.crew?.noteId && x.id !== m.selected);
+    const hiddenShut = plain.every(x => !seen(x));
+    m.select(plain[0].id);
+    const pickedShows = seen(plain[0]);
+    m.select(null);
+    // A tap on the count, as the map takes it.
+    const b = hitOf(g);
+    const at = { bubbles: true, clientX: b.x + b.width / 2, clientY: b.y + b.height / 2, pointerId: 77, pointerType: "mouse", button: 0 };
+    m.root.dispatchEvent(new PointerEvent("pointerdown", at));
+    m.root.dispatchEvent(new PointerEvent("pointerup", at));
+    await until(() => g.open, "the district to open");
+    await sleep(500);
+    return { count: Number(g.badge.textContent), n: g.pins.length, hiddenShut, pickedShows, open: g.open, shownOpen: plain.filter(seen).length, badgeHidden: g.badge.hidden };
+  });
+  check(result.count > 0 && result.count <= result.n, `the count is its pins (${result.count} of ${result.n})`);
+  check(result.hiddenShut, "shut, its pins are hidden");
+  check(result.pickedShows, "a picked pin in a shut district shows");
+  check(result.open && result.badgeHidden, "tapping the count opens it and hides the count");
+  check(result.shownOpen > 0, `open, its pins show (${result.shownOpen})`);
+});
+
 test("Map: an Agent alert doesn't redraw the picked pin's card", async ({ gm, pl, pc }) => {
   await skipUnless(gm, "map");
   await pl.run(async () => {

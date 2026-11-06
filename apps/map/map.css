@@ -643,6 +643,79 @@
 }
 
 /* -------------------------------------------- */
+/*  Clusters (apps/map/clusters.js)             */
+/* -------------------------------------------- */
+
+/* A district's pins (no position or z-index of its own: its pins stack with all the others). Shut, only the
+   picked pin, the crew's, temporary and ringed ones show. */
+.ctp-phone-app .agent-navmap-group.collapsed > .agent-navmap-pin:not(.selected, .crew-here, .temp, .ringed) {
+  display: none;
+}
+
+/* A shut group's count: a badge in its district's name, or a bubble where it is (no district pin). */
+.ctp-phone-app .agent-navmap-count {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: rgba(var(--agent-cyan-rgb), 0.85);
+  color: #000;
+  font-size: 11px;
+  letter-spacing: normal;
+  text-shadow: none;
+  vertical-align: 1px;
+  pointer-events: auto;
+  cursor: zoom-in;
+}
+
+.ctp-phone-app .agent-navmap-cluster {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid rgba(var(--agent-cyan-rgb), 0.9);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.85), 0 0 8px var(--agent-magenta);
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  transform-origin: 0 0;
+  transform: scale(var(--navmap-inv, 1)) translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: zoom-in;
+}
+
+.ctp-phone-app :is(.agent-navmap-count, .agent-navmap-cluster)[hidden] {
+  display: none;
+}
+
+/* While zooming (navMap.js _apply), no soft shadows: each frame would redraw hundreds of them at the new size. */
+.ctp-phone-app .agent-navmap.zooming .agent-navmap-dot {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.85);
+}
+
+.ctp-phone-app .agent-navmap.zooming :is(.agent-navmap-dot, .agent-navmap-turf) img {
+  filter: none;
+}
+
+/* A group opening: its pins come out from its middle (the pin's own translate, under its children's transforms). */
+@media (prefers-reduced-motion: no-preference) {
+  .ctp-phone-app .agent-navmap-group.expanding > .agent-navmap-pin {
+    animation: agent-navmap-expand 0.3s ease-out;
+  }
+}
+
+@keyframes agent-navmap-expand {
+  from { translate: var(--from-x, 0) var(--from-y, 0); opacity: 0; }
+}
+
+/* -------------------------------------------- */
 /*  Filtering, rings, the crew                  */
 /* -------------------------------------------- */
 

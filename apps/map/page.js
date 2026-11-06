@@ -778,7 +778,7 @@ export const methods = {
     if (this._navMap) this._navMap.update({ ...shown, view: this.mapView });
     else {
       this._navMap = new NavMap({
-        ...shown, view: this.mapView,
+        ...shown, view: this.mapView, cluster: true,
         onPick: id => {
           if (id === "__spot") id = null;
           if (id && this.mapSpot) this.mapSpot = null;

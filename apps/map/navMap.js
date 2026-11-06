@@ -1,6 +1,7 @@
 import { deepZoom, deepZoomTiles } from "../../scripts/util/deepZoom.js";
 import { loadAreas, mapAreas } from "./sidecars.js";
 import { esc } from "../../scripts/util/text.js";
+import { expandedAt, isExpanded, pinGroups } from "./clusters.js";
 
 /*
  * A map that moves and zooms: a scene's picture (from its Deep Zoom pyramid when it has one, see
@@ -23,6 +24,10 @@ import { esc } from "../../scripts/util/text.js";
  * Roads: a picture with a roads overlay pyramid beside it (map.jpg → map.roads.dzi)
  * lights them in a circle around the mouse (the road lens: the overlay through a round, soft-edged mask). A route (apps/map/route.js) is drawn
  * as a glowing line over the roads (setRoute).
+ *
+ * Clusters (`cluster`, the Map app): zoomed out, a district's pins are hidden behind their count (a badge in the
+ * district's name, or a bubble for one without a name pin); zooming in on a district, or tapping its count, opens
+ * it (apps/map/clusters.js). Fewer pins are laid out each frame of a zoom.
  */
 
 /** How far in: screen px per scene px at the most (a little past the picture's own pixels). */
@@ -41,6 +46,8 @@ const LENS_MIN = 0.5;
 export const NAMES_AT = 0.45;
 /** More pins than this showing, far out: small dots (see _apply). */
 const CROWDED = 150;
+/** The zoom still this long (ms): it has stopped, and the pins' shadows come back (see _apply). */
+const ZOOM_SETTLE = 200;
 
 export class NavMap {
   /**
@@ -57,9 +64,10 @@ export class NavMap {
    * @param {(spot: { x, y, noteId }) => void} [opts.onCrew] the crew's spot dropped somewhere (noteId: snapped to that pin)
    * @param {string|null} [opts.areas]                 the traced districts' URL (null: none; not given: beside the picture)
    * @param {string|null} [opts.overlay]               the roads overlay's .dzi URL (the same)
+   * @param {boolean} [opts.cluster]                   group the pins by district when zoomed out (the Map app)
    */
-  constructor({ picture, bounds, home, pins, view, crew, crewEditable, pinsEditable, mini, onPick, onHover, onCrew, onMove, onResize, menu, onMenu, areas, overlay }) {
-    Object.assign(this, { picture, bounds, home: home ?? bounds, pins, view, crew, crewEditable, pinsEditable, mini, onPick, onHover, onCrew, onMove, onResize, menu, onMenu, areasUrl: areas, overlay });
+  constructor({ picture, bounds, home, pins, view, crew, crewEditable, pinsEditable, mini, cluster, onPick, onHover, onCrew, onMove, onResize, menu, onMenu, areas, overlay }) {
+    Object.assign(this, { picture, bounds, home: home ?? bounds, pins, view, crew, crewEditable, pinsEditable, mini, cluster, onPick, onHover, onCrew, onMove, onResize, menu, onMenu, areasUrl: areas, overlay });
     this.filter = null; // pin => whether it shows (the filter panel's)
     this.routes = []; // other routes to draw: [{ points, cls, label }] (the GM: players' routes, cabs)
     this.tiles = new Map(); // url → <img>, kept between redraws
@@ -87,6 +95,7 @@ export class NavMap {
     this.stage = root.firstElementChild;
     this.tileLayer = this.stage.firstElementChild;
     this._drawPins(this.stage.lastElementChild);
+    this._countGroups();
     this._culledAt = null;
     this.roadLayer = this.stage.querySelector(".agent-navmap-roads");
     for (const img of this.tiles.values()) this.tileLayer.append(img);
@@ -106,6 +115,9 @@ export class NavMap {
 
   detach() {
     this._resize?.disconnect();
+    for (const g of this._groups ?? []) clearTimeout(g.timer);
+    clearTimeout(this._zoomEnd);
+    this._zoomedAt = undefined;
     cancelAnimationFrame(this._frame);
     this._frame = 0;
     this.root = null;
@@ -118,7 +130,11 @@ export class NavMap {
    */
   _drawPins(layer) {
     this._byId = new Map(this.pins.map(p => [p.id, p]));
-    const html = this.pins.map(p => {
+    for (const g of this._groups ?? []) clearTimeout(g.timer);
+    this._groups = this.cluster ? pinGroups(this.pins) : [];
+    this._groupOf = new Map(this._groups.flatMap(g => g.pins.map(p => [p.id, g])));
+    const labelOf = new Map(this._groups.map((g, i) => [g.label, i]));
+    const pinHtml = p => {
       const cls = [
         "agent-navmap-pin", p.big ? "big" : "", p.territory ? "territory" : "", p.label ? "named" : "", p.gmOnly ? "gm-only" : "", p.temp ? "temp" : "",
         p.scene ? "linked" : "", p.id === this.selected ? "selected" : "", p.id === this.crew?.noteId ? "crew-here" : "",
@@ -127,12 +143,25 @@ export class NavMap {
       const icon = p.icon ? `<img src="${esc(p.icon)}" alt="" draggable="false">` : `<i class="fas fa-location-dot"></i>`;
       const tip = [p.name, p.typeLabel, p.district].filter(Boolean).join(" · ");
       const look = p.territory ? `--size:${p.size}px;--alpha:${p.alpha};` : "";
-      return `<div class="${cls}" data-pin="${esc(p.id)}" style="left:${p.x}px;top:${p.y}px;${p.color ? `--pin:${esc(p.color)};` : ""}${look}" role="button" aria-label="${esc(tip)}" title="${esc(tip)}">`
+      // In a group: where its pins open out from.
+      const g = this._groupOf.get(p.id);
+      const from = g ? `--from-x:${g.at.x - p.x}px;--from-y:${g.at.y - p.y}px;` : "";
+      // A district's name carries its group's count.
+      const count = labelOf.has(p) ? `<span class="agent-navmap-count" data-group="${labelOf.get(p)}" title="Zoom in" hidden></span>` : "";
+      return `<div class="${cls}" data-pin="${esc(p.id)}" style="left:${p.x}px;top:${p.y}px;${p.color ? `--pin:${esc(p.color)};` : ""}${look}${from}" role="button" aria-label="${esc(tip)}" title="${esc(tip)}">`
         + (p.territory ? `<span class="agent-navmap-turf">${icon}</span>` : "")
-        + `<span class="agent-navmap-dot">${p.territory ? "" : icon}</span><span class="agent-navmap-name">${esc(p.name)}</span>`
+        + `<span class="agent-navmap-dot">${p.territory ? "" : icon}</span><span class="agent-navmap-name">${esc(p.name)}${count}</span>`
         + (p.territory && this.pinsEditable ? `<span class="agent-navmap-resize" title="Drag to resize (the Map only)"></span>` : "")
         + `</div>`;
+    };
+    // Grouped (`cluster`): each district's pins in a group, shut until zoomed in on (_showGroups); a group with
+    // no district pin has a bubble with its count. The pins outside groups (the districts' names) come after them,
+    // so the names stay on top.
+    const html = this._groups.map((g, i) => {
+      const bubble = g.label ? "" : `<div class="agent-navmap-cluster" data-group="${i}" style="left:${g.at.x}px;top:${g.at.y}px" role="button" title="${esc(g.key ?? "No district")}: zoom in" hidden></div>`;
+      return `<div class="agent-navmap-group collapsed" data-group="${i}">${bubble}${g.pins.map(pinHtml).join("")}</div>`;
     });
+    html.push(...this.pins.filter(p => !this._groupOf.has(p.id)).map(pinHtml));
     // The crew's GPS spot, over the pins.
     if (this.crew) {
       html.push(`<div class="agent-navmap-crew${this.crewEditable ? " editable" : ""}" style="left:${this.crew.x}px;top:${this.crew.y}px" role="img" aria-label="The crew is here"`
@@ -140,6 +169,59 @@ export class NavMap {
         + `<span class="agent-navmap-crew-dot"><i class="fas fa-location-arrow"></i></span><span class="agent-navmap-crew-name">CREW</span></div>`);
     }
     layer.innerHTML = html.join("");
+    this._groups.forEach((g, i) => {
+      g.el = layer.querySelector(`.agent-navmap-group[data-group="${i}"]`);
+      g.badge = layer.querySelector(`[data-group="${i}"]:is(.agent-navmap-count, .agent-navmap-cluster)`);
+      g.open = null; // (not known until the view is: _showGroups)
+    });
+  }
+
+  /** How many of each group's pins the filter lets through: its badge's (or bubble's) number. */
+  _countGroups() {
+    for (const g of this._groups ?? []) {
+      g.n = this.filter ? g.pins.filter(p => this.filter(p)).length : g.pins.length;
+      if (g.badge) {
+        g.badge.textContent = g.n;
+        g.badge.hidden = !!g.open || !g.n;
+      }
+    }
+  }
+
+  /**
+   * Open the groups zoomed in on, shut the others (clusters.js isExpanded). Only a group that changes is
+   * touched; one opening animates its pins out from its middle.
+   */
+  _showGroups(width, height) {
+    let changed = false;
+    for (const g of this._groups ?? []) {
+      const open = isExpanded(g, this.view, width, height, NAMES_AT, !!g.open);
+      if (open === g.open) continue;
+      const was = g.open;
+      g.open = open;
+      changed = true;
+      g.el.classList.toggle("collapsed", !open);
+      if (g.badge) g.badge.hidden = open || !g.n;
+      clearTimeout(g.timer);
+      g.el.classList.remove("expanding");
+      if (open && was === false) {
+        g.el.classList.add("expanding");
+        g.timer = setTimeout(() => g.el.classList.remove("expanding"), 300);
+      }
+    }
+    if (changed) this._culledAt = null;
+  }
+
+  /** Whether a pin is hidden in a shut group (the picked pin, the crew's, temporary ones still show). */
+  _hiddenInGroup(p) {
+    const g = this._groupOf?.get(p.id);
+    return !!g && g.open === false && p.id !== this.selected && p.id !== this.crew?.noteId && !p.temp;
+  }
+
+  /** Zoom in on a group until it opens (its count tapped). */
+  _openGroup(g) {
+    const r = this.root.getBoundingClientRect();
+    const { x0, y0, x1, y1 } = g.box;
+    this.centreOn((x0 + x1) / 2, (y0 + y1) / 2, Math.min(expandedAt(g, r.width, r.height), NAMES_AT) * 1.05);
   }
 
   /* -------------------------------------------- */
@@ -201,6 +283,7 @@ export class NavMap {
       const pin = this._byId.get(el.dataset.pin);
       el.classList.toggle("filtered", !!filter && !!pin && !filter(pin));
     }
+    this._countGroups();
     this._culledAt = null;
     this.draw();
   }
@@ -330,6 +413,14 @@ export class NavMap {
     // Hundreds of pins seen from far out (the GM's map): small dots, no icons, until zoomed in a little.
     this.root.classList.toggle("far", v.scale < NAMES_AT / 2.5 && this._shownCount() > CROWDED);
     this.root.classList.toggle("zoomed", v.scale > this._fitScale() * 1.01);
+    this._showGroups(r.width, r.height);
+    // While the zoom changes, the pins' soft shadows are left off (map.css): every frame redraws them at the new size.
+    if (this._zoomedAt !== undefined && v.scale !== this._zoomedAt) {
+      this.root.classList.add("zooming");
+      clearTimeout(this._zoomEnd);
+      this._zoomEnd = setTimeout(() => this.root?.classList.remove("zooming"), ZOOM_SETTLE);
+    }
+    this._zoomedAt = v.scale;
     if (v.scale !== this._culledAt) {
       this._cullNames();
       this._routeScale();
@@ -340,18 +431,21 @@ export class NavMap {
   /**
    * Names that always show (districts and the like) mustn't pile up when zoomed out: one that would
    * overlap a name already placed waits until there's room (the pin and its tooltip still show). Only the
-   * zoom changes how they overlap, so this runs when it does.
+   * zoom changes how they overlap (and groups opening or shutting), so this runs when it does. Every name is
+   * measured before any is culled (one layout, not one per name).
    */
   _cullNames() {
     this._culledAt = this.view.scale;
     const placed = [];
+    const names = [];
     for (const el of this.root.querySelectorAll(".agent-navmap-pin.named:not(.filtered)")) {
       const name = el.lastElementChild;
       const pin = this._byId.get(el.dataset.pin);
-      if (!name || !pin) continue;
-      name.classList.remove("culled");
-      const w = name.offsetWidth;
-      const h = name.offsetHeight;
+      if (name && pin && !this._hiddenInGroup(pin)) names.push({ name, pin });
+    }
+    for (const { name } of names) name.classList.remove("culled");
+    for (const n of names) [n.w, n.h] = [n.name.offsetWidth, n.name.offsetHeight];
+    for (const { name, pin, w, h } of names) {
       // Where it's drawn (map.css): districts' and territories' names centred on the pin, the others' under it.
       const x = pin.x * this.view.scale - w / 2;
       const y = pin.y * this.view.scale + (pin.big || pin.territory ? -h / 2 : 15);
@@ -495,7 +589,7 @@ export class NavMap {
     let best = null;
     let bestD = SNAP / this.view.scale;
     for (const p of this.pins) {
-      if (this.filter && !this.filter(p)) continue;
+      if ((this.filter && !this.filter(p)) || this._hiddenInGroup(p)) continue;
       const d = Math.hypot(p.x - at.x, p.y - at.y);
       if (d <= bestD) [best, bestD] = [p, d];
     }
@@ -696,8 +790,11 @@ export class NavMap {
         return;
       }
       if (event.type !== "pointerup" || pointers.size || moved > TAP) return;
-      // A tap: the pin under it (the topmost), or the map itself (none).
-      const pin = document.elementFromPoint(event.clientX, event.clientY)?.closest?.(".agent-navmap-pin");
+      // A tap: a group's count (zoom in on it), the pin under it (the topmost), or the map itself (none).
+      const hit = document.elementFromPoint(event.clientX, event.clientY);
+      const count = hit?.closest?.(".agent-navmap-count, .agent-navmap-cluster");
+      if (count && root.contains(count)) return this._openGroup(this._groups[count.dataset.group]);
+      const pin = hit?.closest?.(".agent-navmap-pin");
       this.onPick?.(pin && root.contains(pin) ? pin.dataset.pin : null);
     };
     root.addEventListener("pointerup", up);
