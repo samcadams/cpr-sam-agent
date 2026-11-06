@@ -5,6 +5,10 @@
 
 /** A group opens when its pins span this much of the map's smaller side on screen. */
 export const EXPAND = 0.5;
+/** The filter panel's "Show pins" stops, Sooner to Later: EXPAND factors (null: all pins, never grouped). */
+export const SHOW_PINS = [null, 0.2, 0.3, 0.5, 0.7, 1, 1.4];
+/** The stop of a fresh panel (EXPAND). */
+export const SHOW_PINS_DEFAULT = 3;
 /** Fewer pins than this: never grouped. */
 export const CLUSTER_MIN = 3;
 /** The least span (scene px) a group is taken to have, so a group on one spot needn't be zoomed into forever. */
@@ -32,21 +36,21 @@ export function pinGroups(pins) {
   });
 }
 
-/** The scale (screen px per scene px) at which a group opens, on a map `width` × `height` screen px. */
-export function expandedAt(group, width, height) {
+/** The scale (screen px per scene px) at which a group opens, on a map `width` × `height` screen px (`expand`: EXPAND's stand-in). */
+export function expandedAt(group, width, height, expand = EXPAND) {
   const { x0, y0, x1, y1 } = group.box;
-  return EXPAND * Math.min(width, height) / Math.max(x1 - x0, y1 - y0, MIN_SPAN);
+  return expand * Math.min(width, height) / Math.max(x1 - x0, y1 - y0, MIN_SPAN);
 }
 
 /**
  * Whether a group's pins show (the view: { cx, cy, scale }): a small group always; otherwise zoomed in far enough
  * on it (from `namesAt` in, every group is), and it near the screen (off screen, it stays shut, so a map zoomed in
- * lays out only the pins round it). An open group (`open`) shuts only a little further out or away, so a pinch
+ * lays out only the pins round it). `expand` (the "Show pins" slider) moves both, `namesAt` with it. An open group (`open`) shuts only a little further out or away, so a pinch
  * wobbling on the line doesn't open and shut it every frame.
  */
-export function isExpanded(group, view, width, height, namesAt, open = false) {
+export function isExpanded(group, view, width, height, namesAt, open = false, expand = EXPAND) {
   if (group.pins.length < CLUSTER_MIN) return true;
-  if (view.scale < Math.min(expandedAt(group, width, height), namesAt) * (open ? 0.8 : 1)) return false;
+  if (view.scale < Math.min(expandedAt(group, width, height, expand), namesAt * expand / EXPAND) * (open ? 0.8 : 1)) return false;
   // The view, and a quarter of a screen round it (half, while open), in scene px.
   const margin = open ? 1 : 0.75;
   const hw = margin * width / view.scale;

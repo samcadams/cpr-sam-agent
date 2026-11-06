@@ -1,7 +1,7 @@
 import { deepZoom, deepZoomTiles } from "../../scripts/util/deepZoom.js";
 import { loadAreas, mapAreas } from "./sidecars.js";
 import { esc } from "../../scripts/util/text.js";
-import { expandedAt, isExpanded, pinGroups } from "./clusters.js";
+import { EXPAND, expandedAt, isExpanded, pinGroups } from "./clusters.js";
 
 /*
  * A map that moves and zooms: a scene's picture (from its Deep Zoom pyramid when it has one, see
@@ -27,7 +27,7 @@ import { expandedAt, isExpanded, pinGroups } from "./clusters.js";
  *
  * Clusters (`cluster`, the Map app): zoomed out, a district's pins are hidden behind their count (a badge in the
  * district's name, or a bubble for one without a name pin); zooming in on a district, or tapping its count, opens
- * it (apps/map/clusters.js). Fewer pins are laid out each frame of a zoom.
+ * it (apps/map/clusters.js). Fewer pins are laid out each frame of a zoom. How soon they open: `expand` (setExpand).
  */
 
 /** How far in: screen px per scene px at the most (a little past the picture's own pixels). */
@@ -69,6 +69,7 @@ export class NavMap {
   constructor({ picture, bounds, home, pins, view, crew, crewEditable, pinsEditable, mini, cluster, onPick, onHover, onCrew, onMove, onResize, menu, onMenu, areas, overlay }) {
     Object.assign(this, { picture, bounds, home: home ?? bounds, pins, view, crew, crewEditable, pinsEditable, mini, cluster, onPick, onHover, onCrew, onMove, onResize, menu, onMenu, areasUrl: areas, overlay });
     this.filter = null; // pin => whether it shows (the filter panel's)
+    this.expand = EXPAND; // how soon groups open (clusters.js; null: all pins, never grouped)
     this.routes = []; // other routes to draw: [{ points, cls, label }] (the GM: players' routes, cabs)
     this.tiles = new Map(); // url → <img>, kept between redraws
     this.roadTiles = new Map(); // the same, for the roads overlay
@@ -194,7 +195,7 @@ export class NavMap {
   _showGroups(width, height) {
     let changed = false;
     for (const g of this._groups ?? []) {
-      const open = isExpanded(g, this.view, width, height, NAMES_AT, !!g.open);
+      const open = this.expand === null || isExpanded(g, this.view, width, height, NAMES_AT, !!g.open, this.expand);
       if (open === g.open) continue;
       const was = g.open;
       g.open = open;
@@ -221,7 +222,14 @@ export class NavMap {
   _openGroup(g) {
     const r = this.root.getBoundingClientRect();
     const { x0, y0, x1, y1 } = g.box;
-    this.centreOn((x0 + x1) / 2, (y0 + y1) / 2, Math.min(expandedAt(g, r.width, r.height), NAMES_AT) * 1.05);
+    const expand = this.expand ?? EXPAND;
+    this.centreOn((x0 + x1) / 2, (y0 + y1) / 2, Math.min(expandedAt(g, r.width, r.height, expand), NAMES_AT * expand / EXPAND) * 1.05);
+  }
+
+  /** How soon groups open (the "Show pins" slider; null: all pins). */
+  setExpand(expand) {
+    this.expand = expand;
+    this.draw();
   }
 
   /* -------------------------------------------- */

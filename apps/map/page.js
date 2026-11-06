@@ -1,6 +1,7 @@
 import { dropdown } from "../../scripts/ui/phone/pages/dropdown.js";
 import { openLocation } from "../../scripts/ui/location.js";
 import { NavFilter, filterState } from "./navFilter.js";
+import { SHOW_PINS } from "./clusters.js";
 import { MODULE_ID } from "../../scripts/config.js";
 import { cabbConfig, cabbMap, cabbPlaces, OPEN_RIDE, partyPickup, ZONES } from "../cabb/model.js";
 import { isLapsed, poolOn } from "../pool/model.js";
@@ -801,8 +802,8 @@ export const methods = {
       state: this.mapFilter, pins: model.pins, categories: mapCategories(model.pins, lists), groups: lists.groups,
       isGM: game.user.isGM, map: this._navMap,
       onChange: () => {
-        const { hidden, showGm, collapsed } = this.mapFilter;
-        save(FILTER_KEY, { hidden: [...hidden], showGm, collapsed });
+        const { hidden, showGm, collapsed, showPins } = this.mapFilter;
+        save(FILTER_KEY, { hidden: [...hidden], showGm, collapsed, showPins });
       },
       onJump: id => {
         this._navMap.jumpTo(id);
@@ -816,6 +817,7 @@ export const methods = {
     this._navMap.route = this._mapRouteLine;
     this._navMap.routes = this._mapOthers ?? [];
     this._navMap.selected = this.mapPick;
+    this._navMap.expand = SHOW_PINS[this.mapFilter.showPins];
     this._navMap.attach(root);
     // The card keeps where it was scrolled to (the GM's editor is long) while the same pin is picked.
     const card = html.querySelector(".agent-map-card");

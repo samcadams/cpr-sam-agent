@@ -8,7 +8,8 @@ import { emptyApps } from "../scripts/model/apps.js";
 import { emptyGarden } from "../apps/garden/model.js";
 import { clampAlpha, clampSize, cleanPinChange, configFromScene, isTempPin, mapPicture, mapPin, mapReady, ownPicture, ownPins, ownRoute, journalName, mapKmPerPx, matchJournals, NO_DISTRICT, pinsByDistrict, ownCabbRoad, pinFromNote, rowSeenBy, rowShared, pinFromRow, seedFromNav, TERRITORY_SCALE } from "../apps/map/model.js";
 import { roadNetwork } from "../apps/map/route.js";
-import { CLUSTER_MIN, expandedAt, isExpanded, pinGroups } from "../apps/map/clusters.js";
+import { CLUSTER_MIN, EXPAND, expandedAt, isExpanded, pinGroups, SHOW_PINS, SHOW_PINS_DEFAULT } from "../apps/map/clusters.js";
+import { filterState } from "../apps/map/navFilter.js";
 import { categoryIcon, isCategoryIcon, playersLevel, setJournalShared, sharedDoc } from "../apps/map/editor.js";
 import { existsSync, readFileSync } from "node:fs";
 import { resolveMapPaths } from "../scripts/model/content.js";
@@ -623,4 +624,36 @@ test("Map clusters: a group opens zoomed in on it (or past NAMES_AT) while in vi
   assert.equal(isExpanded(wide, { cx: 2000, cy: 0, scale: near * 0.9 }, w, h, namesAt), false, "not quite close enough");
   assert.equal(isExpanded(wide, { cx: 2000, cy: 0, scale: near * 0.9 }, w, h, namesAt, true), true, "open, it stays open a little further out");
   assert.equal(isExpanded(wide, { cx: 2000, cy: 0, scale: near * 0.7 }, w, h, namesAt, true), false, "and shuts past that");
+});
+
+test("Map clusters: the Show pins slider (expand): Later needs more zoom than Sooner, NAMES_AT moves with it", () => {
+  const [w, h, namesAt] = [400, 800, 0.45];
+  const wide = pinGroups(Array.from({ length: 5 }, (_, i) => ({ id: `q${i}`, x: i * 1000, y: 0, district: "Wide" })))[0];
+  const view = scale => ({ cx: 2000, cy: 0, scale });
+  assert.equal(SHOW_PINS[SHOW_PINS_DEFAULT], EXPAND, "the default stop is today's");
+  assert.equal(expandedAt(wide, w, h, EXPAND), expandedAt(wide, w, h), "default unchanged");
+  assert.ok(expandedAt(wide, w, h, 1.4) > expandedAt(wide, w, h, 0.2));
+  const at = expandedAt(wide, w, h);
+  assert.equal(isExpanded(wide, view(at), w, h, namesAt, false, 0.2), true, "Sooner: open already");
+  assert.equal(isExpanded(wide, view(at), w, h, namesAt, false, 1.4), false, "Later: not yet");
+  assert.equal(isExpanded(wide, view(at * 3), w, h, namesAt, false, 1.4), true, "Later: zoomed in further");
+  // A group too tight to open before NAMES_AT: the cap scales with the slider.
+  const [tight] = pinGroups(Array.from({ length: CLUSTER_MIN }, (_, i) => ({ id: `t${i}`, x: 1000 + i * 100, y: 1000, district: "W" })));
+  const near = { cx: 1100, cy: 1000 };
+  assert.equal(isExpanded(tight, { ...near, scale: namesAt }, w, h, namesAt), true, "default: open from NAMES_AT");
+  assert.equal(isExpanded(tight, { ...near, scale: namesAt }, w, h, namesAt, false, 1), false, "Later: past NAMES_AT");
+  assert.equal(isExpanded(tight, { ...near, scale: namesAt * 2 }, w, h, namesAt, false, 1), true, "Later: from NAMES_AT × 2");
+  assert.equal(isExpanded(tight, { ...near, scale: namesAt * 0.4 }, w, h, namesAt, false, 0.2), true, "Sooner: well before NAMES_AT");
+});
+
+test("Map filter state: the Show pins stop saved, clamped to the slider, else the default", () => {
+  assert.equal(filterState().showPins, SHOW_PINS_DEFAULT);
+  assert.equal(filterState({ showPins: 0 }).showPins, 0, "All pins");
+  assert.equal(filterState({ showPins: 5 }).showPins, 5);
+  assert.equal(filterState({ showPins: 9 }).showPins, SHOW_PINS.length - 1);
+  assert.equal(filterState({ showPins: -2 }).showPins, 0);
+  assert.equal(filterState({ showPins: 2.6 }).showPins, 3);
+  assert.equal(filterState({ showPins: "4" }).showPins, SHOW_PINS_DEFAULT);
+  assert.equal(filterState({ showPins: null }).showPins, SHOW_PINS_DEFAULT);
+  assert.equal(filterState({ showPins: 1 }).settings, false, "the popup starts shut");
 });

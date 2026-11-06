@@ -1,4 +1,5 @@
 import { UNCATEGORISED } from "./model.js";
+import { SHOW_PINS, SHOW_PINS_DEFAULT } from "./clusters.js";
 import { esc } from "../../scripts/util/text.js";
 
 /*
@@ -7,11 +8,12 @@ import { esc } from "../../scripts/util/text.js";
  * its categories) and per category, counts, a search through categories and pins, show all / hide all,
  * right-click a row to show only that, open a category for its pins, and tap a pin to jump to it. Hovering a
  * pin's entry rings it on the map; hovering a pin on the map marks its entry; tapping one opens its entry.
- * GM: a switch for the pins no player sees.
+ * GM: a switch for the pins no player sees. The gear: NAV Settings, a popup beside the panel ("Show pins").
  *
  * It draws and redraws itself (not the phone), so typing a search or ticking a box doesn't redraw the map.
  * What it shows lives in `state`, which the caller keeps between redraws (and saves what should last):
- * { hidden: Set<category>, showGm, collapsed, search, expanded: Set<group>, open: Set<category>, hovered }.
+ * { hidden: Set<category>, showGm, collapsed, search, expanded: Set<group>, open: Set<category>, hovered,
+ *   showPins (the slider's stop: clusters.js SHOW_PINS), settings (the popup open; not saved) }.
  */
 
 /** The state of a fresh panel. */
@@ -22,7 +24,10 @@ export const filterState = (saved = {}) => ({
   search: "",
   expanded: new Set(),
   open: new Set(),
-  hovered: null
+  hovered: null,
+  showPins: typeof saved.showPins === "number" && Number.isFinite(saved.showPins)
+    ? Math.min(Math.max(Math.round(saved.showPins), 0), SHOW_PINS.length - 1) : SHOW_PINS_DEFAULT,
+  settings: false
 });
 
 export class NavFilter {
@@ -34,7 +39,7 @@ export class NavFilter {
    * @param {{ id, label, categories }[]} opts.groups the GM's groups
    * @param {boolean} opts.isGM
    * @param {import("./navMap.js").NavMap} opts.map
-   * @param {(what: "filter"|"collapse") => void} [opts.onChange]  the filter or the panel changed (save it)
+   * @param {(what: "filter"|"collapse"|"settings") => void} [opts.onChange]  the filter or the panel changed (save it)
    * @param {(pinId: string) => void} [opts.onJump]   a pin picked in the list
    */
   constructor(opts) {
@@ -59,6 +64,7 @@ export class NavFilter {
     root.addEventListener("change", event => this._onChange(event));
     root.addEventListener("contextmenu", event => this._onSolo(event));
     root.addEventListener("input", event => {
+      if (event.target.matches("input[name=mapfShowPins]")) return this._showPins(Number(event.target.value));
       if (!event.target.matches("input[name=mapfSearch]")) return;
       this.state.search = event.target.value;
       this._search();
@@ -72,7 +78,10 @@ export class NavFilter {
       if (pin && !pin.contains(event.relatedTarget)) this.map.ring(null);
     });
     // Keys typed into the panel aren't Foundry's.
-    root.addEventListener("keydown", event => event.stopPropagation());
+    root.addEventListener("keydown", event => {
+      event.stopPropagation();
+      if (event.key === "Escape" && this.state.settings) this._settings(false);
+    });
     this.render();
   }
 
@@ -179,10 +188,12 @@ export class NavFilter {
         <ol class="agent-mapf-members">${g.members.map(m => this._categoryHtml(m)).join("")}</ol>
       </li>`));
     this.root.classList.toggle("collapsed", state.collapsed);
+    const all = SHOW_PINS[state.showPins] === null;
     this.root.innerHTML = `
       <header class="agent-mapf-header">
         <i class="fas fa-filter"></i><h3>Night City Nav</h3>
         <span class="agent-mapf-total" title="Pins shown / total">${d.shown}/${d.total}</span>
+        <a class="agent-mapf-gear${state.settings ? " active" : ""}" data-mapf="settings" title="Map settings" aria-label="Map settings" aria-expanded="${state.settings}"><i class="fas fa-gear"></i></a>
         <a data-mapf="collapse" title="${state.collapsed ? "Open the filter" : "Fold the filter away"}" aria-label="${state.collapsed ? "Open the filter" : "Fold the filter away"}" aria-expanded="${!state.collapsed}"><i class="fas ${state.collapsed ? "fa-chevron-down" : "fa-chevron-up"}"></i></a>
       </header>
       <div class="agent-mapf-body">
@@ -195,7 +206,16 @@ export class NavFilter {
         <ol class="agent-mapf-list">${groups.join("")}${d.ungrouped.map(c => this._categoryHtml(c)).join("")}</ol>
         ${d.none ? `<p class="agent-mapf-empty">No pins or categories match.</p>` : ""}
         <p class="agent-mapf-hint">Right-click a row to show only that.</p>
+      </div>
+      <div class="agent-mapf-settings" ${state.settings ? "" : "hidden"}>
+        <h4>NAV Settings</h4>
+        <label class="agent-mapf-setting">
+          <span class="agent-mapf-setting-label">Show pins <span class="agent-mapf-readout" ${all ? "" : "hidden"}>All pins</span></span>
+          <input type="range" name="mapfShowPins" min="0" max="${SHOW_PINS.length - 1}" step="1" value="${state.showPins}">
+          <span class="agent-mapf-ends"><span>Sooner</span><span>Later</span></span>
+        </label>
       </div>`;
+    if (state.settings) this._listen(true);
     for (const box of this.root.querySelectorAll("input[data-some]")) box.indeterminate = true;
     const newList = this.root.querySelector(".agent-mapf-list");
     if (newList) newList.scrollTop = scroll;
@@ -256,6 +276,41 @@ export class NavFilter {
     return [...el.closest(".agent-mapf-group").querySelectorAll("input[data-mapf-category]")].map(b => b.dataset.mapfCategory);
   }
 
+  /** Open or shut NAV Settings (shown and hidden in place: no redraw, so a tap elsewhere in the panel still lands). */
+  _settings(open) {
+    this.state.settings = open;
+    this._listen(open);
+    this.root?.querySelector(".agent-mapf-settings")?.toggleAttribute("hidden", !open);
+    const gear = this.root?.querySelector("[data-mapf=settings]");
+    gear?.classList.toggle("active", open);
+    gear?.setAttribute("aria-expanded", open);
+  }
+
+  /** While NAV Settings is open: a press outside it (and the gear) or Escape shuts it. */
+  _listen(on) {
+    if (on && !this._outside) {
+      this._outside = event => {
+        // The panel redrawn by the phone (a new NavFilter took over): let go.
+        if (!this.root?.isConnected) return this._listen(false);
+        if (event.type === "keydown" ? event.key === "Escape" : !event.target.closest?.(".agent-mapf-settings, [data-mapf=settings]")) this._settings(false);
+      };
+      document.addEventListener("pointerdown", this._outside, true);
+      document.addEventListener("keydown", this._outside);
+    } else if (!on && this._outside) {
+      document.removeEventListener("pointerdown", this._outside, true);
+      document.removeEventListener("keydown", this._outside);
+      this._outside = null;
+    }
+  }
+
+  /** The "Show pins" slider moved: the map follows as it's dragged (no redraw, which would drop the drag). */
+  _showPins(stop) {
+    this.state.showPins = stop;
+    this.map.setExpand(SHOW_PINS[stop]);
+    this.root.querySelector(".agent-mapf-readout")?.toggleAttribute("hidden", SHOW_PINS[stop] !== null);
+    this.onChange?.("settings");
+  }
+
   _onClick(event) {
     const target = event.target.closest("[data-mapf]");
     if (!target) return;
@@ -265,6 +320,8 @@ export class NavFilter {
         state.collapsed = !state.collapsed;
         this.render();
         return this.onChange?.("collapse");
+      case "settings":
+        return this._settings(!state.settings);
       case "expand": {
         const id = target.closest("[data-group]").dataset.group;
         state.expanded.has(id) ? state.expanded.delete(id) : state.expanded.add(id);

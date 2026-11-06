@@ -822,6 +822,48 @@ test("Map (GM): zoomed out, a district's pins hide behind its count; a picked on
   check(result.shownOpen > 0, `open, its pins show (${result.shownOpen})`);
 });
 
+test("Map: NAV Settings' Show pins slider opens districts sooner or later, All pins shows them all, and is kept", async ({ gm }) => {
+  await skipUnless(gm, "map");
+  const result = await gm.run(async () => {
+    const p = await phone();
+    await go("map");
+    const m = await until(() => p._navMap?.root && p._navMap._groups?.length && p._navMap, "the map");
+    const slider = () => el("input[name=mapfShowPins]");
+    const stop = async v => {
+      slider().value = v;
+      slider().dispatchEvent(new Event("input", { bubbles: true }));
+      await sleep(400);
+      return m._groups.filter(g => g.open).length;
+    };
+    const before = p.mapFilter.showPins;
+    try {
+      m.fit();
+      await sleep(300);
+      m.centreOn(5900, 7800);
+      m.view.scale *= 4;
+      m.draw();
+      await tap("[data-mapf=settings]");
+      const shown = !el(".agent-mapf-settings").hidden;
+      const later = await stop(6);
+      const usual = await stop(3);
+      const sooner = await stop(1);
+      const all = await stop(0);
+      const readout = !el(".agent-mapf-readout").hidden;
+      const kept = JSON.parse(localStorage.getItem("cpr-sam-agent.mapFilter")).showPins;
+      el("input[name=mapfShowPins]").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      return { shown, later, usual, sooner, all, of: m._groups.length, readout, kept, shut: el(".agent-mapf-settings").hidden };
+    } finally {
+      await stop(before);
+    }
+  });
+  check(result.shown, "the gear opens NAV Settings");
+  check(result.later < result.usual && result.usual <= result.sooner, `Later opens fewer districts than the usual stop, Sooner as many or more (${result.later} < ${result.usual} <= ${result.sooner})`);
+  same(result.all, result.of, "All pins opens every district");
+  check(result.readout, "the readout says All pins");
+  same(result.kept, 0, "the stop is kept in the browser");
+  check(result.shut, "Escape shuts NAV Settings");
+});
+
 test("Map: an Agent alert doesn't redraw the picked pin's card", async ({ gm, pl, pc }) => {
   await skipUnless(gm, "map");
   await pl.run(async () => {
