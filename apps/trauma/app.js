@@ -8,7 +8,7 @@ export default {
   order: 60,
   name: "Trauma Team", icon: "fas fa-truck-medical",
   blurb: "Coverage, and security, you can count on.",
-  citinet: true,
+  citinet: true, offline: "browse",
   tick: { method: "_tickTrauma" },
   ledger: { trauma: "Trauma Team", medscan: "MedScan" },
   tables: { subs: { owner: "key" }, dispatches: { monthly: true, owner: "actorId" }, medscan: { owner: "key" } },

@@ -8,7 +8,7 @@ export default {
   order: 30,
   name: "The Garden", icon: "fas fa-seedling",
   blurb: "Night City's feed, and The Garden Dating.",
-  citinet: true,
+  citinet: true, offline: "block",
   refreshOn: ["garden"],
   // Every 30 real seconds and whenever world time moves (catch-up: due posts go out backdated).
   tick: { method: "_tickGarden" },

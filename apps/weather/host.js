@@ -229,8 +229,8 @@ export const methods = {
       const what = String(effect.description ?? "").match(/<p>(.*?)<\/p>/)?.[1];
       alerts.push(...this._wxTell([id], what ? `${condName(today.w)} is on you. ${what}` : `${condName(today.w)} is on you.`));
     }
-    // A Blackout: no calls, no Data Pool, for those it's applied to.
-    if (today.w.cond === "blackout") {
+    // A Blackout: no calls, no Data Pool, for those it's applied to (unless the GM's option says it doesn't).
+    if (today.w.cond === "blackout" && options().blackoutSignal) {
       const off = [];
       await patchSetting("noSignal", offline => {
         for (const id of ids) {

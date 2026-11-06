@@ -4,7 +4,7 @@ import { APP_IDS, APP_MANIFEST, appPartial } from "../../scripts/apps/manifest.j
 import { APPS } from "../../scripts/model/apps.js";
 import { appearance } from "../../scripts/model/appearance.js";
 import { playerCharacters } from "../../scripts/model/contacts.js";
-import { feature } from "../../scripts/model/features.js";
+import { feature, needsCitinet } from "../../scripts/model/features.js";
 import { formatMoney, priceTier } from "../../scripts/model/money.js";
 import {
   ADDON_IDS, ADDONS, cleanListing, DEFAULT_LISTINGS, hasAddon, isDue, isInstalled, isLapsed, MODELS, monthlyTotal, OFFERS, POOL, poolConfig, poolOn, priceLabel, REVOKE_REASONS, rowsOf, SOURCES, storeAction,
@@ -295,7 +295,7 @@ export const methods = {
       const downloading = started ? { ms: DOWNLOAD_MS, elapsed: Math.min(DOWNLOAD_MS, Date.now() - started) } : null;
       return {
         id, name: look.names[id], icon: look.icons[id], blurb: APPS[id]?.blurb ?? "", publisher: entry.publisher,
-        price: priceLabel(entry), tier: entry.model === "free" ? "" : priceTier(entry.price), citinet: !!APP_MANIFEST[id]?.citinet, action, [action]: true, preinstalled: entry.preinstalled, downloading,
+        price: priceLabel(entry), tier: entry.model === "free" ? "" : priceTier(entry.price), citinet: needsCitinet(id), action, [action]: true, preinstalled: entry.preinstalled, downloading,
         owned: action === "get" && entry.model === "once" && entry.price > 0,
         removable: !downloading && !entry.preinstalled && isInstalled(installs, actorId, id, cfg)
       };

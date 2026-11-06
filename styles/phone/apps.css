@@ -987,6 +987,26 @@
   position: relative;
   z-index: 1;
 }
+/* A CitiNet app without a signal (manifest offline: "block"): in place of its page. */
+.ctp-phone-app .agent-citinet-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px;
+  text-align: center;
+  color: var(--agent-magenta);
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+.ctp-phone-app .agent-citinet-block i {
+  font-size: calc(32px * var(--agent-font-scale, 1));
+  opacity: 0.8;
+}
+.ctp-phone-app .agent-citinet-block b {
+  font-size: calc(15px * var(--agent-font-scale, 1));
+}
 .ctp-phone-app .agent-price-tier {
   display: block;
   color: var(--agent-muted);

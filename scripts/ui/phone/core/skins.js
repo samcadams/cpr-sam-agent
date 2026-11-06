@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../../../config.js";
 import { reduceMotion } from "../../a11y.js";
 import { adLines, SKINS, woundState } from "../../../model/agent.js";
 
@@ -21,8 +22,9 @@ export const methods = {
    * Cybereye's ads, whatever the skin.
    */
   _skinExtras(data, ctx) {
-    // A Sponsored Cybereye (Black Chrome p. 22) streams pop-up ads over whatever Agent you use.
-    if (sponsoredEye(ctx?.subject?.actor)) data.ad = this._currentAd();
+    // A Sponsored Cybereye (Black Chrome p. 22) streams pop-up ads over whatever Agent you use (unless the GM
+    // switched the ads off in Control → Labels).
+    if (game.settings.get(MODULE_ID, "sponsoredAds") !== false && sponsoredEye(ctx?.subject?.actor)) data.ad = this._currentAd();
     const skin = SKINS[ctx?.look.skin];
     if (!skin) return;
     if (skin.vitals) data.vitals = this._vitals(ctx);

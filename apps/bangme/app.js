@@ -8,7 +8,7 @@ export default {
   order: 50,
   name: "BangMe!", icon: "fas fa-burst",
   blurb: "Bang your friends! Bang your family!",
-  citinet: true,
+  citinet: true, offline: "browse",
   refreshOn: ["bangme"],
   tables: { ledger: { monthly: true, owner: "actorId" }, invoices: { owner: "listed" } },
   settings: {

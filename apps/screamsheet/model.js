@@ -7,7 +7,7 @@ import { newBlock, newSheet, OUTLETS, sheetText, summary } from "./render.js";
  * the GM approved. *
  * Every clipping has a depth, the DV a crawl needs to reach it (DEPTHS). The passive crawl (once per
  * in-world day and whenever the GM publishes) brings Headlines (DV 0) that match. A deep crawl is a
- * Library Search roll (the Agent's +2): every published, matching clipping up to the total, which the GM
+ * Library Search roll (with the Agent's bonus): every published, matching clipping up to the total, which the GM
  * confirms or changes ("the roll decides how much you find, the GM decides what's there").
  * Reach: "public" clippings reach anyone whose watchlist matches; "subjects" ones only their subjects and
  * the subjects' crews. A clipping about a crewmate matches the crew's name (players see clippings

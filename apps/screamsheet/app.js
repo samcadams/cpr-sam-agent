@@ -8,7 +8,7 @@ export default {
   order: 45,
   name: "DataPool", icon: "fas fa-newspaper",
   blurb: "Screamsheets about you, crawled from the Pool.",
-  citinet: true,
+  citinet: true, offline: "browse",
   off: true,
   newApp: true,
   refreshOn: ["screamJournal"],

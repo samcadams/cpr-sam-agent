@@ -57,7 +57,7 @@ const eventOf = clip => [
 
 /**
  * Library Search with the character sheet's own roll (the system's dialog, mods and Luck, its roll card),
- * plus the Agent's +2 (and Big SAAI's +1) unless an effect already gives it. Null when cancelled or the sheet has no skill item.
+ * plus the Agent's bonus (and Big SAAI's) unless an effect already gives it. Null when cancelled or the sheet has no skill item.
  */
 async function librarySearch(actor) {
   const skill = actor.items.find(i => i.type === "skill" && /^library search$/i.test(i.name));

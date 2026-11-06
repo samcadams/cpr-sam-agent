@@ -9,7 +9,7 @@ export default {
   name: "Weather", icon: "fas fa-cloud-sun-rain",
   blurb: "Your weather. Your call.",
   turnedOn: true,
-  citinet: true,
+  citinet: true, offline: "browse",
   refreshOn: ["weather"],
   tick: { method: "_tickWeather" },
   load: "_weatherLoad",

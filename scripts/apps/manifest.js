@@ -42,7 +42,12 @@
  *   noInternal?         not on an Internal Agent (the HUD has no room for it)
  *   citinet?            Black Chrome's "Requires CitiNet Access" keyword: it doesn't work without a connection.
  *                       The App Store says so on its card, and while the character has no signal the phone
- *                       shows a "No CitiNet" strip over its page (the app's host side refuses on its own)
+ *                       shows a "No CitiNet" strip over its page (the app's host side refuses on its own).
+ *                       The GM can switch it per app (world setting citinetApps; read it through
+ *                       model/features.js needsCitinet, never `.citinet` directly)
+ *   offline?            with `citinet`: what the page does without a signal. "browse" (default): the strip
+ *                       over the app, which can still be looked through; "block": a "Cannot connect!" screen
+ *                       instead of the app (model/features.js citinetOffline)
  *   off?                off until the GM switches it on in Control (new worlds; see model/features.js)
  *   newApp?             with `off`: added after worlds were already using the module, so it starts off in
  *                       those worlds too (older `off` apps were on there before, and stay on)

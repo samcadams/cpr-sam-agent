@@ -3,6 +3,7 @@ import { MODULE_ID } from "../../scripts/config.js";
 import { contentArt } from "../../scripts/model/content.js";
 import { feature } from "../../scripts/model/features.js";
 import { formatMoney } from "../../scripts/model/money.js";
+import { bigSaaiBonus } from "../alex/model.js";
 import { MONTH } from "../trauma/model.js";
 
 /*
@@ -96,8 +97,8 @@ export const CATALOGUE_DEFAULTS = {
  * keeps on the character while they have it (situational, on by default, so the roll dialog can switch it off).
  */
 export const ADDONS = {
-  // Big SAAI: the Agent's Library Search +3 instead of +2, so +1 on top of the Agent's own.
-  bigsaai: { name: "Big SAAI", parent: "alex", effect: { key: "bonuses.librarySearch", value: 1 } }
+  // Big SAAI: on top of the Agent's own Library Search bonus (the GM's number, apps/alex/model.js bigSaaiBonus).
+  bigsaai: { name: "Big SAAI", parent: "alex", effect: { key: "bonuses.librarySearch", value: bigSaaiBonus } }
 };
 export const ADDON_IDS = Object.keys(ADDONS);
 
@@ -105,7 +106,9 @@ export const ADDON_IDS = Object.keys(ADDONS);
 export function addonEffect(id) {
   const addon = ADDONS[id];
   if (!addon?.effect) return null;
-  const { key, value } = addon.effect;
+  const { key } = addon.effect;
+  // A number, or a function giving the GM's current one.
+  const value = typeof addon.effect.value === "function" ? addon.effect.value() : addon.effect.value;
   return {
     name: addon.name,
     img: "icons/svg/upgrade.svg",

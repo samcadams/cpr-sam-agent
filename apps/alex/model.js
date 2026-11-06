@@ -2,7 +2,7 @@ import { MODULE_ID } from "../../scripts/config.js";
 /*
  * Ask Alex Anything (Ziggurat, free, preinstalled; All About Agents p. 7): "Allows a user to search
  * for and display data from the local CitiNet." The question goes to the GM, who answers as Alex, or
- * asks for a Library Search roll first (an Agent gives +2). Until then the player sees "Alex is
+ * asks for a Library Search roll first (an Agent gives a bonus, +2 by default). Until then the player sees "Alex is
  * crawling the Pool…"; "No results" only when the GM says so.
  * The Data Pool: Journal entries in a "Data Pool" folder (subfolders too), or anywhere with a line
  * "Data Pool Keywords: a, b, c". A question that mentions one's name or keyword lists it on the GM
@@ -22,15 +22,23 @@ export const EXAMPLE_ENTRY = {
     + "<section class=\"secret\"><p>GM only: Rogue keeps a file on every merc who drinks there.</p></section>"
 };
 
-export const AGENT_BONUS = 2;
+/** A setting's number, or `fallback` where it isn't registered (Node tests). */
+const bonusSetting = (key, fallback) => {
+  const value = Number(game.settings.get(MODULE_ID, key) ?? fallback);
+  return Number.isFinite(value) ? value : fallback;
+};
+
+/** What an Agent adds to Library Search (the GM's world setting "agentLibraryBonus"; the book's +2). */
+export const agentBonus = () => bonusSetting("agentLibraryBonus", 2);
 
 /**
- * Big SAAI (All About Agents p. 7, 100eb, Ziggurat): an App Store add-on (apps/pool/model.js ADDONS) that makes the
- * Agent's Library Search bonus +3 instead of +2, i.e. +1 on top. It also reports on the
+ * Big SAAI (All About Agents p. 7, 100eb, Ziggurat): an App Store add-on (apps/pool/model.js ADDONS) that adds to the
+ * Agent's Library Search bonus (the book: +3 instead of +2, i.e. +1 on top). It also reports on the
  * user to Ziggurat: their questions are badged on the GM Phone.
  */
 export const BIG_SAAI = "bigsaai";
-export const BIG_SAAI_BONUS = 1;
+/** What Big SAAI adds on top of the Agent's bonus (the GM's world setting "bigSaaiBonus"; the book's +1). */
+export const bigSaaiBonus = () => bonusSetting("bigSaaiBonus", 1);
 export const DATA_POOL_FOLDER = "Data Pool";
 export const LOCATIONS_FOLDER = "Locations";
 
@@ -141,22 +149,22 @@ export function findLocation(name, list) {
 
 /**
  * The mods the phone adds to a sheet's Library Search roll (`mods`: the roll's own, from the sheet's effects): the
- * Agent's +2 unless an effect already gives it, and Big SAAI's +1 unless its effect is on the sheet. `app` names
+ * Agent's bonus unless an effect already gives it, and Big SAAI's unless its effect is on the sheet. `app` names
  * the app in the source ("Ask Alex Anything", "DataPool").
  */
 export function agentMods(mods, bigSaai, app) {
   const has = re => mods.some(m => re.test(m.source ?? ""));
   const out = [];
-  if (!has(/agent/i)) out.push({ id: `${MODULE_ID}-agent`, value: AGENT_BONUS, source: `Agent (${app})` });
-  if (bigSaai && !has(/big saai/i)) out.push({ id: `${MODULE_ID}-bigsaai`, value: BIG_SAAI_BONUS, source: "Big SAAI" });
+  if (!has(/agent/i)) out.push({ id: `${MODULE_ID}-agent`, value: agentBonus(), source: `Agent (${app})` });
+  if (bigSaai && !has(/big saai/i)) out.push({ id: `${MODULE_ID}-bigsaai`, value: bigSaaiBonus(), source: "Big SAAI" });
   return out;
 }
 
-/** The sheet's Library Search: INT + skill level + the Agent's bonus (+1 more with Big SAAI). */
+/** The sheet's Library Search: INT + skill level + the Agent's bonus (and Big SAAI's with it). */
 export function librarySearchBase(actor, bigSaai = false) {
   const int = Number(actor?.system?.stats?.int?.value ?? 0) || 0;
   const skill = [...(actor?.items ?? [])].find(i => i.type === "skill" && /^library search$/i.test(i.name));
   const level = Number(skill?.system?.level ?? 0) || 0;
-  const bonus = AGENT_BONUS + (bigSaai ? BIG_SAAI_BONUS : 0);
+  const bonus = agentBonus() + (bigSaai ? bigSaaiBonus() : 0);
   return { int, level, bonus, bigSaai: !!bigSaai, total: int + level + bonus };
 }

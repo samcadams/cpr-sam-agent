@@ -8,7 +8,7 @@ export default {
   order: 180,
   name: "Gacha", icon: "fas fa-box-open",
   blurb: "One more pull....",
-  citinet: true,
+  citinet: true, offline: "browse",
   off: true,
   ledger: { gacha: "Gacha" },
   load: "_gachaLoad",

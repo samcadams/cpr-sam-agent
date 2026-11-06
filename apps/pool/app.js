@@ -8,7 +8,7 @@ export default {
   order: 10,
   name: "App Store", icon: "fas fa-store",
   blurb: "Ziggurat's app store: get, buy and subscribe to apps for your Agent.",
-  citinet: true,
+  citinet: true, offline: "block",
   off: true,
   newApp: true,
   tick: { method: "_tickPool" },

@@ -166,7 +166,10 @@ export function setPhoneSettings(owner, changes) {
 /*  Agents                                       */
 /* -------------------------------------------- */
 
-/** Which Agents a character has: an installed Internal Agent and/or a carried/equipped Agent. */
+/**
+ * Which Agents a character has: an installed Internal Agent and/or a carried/equipped Agent. With the GM's
+ * "requireAgentItem" off, every player character has an Agent, item or not (then agentItem may be null).
+ */
 export function agentsOf(actor) {
   const found = { internal: false, agent: false };
   if (!actor) return found;
@@ -181,6 +184,7 @@ export function agentsOf(actor) {
       if (item.system.equipped !== "owned") found.agent = true;
     }
   }
+  if (!found.agent && game.settings.get(MODULE_ID, "requireAgentItem") === false && isPlayerCharacter(actor)) found.agent = true;
   return found;
 }
 

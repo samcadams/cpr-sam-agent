@@ -1,0 +1,3 @@
+- The GM can say per CitiNet app whether it needs the CitiNet. Without a signal, The Garden, the App Store, Great River, CBK and Combat Cabb show "Cannot connect!"; the others stay browsable under the No CitiNet strip.
+- New GM settings: Require carried Agent item (off: every player character has an Agent), the Agent's and Big SAAI's Library Search bonuses as numbers, and a switch for the Sponsored Cybereye's ads (Control → Labels).
+- Weather Control: "A Blackout cuts the signal" can be switched off.

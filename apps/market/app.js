@@ -9,7 +9,7 @@ export default {
   order: 55,
   name: "Great River", icon: "fas fa-water",
   blurb: "Order it now, a Ziggurat drone drops it off within the hour. Everyday goods, delivered.",
-  citinet: true,
+  citinet: true, offline: "block",
   off: true,
   newApp: true,
   refreshOn: ["market"],

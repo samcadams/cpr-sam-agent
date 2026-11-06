@@ -8,7 +8,7 @@ export default {
   order: 40,
   name: "Ask Alex Anything", homeName: "Ask Alex", icon: "fas fa-magnifying-glass",
   blurb: "Search the local Data Pool.",
-  citinet: true,
+  citinet: true, offline: "browse",
   tables: { queries: { monthly: true, owner: "actorId" } },
   settings: {
     // Claude drafts (GM Phone → Ask Alex → Alex AI; apps/alex/ai.js). Client-side so the key stays in the GM's

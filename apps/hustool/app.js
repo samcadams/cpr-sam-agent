@@ -8,7 +8,7 @@ export default {
   order: 195,
   name: "HusTool", icon: "fas fa-bolt",
   blurb: "Need eb fast? Hit PAY ME for an errand.",
-  citinet: true,
+  citinet: true, offline: "browse",
   off: true,
   newApp: true,
   ledger: { hustool: "HusTool" },

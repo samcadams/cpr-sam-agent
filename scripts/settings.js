@@ -62,6 +62,50 @@ export function registerSettings() {
     type: String,
     default: "Internal Agent"
   });
+  // The GM's toggles (config: false: a settings menu shows them).
+  const redrawPhones = () => {
+    for (const phone of AgentPhone.all()) phone.refresh();
+  };
+  world("requireAgentItem", {
+    config: false,
+    name: "Require carried Agent item",
+    hint: "Player characters need an Agent item to have a phone. Off: every player character has an Agent, item or not (Internal Agents and Biomonitors still need theirs).",
+    type: Boolean,
+    default: true,
+    onChange: redrawPhones
+  });
+  world("citinetApps", {
+    config: false,
+    name: "Apps that need the CitiNet",
+    hint: "Per app: whether it stops working without a signal ({ appId: true/false }, only what differs from the app's own default; model/features.js needsCitinet).",
+    type: Object,
+    default: {},
+    onChange: redrawPhones
+  });
+  world("agentLibraryBonus", {
+    config: false,
+    name: "Agent's Library Search bonus",
+    hint: "What an Agent adds to Library Search (Ask Alex Anything).",
+    type: Number,
+    range: { min: 0, max: 5, step: 1 },
+    default: 2
+  });
+  world("bigSaaiBonus", {
+    config: false,
+    name: "Big SAAI's Library Search bonus",
+    hint: "What the Big SAAI add-on adds to Library Search, on top of the Agent's bonus.",
+    type: Number,
+    range: { min: 0, max: 5, step: 1 },
+    default: 1
+  });
+  world("sponsoredAds", {
+    config: false, // set in Control → Labels
+    name: "Sponsored Cybereye ads",
+    hint: "An installed Sponsored Cybereye streams ad lines over the phone, whatever its skin (the lines are in Control → Labels).",
+    type: Boolean,
+    default: true,
+    onChange: redrawPhones
+  });
 
   client("volume", {
     config: false, // set from the phone: Settings → Look (This GM Phone in Control)

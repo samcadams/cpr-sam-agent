@@ -5,12 +5,13 @@ import { MODULE_ID, TEMPLATES } from "../../config.js";
 import { getPhoneSettings, INTERNAL_THEME, isSilenced, phoneLook, phoneSubject, setPhoneSettings, SKINS } from "../../model/agent.js";
 import { agentName, APPS, appsOn, COMMS_APPS } from "../../model/apps.js";
 import { appearance } from "../../model/appearance.js";
-import { canSendImages, commsOn, feature, noSignalSince } from "../../model/features.js";
+import { canSendImages, citinetOffline, commsOn, feature, needsCitinet, noSignalSince } from "../../model/features.js";
 import { currencyLabel } from "../../model/money.js";
 import { store } from "../../store.js";
 import { agentTimestamp } from "../../util/agentTime.js";
 import { formatDuration } from "../../util/text.js";
 import { directorTakesCalls } from "../director/state.js";
+import { appBar } from "./pages/home.js";
 
 /** From this width the Messages app shows the conversation list beside the open conversation. */
 export const SPLIT_WIDTH = 600;
@@ -374,12 +375,18 @@ export class AgentPhone extends Application {
     // Another page in the open app's place (a lapsed Ziggurat Pool subscription: locked behind Renew).
     if (PHONE_HOOKS.gate.some(hook => hook.call(this, ctx, data))) return data;
     if (this.app in APP_PAGES) {
+      // Black Chrome's "Requires CitiNet Access" without a signal: a "block" app shows "Cannot connect!" instead
+      // of its page; the others say so over the page (model/features.js needsCitinet, citinetOffline).
+      const offline = ctx.noSignal && needsCitinet(this.app);
+      if (offline && citinetOffline(this.app) === "block") {
+        data.citinetBlock = { bar: appBar(this.app), name: appearance().names[this.app] ?? this.app };
+        return data;
+      }
       const [method, key] = APP_PAGES[this.app];
       data[key] = this[method](ctx);
       data.page[this.app] = true;
       if (this.app in APP_MANIFEST) data.appPartial = appPartial(this.app);
-      // Black Chrome's "Requires CitiNet Access": say so over the page while this character has no signal.
-      if (ctx.noSignal && APP_MANIFEST[this.app]?.citinet) data.citinetOff = { name: appearance().names[this.app] ?? this.app };
+      if (offline) data.citinetOff = { name: appearance().names[this.app] ?? this.app };
       return data;
     }
     if (this.app === "contacts") {

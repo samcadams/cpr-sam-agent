@@ -9,7 +9,7 @@ export default {
   order: 57,
   name: "CBK", icon: "fas fa-receipt",
   blurb: "Browse a Night Market's booths, buy now, pick it up later. Free.",
-  citinet: true,
+  citinet: true, offline: "block",
   off: true,
   newApp: true,
   refreshOn: ["cbk"],

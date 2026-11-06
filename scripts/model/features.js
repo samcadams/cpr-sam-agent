@@ -73,6 +73,29 @@ export const COMMS_REQUESTS = new Set([
   "call-start", "call-answer", "call-add"
 ]);
 
+/*
+ * CitiNet apps (manifest `citinet`): the GM can say per app whether it needs the CitiNet (world setting
+ * "citinetApps": { [appId]: boolean }, only what differs from the manifest). Read it here, never `.citinet`.
+ */
+
+/** The apps that can be switched: those whose manifest says `citinet` (their hosts refuse through _citinet). */
+export const CITINET_APPS = APP_IDS.filter(id => APP_MANIFEST[id].citinet);
+
+/** Does this app need the CitiNet now? */
+export function needsCitinet(app) {
+  const on = (game.settings.get(MODULE_ID, "citinetApps") ?? {})[app];
+  return typeof on === "boolean" ? on : !!APP_MANIFEST[app]?.citinet;
+}
+
+/** What the app's page does without a signal: "browse" (a strip over it) or "block" (a "Cannot connect!" screen). */
+export const citinetOffline = app => APP_MANIFEST[app]?.offline ?? "browse";
+
+/** GM: does this app need the CitiNet? Saves only a difference from the manifest. */
+export const setNeedsCitinet = (app, on) => patchSetting("citinetApps", c => {
+  if (!!on === !!APP_MANIFEST[app]?.citinet) delete c[app];
+  else c[app] = !!on;
+});
+
 /** May this user attach photos? */
 export const canSendImages = user => feature("images") && (user.isGM || feature("playerImages"));
 

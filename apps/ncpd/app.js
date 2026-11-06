@@ -8,7 +8,7 @@ export default {
   order: 190,
   name: "NCPD Crime Database", homeName: "NCPD", icon: "fas fa-building-shield",
   blurb: "Snap a face, send it in, get NCPD's public record within the hour.",
-  citinet: true,
+  citinet: true, offline: "browse",
   off: true,
   newApp: true,
   tick: { method: "_tickNcpd" },

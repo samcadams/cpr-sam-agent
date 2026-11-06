@@ -125,7 +125,8 @@
         <input type="text" data-app-name="{{key}}" value="{{value}}" placeholder="{{placeholder}}">
       </label>
     {{/each}}
-    <label class="agent-control-field">Sponsored Cybereye ads <small>(one per line)</small>
+    <label class="agent-radio"><input type="checkbox" data-world-setting="sponsoredAds" {{#if control.adsOn}}checked{{/if}}> Sponsored Cybereye ads</label>
+    <label class="agent-control-field{{#unless control.adsOn}} disabled{{/unless}}">Sponsored Cybereye ads <small>(one per line)</small>
       <textarea name="brainGenAds" rows="5">{{control.ads}}</textarea>
     </label>
   </details>

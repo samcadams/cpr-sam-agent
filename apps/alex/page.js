@@ -2,7 +2,7 @@ import { reduceMotion } from "../../scripts/ui/a11y.js";
 import { appBar } from "../../scripts/ui/phone/pages/home.js";
 import { attachPhotoDialog, fieldsDialog } from "../../scripts/ui/dialogs/forms.js";
 import { MODULE_ID } from "../../scripts/config.js";
-import { agentMods, BIG_SAAI, DATA_POOL_FOLDER, dataPool, EXAMPLE_ENTRY, librarySearchBase, locations, namedLocations, poolMatches } from "./model.js";
+import { agentBonus, agentMods, BIG_SAAI, DATA_POOL_FOLDER, dataPool, EXAMPLE_ENTRY, librarySearchBase, locations, namedLocations, poolMatches } from "./model.js";
 import { hasAddon, poolConfig, priceLabel, rowsOf } from "../pool/model.js";
 import { API_URL, costOf, DEFAULT_DOMAINS, DEFAULT_MODEL, DEFAULT_RULES, draftRequest, errorText, runDraft } from "./ai.js";
 import { agentLabel, personalityOf } from "../../scripts/model/apps.js";
@@ -97,7 +97,7 @@ export const actions = {
   },
   /**
    * Library Search with the character sheet's own roll: the system's roll dialog (mods, Luck), its
-   * roll card in chat, plus the Agent's +2 and Big SAAI's +1 (unless an effect on the sheet already gives it). The host
+   * roll card in chat, plus the Agent's bonus and Big SAAI's (unless an effect on the sheet already gives it). The host
    * takes the result (apps/alex/host.js). Without the skill item, the host rolls instead.
    */
   async "alex-roll"({ queryId }) {
@@ -384,7 +384,7 @@ export const methods = {
   },
 
   /**
-   * Big SAAI on a player's Ask Alex: `owned` (the badge, +3, "priority crawl" tags), else the banner while it's
+   * Big SAAI on a player's Ask Alex: `owned` (the badge, its bonus, "priority crawl" tags), else the banner while it's
    * for sale to them (not revoked, not dismissed this week), and the details sheet with Buy and the terms.
    */
   _alexSaaiData(actorId) {
@@ -403,6 +403,9 @@ export const methods = {
       open: !!this.alexSaaiOpen && (!revoked || owned),
       price: priceLabel(entry),
       bonus: librarySearchBase(null, owned).bonus,
+      // The details sheet: "+<with Big SAAI> instead of +<the Agent's>".
+      withSaai: librarySearchBase(null, true).bonus,
+      agentBonus: agentBonus(),
       downloading,
       eula: EULA
     };

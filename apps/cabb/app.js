@@ -8,7 +8,7 @@ export default {
   order: 150,
   name: "Combat Cabb", icon: "fas fa-taxi",
   blurb: "Armored taxis. Pickup wherever you are.",
-  citinet: true,
+  citinet: true, offline: "block",
   refreshOn: ["cabb", "mapConfig"], // its settings; the Map's own map (its places, apps/map)
   tick: { method: "_tickCabb" },
   ledger: { cabb: "Combat Cabb" },

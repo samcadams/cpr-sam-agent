@@ -4,7 +4,7 @@ import { agentType, getPhoneSettings, isPlayerCharacter } from "../../scripts/mo
 import { ALERT_KINDS, hasBiomonitor, vitalsOf, WOUND_LABELS } from "../../scripts/model/apps.js";
 import { displayName } from "../../scripts/model/threads.js";
 import { agentTimestamp } from "../../scripts/util/agentTime.js";
-import { feature, noSignalSince } from "../../scripts/model/features.js";
+import { feature, needsCitinet, noSignalSince } from "../../scripts/model/features.js";
 import { clean, esc } from "../../scripts/util/text.js";
 
 /*
@@ -80,11 +80,12 @@ export const methods = {
 
   /**
    * CitiNet apps (manifest `citinet`): may this character use one now? Without an Agent, no (silently); without
-   * a signal, no, and their Agent says so, the same in every app (audit C6). Run it last in a check.
+   * a signal, no, and their Agent says so, the same in every app (audit C6). An app the GM said doesn't need
+   * the CitiNet (needsCitinet) works without a signal. Run it last in a check.
    */
   _citinet(actor, app, from = null) {
     if (!actor || !agentType(actor)) return false;
-    if (!noSignalSince(actor.id)) return true;
+    if (!needsCitinet(app) || !noSignalSince(actor.id)) return true;
     this._alertNow(actor.id, { kind: "system", from, app, text: "No CitiNet connection." });
     return false;
   },

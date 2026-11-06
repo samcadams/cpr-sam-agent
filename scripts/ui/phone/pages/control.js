@@ -269,6 +269,7 @@ export const methods = {
       unknownLabel: game.settings.get(MODULE_ID, "unknownLabel"),
       // The ads in use: the GM's, or the built-in ones (shown so they can be edited).
       ads: game.settings.get(MODULE_ID, "brainGenAds") || DEFAULT_ADS.join("\n"),
+      adsOn: game.settings.get(MODULE_ID, "sponsoredAds"),
       money: { ...moneyStyle(), example: formatMoney(1500) },
       clock: this._clockData(),
       open: this.sectionsOpen(),

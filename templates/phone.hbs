@@ -109,6 +109,11 @@
   {{!-- The open app, by its partial (agent-app-<id>, see apps/manifest.js). --}}
   {{#if citinetOff}}<p class="agent-citinet-off" role="status"><i class="fas fa-satellite-dish"></i> <b>No CitiNet connection.</b> {{citinetOff.name}} needs the CitiNet; apps that don't still work.</p>{{/if}}
   {{#if appPartial}}{{> (lookup . "appPartial")}}{{/if}}
+  {{!-- A CitiNet app that can't be used without a signal (manifest `offline: "block"`): no page, its header only. --}}
+  {{#if citinetBlock}}
+    {{> agent-app-bar citinetBlock.bar}}
+    <div class="agent-citinet-block" role="status"><i class="fas fa-satellite-dish" aria-hidden="true"></i><b>Cannot connect!</b><span>{{citinetBlock.name}} needs the CitiNet.</span></div>
+  {{/if}}
 
   {{#if page.splitEmpty}}
     <div class="agent-empty agent-split-empty"><i class="{{appearance.icons.messages}}"></i> Pick a conversation.</div>

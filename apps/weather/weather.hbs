@@ -158,6 +158,7 @@
             <label class="agent-radio"><input type="checkbox" data-action="wx-option" data-option="wrong" {{#if options.wrong}}checked{{/if}}> Forecasts can be wrong</label>
             {{#if options.wrong}}<div class="agent-setting-row"><span>Chance a day turns out different</span><input type="number" name="wxChance" min="0" max="100" step="5" value="{{options.wrongChance}}" aria-label="Chance a forecast is wrong, in percent"> %</div>{{/if}}
             <label class="agent-radio"><input type="checkbox" data-action="wx-option" data-option="autoApply" {{#if options.autoApply}}checked{{/if}}> Apply new weather automatically (to the same characters)</label>
+            <label class="agent-radio"><input type="checkbox" data-action="wx-option" data-option="blackoutSignal" {{#if options.blackoutSignal}}checked{{/if}}> A Blackout cuts the signal (no calls, no Data Pool)</label>
             <label class="agent-radio"><input type="checkbox" data-action="wx-option" data-option="radio" {{#if options.radio}}checked{{/if}}> Morro Rock Radio posts the forecast in The Garden every morning</label>
             <div class="agent-setting-row"><span>Temperatures in</span>{{> agent-dropdown options.units}}</div>
             {{#if garden}}<button type="button" class="agent-wide-btn" data-action="wx-radio"><i class="fas fa-radio"></i> Post today's forecast in The Garden…</button>{{/if}}

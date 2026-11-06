@@ -25,7 +25,8 @@ import { CONDITIONS, GEAR, HOT_ARMOR, SEASONS, STRANGE, TABLES, TEMPS, UNITS, WA
  * Host table "wxChecks" (owner "actorId"): a Resist Torture/Drugs check waiting on a player's phone:
  *   { id, actorId, kind: "poison"|"biotoxin", dv, cond, ts, total?, detail?, result?: "pass"|"fail" }
  *
- * World setting "weather" (the GM's options): { wrong, wrongChance, autoApply, radio, units }
+ * World setting "weather" (the GM's options): { wrong, wrongChance, autoApply, radio, units, blackoutSignal }
+ *   blackoutSignal: a Blackout applied to characters takes their signal (no calls, no Data Pool)
  */
 
 export const DAYS = 10;
@@ -33,7 +34,7 @@ export const DAYS = 10;
 /** Past days kept (the Calendar shows them). */
 export const KEEP_PAST = 45;
 
-export const OPTIONS_DEFAULTS = { wrong: false, wrongChance: 25, autoApply: false, radio: true, units: "both" };
+export const OPTIONS_DEFAULTS = { wrong: false, wrongChance: 25, autoApply: false, radio: true, units: "both", blackoutSignal: true };
 export const UNITS_SHOWN = { both: "°F and °C", f: "°F", c: "°C" };
 
 export function weatherOptions(raw) {
@@ -41,6 +42,7 @@ export function weatherOptions(raw) {
   o.wrong = !!o.wrong;
   o.autoApply = !!o.autoApply;
   o.radio = !!o.radio;
+  o.blackoutSignal = !!o.blackoutSignal;
   o.wrongChance = Math.min(100, Math.max(0, Math.round(Number(o.wrongChance) || 0)));
   if (!(o.units in UNITS_SHOWN)) o.units = "both";
   return o;
