@@ -642,6 +642,69 @@
   min-width: 0;
 }
 
+/* GM: the scenes linked to the pin, as chips: tap the name to look, the play button to activate. */
+.ctp-phone-app .agent-map-scenes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: calc(12px * var(--agent-font-scale, 1));
+}
+
+.ctp-phone-app .agent-map-scenes-head {
+  flex: none;
+  margin-right: 2px;
+  color: var(--agent-muted);
+}
+
+.ctp-phone-app .agent-map-scene {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(var(--agent-cyan-rgb), 0.5);
+  border-radius: 10px;
+  background: rgba(var(--agent-cyan-rgb), 0.1);
+  overflow: hidden;
+}
+
+.ctp-phone-app .agent-map-scene.active {
+  border-color: var(--agent-cyan);
+  background: rgba(var(--agent-cyan-rgb), 0.25);
+}
+
+.ctp-phone-app .agent-map-scene-name {
+  min-width: 0;
+  padding: 1px 6px 1px 8px;
+  color: var(--agent-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-map-scene-play {
+  flex: none;
+  padding: 1px 7px 1px 5px;
+  border-left: 1px solid rgba(var(--agent-cyan-rgb), 0.35);
+  color: var(--agent-cyan);
+  font-size: 0.8em;
+  cursor: pointer;
+}
+
+.ctp-phone-app .agent-map-scene.missing {
+  border-style: dashed;
+  border-color: var(--agent-muted);
+  background: none;
+}
+
+.ctp-phone-app .agent-map-scene.missing .agent-map-scene-name {
+  color: var(--agent-muted);
+  text-decoration: line-through;
+  cursor: help;
+}
+
 /* -------------------------------------------- */
 /*  Clusters (apps/map/clusters.js)             */
 /* -------------------------------------------- */
@@ -747,10 +810,28 @@
   to { box-shadow: 0 0 0 3px rgba(var(--agent-cyan-rgb), 0.9), 0 0 0 13px rgba(var(--agent-cyan-rgb), 0.1); }
 }
 
-/* GM: a pin linked to a scene. */
+/* GM: a pin linked to a scene (or several): a ring and a small film mark (not zoomed all the way out). */
 .ctp-phone-app .agent-navmap-pin.linked .agent-navmap-dot {
+  position: relative;
   outline: 2px solid rgba(var(--agent-cyan-rgb), 0.8);
   outline-offset: 1px;
+}
+
+.ctp-phone-app .agent-navmap-pin.linked:not(.big, .territory) .agent-navmap-dot::after {
+  content: "\f008"; /* film */
+  position: absolute;
+  right: -7px;
+  top: -7px;
+  padding: 1px 2px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.85);
+  color: var(--agent-cyan);
+  font: 900 7px/1 "Font Awesome 6 Free", "Font Awesome 6 Pro";
+  pointer-events: none;
+}
+
+.ctp-phone-app .agent-navmap.far .agent-navmap-pin.linked .agent-navmap-dot::after {
+  display: none;
 }
 
 /* The crew's GPS spot: an arrow in a pulsing disc. */
@@ -1051,6 +1132,12 @@
 
 .ctp-phone-app .agent-mapf-jump {
   padding: 0 4px;
+}
+
+/* GM: a pin with linked scenes (T274), beside its name in the list. */
+.ctp-phone-app .agent-mapf-scene {
+  opacity: 0.6;
+  font-size: 0.85em;
 }
 
 .ctp-phone-app .agent-mapf-empty,
@@ -1463,6 +1550,34 @@
   color: var(--agent-text) !important;
 }
 
+/* GM: the linked scenes in Edit pin: a label each and ×, then Add scene…. */
+.ctp-phone-app .agent-map-scenes-edit {
+  align-items: flex-start;
+}
+
+.ctp-phone-app .agent-map-scenes-edit > span:first-child {
+  padding-top: 4px;
+}
+
+.ctp-phone-app .agent-map-scenes-edit-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-map-scene-edit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ctp-phone-app .agent-map-scene-edit.missing input {
+  text-decoration: line-through;
+}
+
 .ctp-phone-app .agent-map-card-actions button.agent-map-card-danger {
   color: var(--agent-red, #ff4d6d);
 }
@@ -1551,4 +1666,20 @@
 
 .ctp-phone-app .agent-navmap-mini .agent-navmap-pin:not(.big) .agent-navmap-name {
   display: none;
+}
+
+/* The GM's chat card "Where is the crew?" (a scene linked to several pins, apps/map/host.js). */
+.agent-map-crew-pick-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agent-map-crew-pick-buttons button {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.agent-map-crew-pick-done {
+  font-style: italic;
 }

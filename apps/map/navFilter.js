@@ -161,7 +161,8 @@ export class NavFilter {
   _categoryHtml(c) {
     const pins = c.open ? `<ol class="agent-mapf-pins">${c.pins.map(p => `
       <li class="agent-mapf-pin${p.id === this.state.hovered ? " hovered" : ""}" data-pin="${esc(p.id)}">
-        <a class="agent-mapf-pin-name" data-mapf="jump">${esc(p.name)}</a>
+        <a class="agent-mapf-pin-name" data-mapf="jump">${esc(p.name)}</a>${p.scene ? `
+        <i class="agent-mapf-scene fas fa-film" title="Has linked scenes (GM)"></i>` : ""}
         <a class="agent-mapf-jump" data-mapf="jump" title="Jump to the pin" aria-label="Jump to ${esc(p.name)}"><i class="fas fa-crosshairs"></i></a>
       </li>`).join("")}</ol>` : "";
     return `<li class="agent-mapf-category${c.open ? " open" : ""}" data-category="${esc(c.id)}">

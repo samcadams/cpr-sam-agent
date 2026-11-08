@@ -1,13 +1,15 @@
 import { cabbConfig } from "../cabb/model.js";
-import { cleanPinChange, mapConfig, mapPicture, mapReady, mapScene, seedNav, toPicturePx } from "./model.js";
+import { cleanPinChange, mapConfig, mapPicture, mapReady, mapScene, pinScenes, seedNav, toPicturePx } from "./model.js";
 import { MODULE_ID } from "../../scripts/config.js";
 import { patchSetting } from "../../scripts/util/settings.js";
 import { canUsePhone } from "../../scripts/model/agent.js";
 import { contentArt, contentScanned, resolveMapPaths } from "../../scripts/model/content.js";
+import { esc } from "../../scripts/util/text.js";
 
 /*
- * Host: the Map (apps/map/model.js). Pins linked to scenes (a row's `sceneId`, set on the GM's Map): when the GM
- * activates a linked scene, the crew's GPS spot (Combat Cabb's `crew`) moves to that pin. Only the host writes it, once.
+ * Host: the Map (apps/map/model.js). Pins linked to scenes (a row's `scenes`, set on the GM's Map): when the GM
+ * activates a linked scene, the crew's GPS spot (Combat Cabb's `crew`) moves to that pin; a scene linked to several
+ * pins asks the GM in chat which one (map-crew-pick). Only the host writes it, once.
  *
  * Planned routes (apps.routes[actorId] = { from, to, ts }): each character's route on their Map, sent as it
  * changes, so the GM's Map can show it. `from`/`to`: { x, y (scene px), name } or { crew: true } (from wherever
@@ -19,13 +21,20 @@ import { contentArt, contentScanned, resolveMapPaths } from "../../scripts/model
 export const requests = {
   "map-route": "_onMapRoute",
   "map-import": "_onMapImport",
-  "map-pin": "_onMapPin"
+  "map-pin": "_onMapPin",
+  "map-crew-pick": "_onMapCrewPick"
 };
+
+/**
+ * The chat card's flag (apps/map/client.js binds its buttons): { sceneId, scene (its name), pins: [pinId], answer
+ * (null; then a pin id, or "" for staying) }.
+ */
+export const CREW_PICK = "mapCrewPick";
 
 /** A new pin's row before the GM's own values (a GM-only, uncategorised spot). */
 const NEW_PIN = {
   everyone: false, actorIds: [], type: "misc", typeLabel: "Miscellaneous", label: false, page: null, size: null,
-  alpha: null, sceneId: null, zone: null, district: null, place: null, text: ""
+  alpha: null, scenes: [], zone: null, district: null, place: null, text: ""
 };
 
 /** A route's end as sent: { x, y, name } or { crew: true }; null when it's nonsense. */
@@ -66,16 +75,36 @@ export const methods = {
     await game.settings.set(MODULE_ID, "mapConfig", seed.config);
   },
 
-  /** Once the host has its data: the default Night City where the world has no Map, then Cabb's pin data moved in. */
+  /**
+   * Once the host has its data: the default Night City where the world has no Map, then Cabb's pin data moved in,
+   * and a pin's one linked scene made its list.
+   */
   async _mapLoad() {
     await this._mapLoadDefaults();
     await this._mapMoveCabb();
+    await this._mapMoveScenes();
+  },
+
+  /** A row's one linked scene (`sceneId`, before T274) becomes its list of scenes (`scenes`), once. */
+  async _mapMoveScenes() {
+    const rows = this.apps.mapPins ?? {};
+    let n = 0;
+    for (const [id, row] of Object.entries(rows)) {
+      if (!Object.hasOwn(row, "sceneId")) continue;
+      const { sceneId, ...rest } = row;
+      if (!Array.isArray(rest.scenes)) rest.scenes = sceneId ? [{ sceneId, label: "" }] : [];
+      rows[id] = rest;
+      n++;
+    }
+    if (!n) return;
+    await this._queueWrite(() => this._write());
+    console.log(`${MODULE_ID} | Map: ${n} pins' scene links made lists`);
   },
 
   /**
    * Combat Cabb kept its zones ({ pinId: zone }), its pins' scene links ({ pinId: sceneId }) and the crew's spot on
    * the NAV scene ({ sceneId, x, y, noteId }) in its own setting. The zone and the link are the
-   * pin's own (`zone`, `sceneId`) and the crew's spot is on the Map ({ x, y (Map px), noteId (its pin) }). Moved once,
+   * pin's own (`zone`, one of its `scenes`) and the crew's spot is on the Map ({ x, y (Map px), noteId (its pin) }). Moved once,
    * when the Map has its pins; a zone or link for a pin the Map doesn't have is dropped.
    */
   async _mapMoveCabb() {
@@ -86,7 +115,12 @@ export const methods = {
     if (!Object.keys(links).length && !Object.keys(zones).length && !crew?.sceneId) return;
     const rows = this.apps.mapPins ?? {};
     if (!mapReady() || !Object.keys(rows).length) return;
-    for (const [id, sceneId] of Object.entries(links)) if (rows[id]) rows[id] = { ...rows[id], sceneId };
+    for (const [id, sceneId] of Object.entries(links)) {
+      if (!rows[id]) continue;
+      const { sceneId: old, ...row } = rows[id];
+      const scenes = Array.isArray(row.scenes) ? row.scenes : old ? [{ sceneId: old, label: "" }] : [];
+      rows[id] = { ...row, scenes: scenes.some(s => s.sceneId === sceneId) ? scenes : [...scenes, { sceneId, label: "" }] };
+    }
     for (const [id, zone] of Object.entries(zones)) if (rows[id]) rows[id] = { ...rows[id], zone };
     await this._queueWrite(() => this._write());
     // The crew: from the scene's px to the Map's (the same on the NAV scene the Map was seeded from).
@@ -184,10 +218,57 @@ export const methods = {
     this._pushApps();
   },
 
-  /** A scene was activated: if a Map pin is linked to it, the crew is there now (Combat Cabb's `crew`, on the Map). */
+  /**
+   * A scene was activated: if one Map pin is linked to it, the crew is there now (Combat Cabb's `crew`, on the Map).
+   * Linked to several: the crew stays when it's at one of them; else the GMs are asked in chat which one, a button
+   * per pin (by name) and one to leave the crew where it is (map-crew-pick).
+   */
   async _mapSceneActivated(scene) {
-    const row = Object.values(this.apps.mapPins ?? {}).find(r => r.sceneId === scene.id);
-    if (!row || cabbConfig().crew?.noteId === row.id) return;
+    const rows = Object.values(this.apps.mapPins ?? {}).filter(r => pinScenes(r).some(s => s.sceneId === scene.id));
+    if (!rows.length || rows.some(r => r.id === cabbConfig().crew?.noteId)) return;
+    if (rows.length === 1) return this._mapCrewAt(rows[0]);
+    rows.sort((a, b) => String(a.name ?? "").localeCompare(String(b.name ?? "")));
+    const pick = { sceneId: scene.id, scene: scene.name, pins: rows.map(r => r.id), answer: null };
+    await ChatMessage.create({
+      speaker: { alias: "Map" }, whisper: ChatMessage.getWhisperRecipients("GM"),
+      content: crewPickCard(pick, rows), flags: { [MODULE_ID]: { [CREW_PICK]: pick } }
+    });
+  },
+
+  /** The crew is at a Map pin now (Combat Cabb's `crew`). */
+  async _mapCrewAt(row) {
     await patchSetting("cabb", c => (c.crew = { x: row.x, y: row.y, noteId: row.id, ts: Date.now() }));
+  },
+
+  /**
+   * A GM's answer on the chat card "Where is the crew?" (_mapSceneActivated): { messageId, pinId } (one of the
+   * card's pins; "" leaves the crew where it is). Answered once: the card then shows the choice, without buttons.
+   */
+  async _onMapCrewPick(user, { messageId, pinId }) {
+    if (!user?.isGM || typeof pinId !== "string") return;
+    const message = game.messages?.get(messageId);
+    const pick = message?.flags?.[MODULE_ID]?.[CREW_PICK];
+    if (!pick || pick.answer != null) return;
+    const row = pinId ? this.apps.mapPins?.[pinId] : null;
+    if (pinId && (!row || !pick.pins.includes(pinId))) return;
+    if (row) await this._mapCrewAt(row);
+    const answered = { ...pick, answer: pinId || "" };
+    const rows = pick.pins.map(id => this.apps.mapPins?.[id]).filter(Boolean);
+    await message.update({ content: crewPickCard(answered, rows), [`flags.${MODULE_ID}.${CREW_PICK}.answer`]: answered.answer });
   }
 };
+
+/** A pin as the chat card names it: "Afterlife · Watson". */
+const pinPlace = row => [row.name || "Pin", row.district && row.district !== row.name ? row.district : null].filter(Boolean).join(" · ");
+
+/** The chat card "Where is the crew?": a button per pin (`rows`) and one for staying; answered, the choice. */
+function crewPickCard(pick, rows) {
+  const head = `<p><b>${esc(pick.scene)}</b> is linked to ${pick.pins.length} places. Where is the crew?</p>`;
+  if (pick.answer != null) {
+    const row = rows.find(r => r.id === pick.answer);
+    return `<div class="agent-map-crew-pick">${head}<p class="agent-map-crew-pick-done">${row ? `The crew is at ${esc(pinPlace(row))}.` : "The crew stays where it is."}</p></div>`;
+  }
+  const buttons = rows.map(r => `<button type="button" data-map-crew-pick="${esc(r.id)}">${esc(pinPlace(r))}</button>`).join("");
+  return `<div class="agent-map-crew-pick">${head}<div class="agent-map-crew-pick-buttons">${buttons}`
+    + `<button type="button" data-map-crew-pick="">Leave the crew where it is</button></div></div>`;
+}

@@ -1,0 +1,3 @@
+- Map: a pin can link several scenes (battle maps, alternates, stills), shown to the GM as labelled chips on its card: tap one to look at it (players stay where they are), its play button to activate it. Edit pin labels, removes and adds them; pins with a scene get a small film mark.
+- Map: activating a scene linked to several pins asks the GM in chat where the crew is, a button per pin (or leave the crew where it is).
+- Map: "Apply recommended scenes…" in the GM's map menu links the recommended scenes from `assets/pin-maps.json` to the pins in one go (compendium scenes the world lacks are imported into a "Pin Maps" folder), then reports what was applied and what's missing.

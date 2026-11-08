@@ -226,7 +226,8 @@ export const toPicturePx = (p, pic, size) => ({
  * A NAV note as a mapPins row, or null (temporary pins are cleared at import; the party pin becomes the crew).
  * `players`: [{ user, actorIds }] every player and the characters they own. A pin every player sees is
  * everyone's; one only some see lists those players' characters; a GM-only pin lists none.
- * `links`, `zones`: Combat Cabb's { noteId: sceneId } and { noteId: zone }, moved onto the pin.
+ * `links`, `zones`: Combat Cabb's { noteId: sceneId } and { noteId: zone }, moved onto the pin (the link as its one
+ * linked scene).
  */
 export function pinFromNote(note, { pic, size, players = [], links = {}, zones = {} }) {
   if (isTempPin(note) || isPartyPin(note)) return null;
@@ -251,7 +252,7 @@ export function pinFromNote(note, { pic, size, players = [], links = {}, zones =
     page: (note.page ?? note.entry)?.uuid ?? null,
     size: p.territory ? Math.round(p.size * size.width / pic.w) : null,
     alpha: p.alpha,
-    sceneId: links[note.id] ?? null,
+    scenes: links[note.id] ? [{ sceneId: links[note.id], label: "" }] : [],
     zone: zones[note.id] ?? null
   };
 }
@@ -351,11 +352,12 @@ export function ownPicture(cfg) {
 
 /**
  * A mapPins row as the map draws it (the shape mapPin gives, in picture px). `gm`: the GM's view (GM-only pins
- * marked); `sceneName`: the GM's scene linked to it.
+ * marked, and how many scenes are linked to it: `scenes`, with `scene` true when there's one, which NavMap marks).
  */
-export function pinFromRow(row, { gm = false, sceneName = null } = {}) {
+export function pinFromRow(row, { gm = false } = {}) {
   const type = String(row.type || "").trim() || UNCATEGORISED;
   const territory = type === TERRITORY;
+  const scenes = gm ? pinScenes(row).length : 0;
   return {
     id: row.id,
     name: row.name || "Pin",
@@ -372,7 +374,8 @@ export function pinFromRow(row, { gm = false, sceneName = null } = {}) {
     territory,
     size: territory ? clampSize(row.size) : null,
     alpha: territory ? clampAlpha(row.alpha ?? 1) : null,
-    scene: gm ? sceneName : null,
+    scene: scenes > 0,
+    scenes,
     label: !!row.label,
     gmOnly: gm ? !row.everyone && !row.actorIds?.length : false,
     temp: !!row.temp,
@@ -384,12 +387,22 @@ export function pinFromRow(row, { gm = false, sceneName = null } = {}) {
 export const mapRows = () => store.apps.mapPins ?? {};
 
 /**
- * The pins this user has, districts last (drawn on top), by name. The GM's carry the name of the scene linked to
- * them (`row.sceneId`).
+ * The scenes linked to a row (GM only: the table's secret): [{ sceneId, label }] in the GM's order. Activating one
+ * puts the crew at the pin (host.js); `label` "" shows the scene's name.
+ */
+export const pinScenes = row => (Array.isArray(row?.scenes) ? row.scenes : []);
+
+/** The most scenes a pin links to, and the longest label. */
+export const MAX_PIN_SCENES = 12;
+export const MAX_SCENE_LABEL = 60;
+
+/**
+ * The pins this user has, districts last (drawn on top), by name. The GM's say how many scenes are linked to
+ * them (`row.scenes`).
  */
 export function ownPins(rows = mapRows(), user = game.user) {
   return Object.values(rows ?? {})
-    .map(row => pinFromRow(row, { gm: user.isGM, sceneName: user.isGM && row.sceneId ? game.scenes.get(row.sceneId)?.name ?? null : null }))
+    .map(row => pinFromRow(row, { gm: user.isGM }))
     .sort((a, b) => a.big - b.big || a.name.localeCompare(b.name));
 }
 
@@ -428,8 +441,8 @@ const JOURNAL_UUID = /^JournalEntry\.[A-Za-z0-9]{16}(\.JournalEntryPage\.[A-Za-z
 
 /**
  * A GM's change to a mapPins row (host.js map-pin), cleaned: only the keys the Map edits, each checked; a bad
- * value drops its key. Never id or ts (the host's). `zone`: Combat Cabb's ("combat", "hot" or null); `sceneId`: the
- * scene linked to it (activating that scene puts the crew here), or null.
+ * value drops its key. Never id or ts (the host's). `zone`: Combat Cabb's ("combat", "hot" or null); `scenes`: the
+ * scenes linked to it, the whole list (cleanScenes; null clears it).
  */
 export function cleanPinChange(change) {
   const out = {};
@@ -455,7 +468,23 @@ export function cleanPinChange(change) {
   keep("size", true, change.size === null ? null : clampSize(change.size));
   keep("alpha", true, change.alpha === null ? null : clampAlpha(change.alpha));
   keep("zone", change.zone === null || change.zone === "combat" || change.zone === "hot");
-  keep("sceneId", change.sceneId === null || /^[A-Za-z0-9]{16}$/.test(change.sceneId ?? ""));
+  const scenes = change.scenes === null ? [] : cleanScenes(change.scenes);
+  keep("scenes", !!scenes, scenes);
+  return out;
+}
+
+/**
+ * A pin's linked scenes as sent, cleaned: [{ sceneId (16 letters and digits), label (trimmed, ≤ 60; "" shows the
+ * scene's name) }], a scene once (its first), at most 12; null when it isn't such a list (or any entry is bad).
+ */
+export function cleanScenes(list) {
+  if (!Array.isArray(list) || list.length > MAX_PIN_SCENES) return null;
+  const out = [];
+  for (const s of list) {
+    const label = typeof s?.label === "string" ? s.label.trim() : s?.label == null ? "" : null;
+    if (typeof s?.sceneId !== "string" || !/^[A-Za-z0-9]{16}$/.test(s.sceneId) || label === null || label.length > MAX_SCENE_LABEL) return null;
+    if (!out.some(o => o.sceneId === s.sceneId)) out.push({ sceneId: s.sceneId, label });
+  }
   return out;
 }
 

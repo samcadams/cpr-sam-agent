@@ -6,11 +6,12 @@ import { store } from "../scripts/store.js";
 import { cabbConfig } from "../apps/cabb/model.js";
 import { emptyApps } from "../scripts/model/apps.js";
 import { emptyGarden } from "../apps/garden/model.js";
-import { clampAlpha, clampSize, cleanPinChange, configFromScene, isTempPin, mapPicture, mapPin, mapReady, ownPicture, ownPins, ownRoute, journalName, mapKmPerPx, matchJournals, NO_DISTRICT, pinsByDistrict, ownCabbRoad, pinFromNote, rowSeenBy, rowShared, pinFromRow, seedFromNav, TERRITORY_SCALE } from "../apps/map/model.js";
+import { clampAlpha, clampSize, cleanPinChange, cleanScenes, configFromScene, isTempPin, mapPicture, mapPin, mapReady, ownPicture, ownPins, ownRoute, journalName, mapKmPerPx, matchJournals, NO_DISTRICT, pinsByDistrict, ownCabbRoad, pinFromNote, rowSeenBy, rowShared, pinFromRow, seedFromNav, TERRITORY_SCALE } from "../apps/map/model.js";
 import { roadNetwork } from "../apps/map/route.js";
 import { CLUSTER_MIN, EXPAND, expandedAt, isExpanded, pinGroups, SHOW_PINS, SHOW_PINS_DEFAULT } from "../apps/map/clusters.js";
 import { filterState } from "../apps/map/navFilter.js";
 import { categoryIcon, isCategoryIcon, playersLevel, setJournalShared, sharedDoc } from "../apps/map/editor.js";
+import { planPinMaps, resolveSceneKey } from "../apps/map/pinScenes.js";
 import { existsSync, readFileSync } from "node:fs";
 import { resolveMapPaths } from "../scripts/model/content.js";
 
@@ -125,7 +126,7 @@ const PICTURE = { width: 11760, height: 15680 };
 const seedFrom = (note, extra = {}) =>
   pinFromNote(note, { pic: mapPicture(navScene()), size: PICTURE, players: [{ user: alice, actorIds: ["pcA"] }, { user: bob, actorIds: ["pcB"] }], ...extra });
 
-test("Map seed: a NAV pin becomes a mapPins row in the picture's px, with Cabb's link and zone on it", () => {
+test("Map seed: a NAV pin becomes a mapPins row in the picture's px, with Cabb's link (its one scene) and zone on it", () => {
   const row = seedFrom(
     { id: "n1", text: "Afterlife", x: 1500, y: 1300, texture: { src: "icons/bar.svg", tint: "#b4006a" },
       flags: { world: { r20import: { type: "bar", typeLabel: "Bar", district: "Watson", subLocation: "Little China", iconText: "AFTER" } } } },
@@ -134,7 +135,7 @@ test("Map seed: a NAV pin becomes a mapPins row in the picture's px, with Cabb's
   assert.deepEqual(row, {
     id: "n1", name: "Afterlife", x: 2000, y: 2000, type: "bar", typeLabel: "Bar", district: "Watson", place: "Little China",
     color: "#b4006a", icon: "icons/bar.svg", text: "AFT", label: false, everyone: true, actorIds: [], page: null,
-    size: null, alpha: null, sceneId: "scene9", zone: "hot"
+    size: null, alpha: null, scenes: [{ sceneId: "scene9", label: "" }], zone: "hot"
   });
 });
 
@@ -226,16 +227,17 @@ const row = (extra = {}) => ({
   icon: "icons/bar.svg", text: "AFTER", label: false, everyone: true, actorIds: [], page: null, size: null, alpha: null, ...extra
 });
 
-test("Map: a row is drawn as a pin; only the GM sees which are GM-only, and the scene linked to it", () => {
+test("Map: a row is drawn as a pin; only the GM sees which are GM-only, and how many scenes are linked to it", () => {
   const pin = pinFromRow(row());
   assert.deepEqual([pin.type, pin.big, pin.territory, pin.size, pin.alpha, pin.text], ["bar", false, false, null, null, "AFT"]);
-  assert.deepEqual([pin.gmOnly, pin.temp, pin.linked, pin.scene], [false, false, false, null]);
+  assert.deepEqual([pin.gmOnly, pin.temp, pin.linked, pin.scene, pin.scenes], [false, false, false, false, 0]);
   const hidden = row({ everyone: false, actorIds: [] });
   assert.equal(pinFromRow(hidden, { gm: true }).gmOnly, true, "neither everyone's nor any character's");
   assert.equal(pinFromRow(hidden).gmOnly, false, "(players never get those)");
   assert.equal(pinFromRow(row({ everyone: false, actorIds: ["pcA"] }), { gm: true }).gmOnly, false);
-  assert.equal(pinFromRow(row(), { gm: true, sceneName: "Afterlife (inside)" }).scene, "Afterlife (inside)");
-  assert.equal(pinFromRow(row(), { sceneName: "Afterlife (inside)" }).scene, null, "the GM's");
+  const linked = row({ scenes: [{ sceneId: "barScene00000001", label: "" }, { sceneId: "barScene00000002", label: "Still" }] });
+  assert.deepEqual([pinFromRow(linked, { gm: true }).scene, pinFromRow(linked, { gm: true }).scenes], [true, 2], "NavMap marks it");
+  assert.deepEqual([pinFromRow(linked).scene, pinFromRow(linked).scenes], [false, 0], "the GM's");
   const extra = pinFromRow(row({ temp: true, page: "JournalEntry.e1" }));
   assert.deepEqual([extra.temp, extra.linked], [true, true]);
   assert.equal(pinFromRow(row({ type: "" })).type, "__none", "no type: uncategorised");
@@ -287,8 +289,9 @@ test("Map pins: a GM's change keeps only the keys the Map edits, each checked; a
     color: "#B4006A", icon: "icons/bar.svg", text: "AFT", label: true, everyone: false, temp: true,
     actorIds: ["pcA", "pcB"], page: uuid, size: 4000, alpha: 0.33
   });
-  assert.deepEqual(cleanPinChange({ id: "x", sceneId: "s", zone: "warzone", ts: 1, bogus: 1 }), {}, "never the host's; a scene id or zone that isn't one is dropped");
-  assert.deepEqual(cleanPinChange({ sceneId: "barScene00000001", zone: "hot" }), { sceneId: "barScene00000001", zone: "hot" }, "Cabb's zone and the linked scene are the pin's (phase 5)");
+  assert.deepEqual(cleanPinChange({ id: "x", sceneId: "barScene00000001", scenes: "s", zone: "warzone", ts: 1, bogus: 1 }), {}, "never the host's; the old sceneId, scenes or a zone that isn't one are dropped");
+  assert.deepEqual(cleanPinChange({ scenes: [{ sceneId: "barScene00000001", label: "" }], zone: "hot" }),
+    { scenes: [{ sceneId: "barScene00000001", label: "" }], zone: "hot" }, "Cabb's zone and the linked scenes are the pin's (phase 5, T274)");
   assert.deepEqual(cleanPinChange({ type: "" }), { type: "__none" }, "no type: uncategorised");
   assert.deepEqual(cleanPinChange({ type: "__none" }), { type: "__none" });
   assert.deepEqual(cleanPinChange({ page: "JournalEntry.abcdefghij123456" }), { page: "JournalEntry.abcdefghij123456" }, "a whole entry");
@@ -333,7 +336,7 @@ test("Map pins: the GM sets, adds and deletes rows through the host; players can
   const added = store.apps.mapPins[id];
   assert.deepEqual({ ...added, ts: 0 }, {
     everyone: false, actorIds: [], type: "misc", typeLabel: "Miscellaneous", label: false, page: null, size: null, alpha: null,
-    sceneId: null, zone: null, district: null, place: null, text: "", name: "New pin", x: 1, y: 2, color: "#b4006a", id, ts: 0
+    scenes: [], zone: null, district: null, place: null, text: "", name: "New pin", x: 1, y: 2, color: "#b4006a", id, ts: 0
   }, "defaults, then the GM's values");
   assert.ok(added.ts > 5, "the host's time");
   assert.equal(store.apps.mapPins.short, undefined, "a bad id is ignored");
@@ -365,7 +368,7 @@ test("Map pins: Clear temporary pins takes only the temporary ones", async () =>
 
 test("Map: activating a scene linked to a Map pin puts the crew there, even a pin made on the Map", async () => {
   await game.settings.set("cpr-sam-agent", "cabb", { ...cabbConfig(), crew: null });
-  store.apps.mapPins = { newPin0000000001: { id: "newPin0000000001", name: "Made on the Map", x: 420, y: 640, sceneId: "barScene00000001" } };
+  store.apps.mapPins = { newPin0000000001: { id: "newPin0000000001", name: "Made on the Map", x: 420, y: 640, scenes: [{ sceneId: "otherScene000001", label: "" }, { sceneId: "barScene00000001", label: "Night" }] } };
   await store._mapSceneActivated({ id: "elsewhere0000001" });
   assert.equal(cabbConfig().crew, null, "a scene no pin links to");
   await store._mapSceneActivated({ id: "barScene00000001" });
@@ -380,9 +383,10 @@ test("Map phase 5: Combat Cabb's zones, scene links and crew spot move onto the 
     ...cabbConfig(), zones: { n1: "hot", gone: "combat" }, links: { n2: "barScene00000001" },
     crew: { sceneId: "nav", x: 1500, y: 1300, noteId: "n1", ts: 5 }
   });
-  store.apps.mapPins = { n1: { id: "n1", name: "Afterlife" }, n2: { id: "n2", name: "Lizzie's" } };
+  store.apps.mapPins = { n1: { id: "n1", name: "Afterlife" }, n2: { id: "n2", name: "Lizzie's", scenes: [{ sceneId: "stillScene000001", label: "Still" }] } };
   await store._mapMoveCabb();
-  assert.deepEqual([store.apps.mapPins.n1.zone, store.apps.mapPins.n2.sceneId], ["hot", "barScene00000001"]);
+  assert.equal(store.apps.mapPins.n1.zone, "hot");
+  assert.deepEqual(store.apps.mapPins.n2.scenes, [{ sceneId: "stillScene000001", label: "Still" }, { sceneId: "barScene00000001", label: "" }], "the link added to the pin's scenes");
   assert.equal(store.apps.mapPins.gone, undefined, "a zone for a pin the Map doesn't have is dropped");
   const cfg = cabbConfig();
   assert.deepEqual([cfg.zones, cfg.links], [{}, {}]);
@@ -393,19 +397,178 @@ test("Map phase 5: Combat Cabb's zones, scene links and crew spot move onto the 
   assert.equal(store.apps.mapPins.n1.zone, "combat");
 });
 
-test("Map phase 5: the GM sets a pin's Cabb zone and linked scene through the host; who sees a row", async () => {
+test("Map phase 5: the GM sets a pin's Cabb zone and linked scenes through the host; who sees a row", async () => {
   store.apps.mapPins = { a: { id: "a", name: "A", everyone: false, actorIds: ["pcA"] } };
-  from(gm, "map-pin", { op: "set", id: "a", change: { zone: "hot", sceneId: "barScene00000001" } });
+  const scenes = [{ sceneId: "barScene00000001", label: "Night" }];
+  from(gm, "map-pin", { op: "set", id: "a", change: { zone: "hot", scenes } });
   await settle();
-  assert.deepEqual([store.apps.mapPins.a.zone, store.apps.mapPins.a.sceneId], ["hot", "barScene00000001"]);
-  from(gm, "map-pin", { op: "set", id: "a", change: { zone: "warzone", sceneId: "no" } });
+  assert.deepEqual([store.apps.mapPins.a.zone, store.apps.mapPins.a.scenes], ["hot", scenes]);
+  assert.equal(lastApps(alice).mapPins.a.scenes, undefined, "the linked scenes are the GM's");
+  from(gm, "map-pin", { op: "set", id: "a", change: { zone: "warzone", scenes: [{ sceneId: "no" }] } });
   await settle();
-  assert.deepEqual([store.apps.mapPins.a.zone, store.apps.mapPins.a.sceneId], ["hot", "barScene00000001"], "nonsense: unchanged");
-  from(gm, "map-pin", { op: "set", id: "a", change: { zone: null, sceneId: null } });
+  assert.deepEqual([store.apps.mapPins.a.zone, store.apps.mapPins.a.scenes], ["hot", scenes], "nonsense: unchanged");
+  from(gm, "map-pin", { op: "set", id: "a", change: { zone: null, scenes: null } });
   await settle();
-  assert.deepEqual([store.apps.mapPins.a.zone, store.apps.mapPins.a.sceneId], [null, null]);
+  assert.deepEqual([store.apps.mapPins.a.zone, store.apps.mapPins.a.scenes], [null, []]);
   const row = store.apps.mapPins.a;
   assert.deepEqual([rowSeenBy(row, gm), rowSeenBy(row, alice), rowSeenBy(row, bob), rowShared(row), rowShared({ everyone: false, actorIds: [] })], [true, true, false, true, false]);
+});
+
+/* Pin Maps (T274): several scenes per pin */
+
+test("Map scenes: a pin's linked scenes are checked as a whole list; null or [] clears them", () => {
+  const a = "barScene00000001";
+  const b = "barScene00000002";
+  assert.deepEqual(cleanScenes([{ sceneId: a, label: "  Night " }, { sceneId: b }, { sceneId: a, label: "Again" }]),
+    [{ sceneId: a, label: "Night" }, { sceneId: b, label: "" }], "trimmed; no label: the scene's name; a scene once (its first)");
+  assert.equal(cleanScenes([{ sceneId: "short", label: "" }]), null, "a bad id");
+  assert.equal(cleanScenes([{ sceneId: 1234567890123456, label: "" }]), null, "not a string");
+  assert.equal(cleanScenes([{ sceneId: a, label: "x".repeat(61) }]), null, "a label over 60");
+  assert.equal(cleanScenes([{ sceneId: a, label: 5 }]), null, "a label that isn't text");
+  assert.equal(cleanScenes(Array.from({ length: 13 }, (_, i) => ({ sceneId: `scene${String(i).padStart(11, "0")}`, label: "" }))), null, "over 12");
+  assert.equal(cleanScenes(Array.from({ length: 12 }, (_, i) => ({ sceneId: `scene${String(i).padStart(11, "0")}`, label: "" }))).length, 12);
+  assert.equal(cleanScenes("nope"), null);
+  assert.deepEqual(cleanPinChange({ scenes: null }), { scenes: [] }, "null clears");
+  assert.deepEqual(cleanPinChange({ scenes: [] }), { scenes: [] });
+  assert.deepEqual(cleanPinChange({ scenes: [{ sceneId: a, label: "" }, { sceneId: "bad" }] }), {}, "one bad entry drops the change");
+});
+
+test("Map scenes: a row's one sceneId becomes its scenes once, on load", async () => {
+  store.apps.mapPins = {
+    a: { id: "a", name: "Afterlife", sceneId: "barScene00000001" },
+    b: { id: "b", name: "New pin", sceneId: null },
+    c: { id: "c", name: "Both", sceneId: "barScene00000001", scenes: [{ sceneId: "barScene00000002", label: "Still" }] },
+    d: { id: "d", name: "Plain" }
+  };
+  await store._mapMoveScenes();
+  const rows = store.apps.mapPins;
+  assert.deepEqual(rows.a.scenes, [{ sceneId: "barScene00000001", label: "" }]);
+  assert.deepEqual(rows.b.scenes, []);
+  assert.deepEqual(rows.c.scenes, [{ sceneId: "barScene00000002", label: "Still" }], "a list already there is kept");
+  assert.equal(Object.values(rows).some(r => "sceneId" in r), false, "sceneId gone");
+  assert.equal("scenes" in rows.d, false, "a row without a link is left alone");
+});
+
+/** ChatMessage and game.messages, enough for the GM's card "Where is the crew?". */
+function chatStub() {
+  const created = [];
+  game.messages = new Map();
+  globalThis.ChatMessage = {
+    async create(data) {
+      const message = {
+        id: `message${String(created.length).padStart(9, "0")}`, ...structuredClone(data),
+        async update(change) {
+          for (const [key, value] of Object.entries(change)) foundry.utils.setProperty(this, key, value);
+        }
+      };
+      created.push(message);
+      game.messages.set(message.id, message);
+      return message;
+    },
+    getWhisperRecipients: () => [{ id: "gm" }]
+  };
+  return created;
+}
+
+const scenePins = () => ({
+  p1: { id: "p1", name: "Lizzie's Bar", district: "Watson", x: 100, y: 200, scenes: [{ sceneId: "barScene00000001", label: "" }] },
+  p2: { id: "p2", name: "Afterlife", district: "Watson", x: 300, y: 400, scenes: [{ sceneId: "barScene00000001", label: "Night" }] },
+  p3: { id: "p3", name: "Elsewhere", x: 9, y: 9, scenes: [] }
+});
+
+test("Map scenes: a scene linked to several pins asks the GMs in chat where the crew is, unless it's at one of them", async () => {
+  const created = chatStub();
+  await game.settings.set("cpr-sam-agent", "cabb", { ...cabbConfig(), crew: { x: 9, y: 9, noteId: "p3", ts: 1 } });
+  store.apps.mapPins = scenePins();
+  await store._mapSceneActivated({ id: "noLinks000000001", name: "Nowhere" });
+  assert.equal(created.length, 0, "a scene no pin links to: nothing");
+  await store._mapSceneActivated({ id: "barScene00000001", name: "Dive Bar" });
+  assert.equal(created.length, 1, "a card");
+  const card = created[0];
+  assert.deepEqual(card.whisper, [{ id: "gm" }], "whispered to the GMs");
+  assert.match(card.content, /Dive Bar<\/b> is linked to 2 places\. Where is the crew\?/);
+  assert.match(card.content, /data-map-crew-pick="p2">Afterlife · Watson<\/button><button type="button" data-map-crew-pick="p1">Lizzie&#39;s Bar · Watson/, "a button per pin, by name");
+  assert.match(card.content, /data-map-crew-pick="">Leave the crew where it is/);
+  assert.deepEqual(card.flags["cpr-sam-agent"].mapCrewPick, { sceneId: "barScene00000001", scene: "Dive Bar", pins: ["p2", "p1"], answer: null });
+  assert.equal(cabbConfig().crew.noteId, "p3", "the crew stays until the GM picks");
+
+  await game.settings.set("cpr-sam-agent", "cabb", { ...cabbConfig(), crew: { x: 100, y: 200, noteId: "p1", ts: 1 } });
+  await store._mapSceneActivated({ id: "barScene00000001", name: "Dive Bar" });
+  assert.equal(created.length, 1, "the crew is at one of them: no card");
+  assert.equal(cabbConfig().crew.noteId, "p1");
+});
+
+test("Map scenes: the GM's pick on the card puts the crew at that pin, once; players can't", async () => {
+  const created = chatStub();
+  await game.settings.set("cpr-sam-agent", "cabb", { ...cabbConfig(), crew: null });
+  store.apps.mapPins = scenePins();
+  await store._mapSceneActivated({ id: "barScene00000001", name: "Dive Bar" });
+  const card = created[0];
+  from(alice, "map-crew-pick", { messageId: card.id, pinId: "p2" });
+  from(gm, "map-crew-pick", { messageId: card.id, pinId: "p3" });
+  from(gm, "map-crew-pick", { messageId: "nope", pinId: "p2" });
+  await settle();
+  assert.equal(cabbConfig().crew, null, "a player's, a pin not on the card, or no such card: nothing");
+  assert.equal(card.flags["cpr-sam-agent"].mapCrewPick.answer, null);
+
+  from(gm, "map-crew-pick", { messageId: card.id, pinId: "p2" });
+  await settle();
+  assert.deepEqual({ ...cabbConfig().crew, ts: 0 }, { x: 300, y: 400, noteId: "p2", ts: 0 }, "the crew is at the pin picked");
+  assert.equal(card.flags["cpr-sam-agent"].mapCrewPick.answer, "p2");
+  assert.doesNotMatch(card.content, /<button/, "answered: no buttons");
+  assert.match(card.content, /The crew is at Afterlife · Watson\./, "the choice shown");
+
+  from(gm, "map-crew-pick", { messageId: card.id, pinId: "p1" });
+  await settle();
+  assert.equal(cabbConfig().crew.noteId, "p2", "answered once");
+
+  // Another card: Leave the crew where it is.
+  await game.settings.set("cpr-sam-agent", "cabb", { ...cabbConfig(), crew: null });
+  await store._mapSceneActivated({ id: "barScene00000001", name: "Dive Bar" });
+  from(gm, "map-crew-pick", { messageId: created[1].id, pinId: "" });
+  await settle();
+  assert.equal(cabbConfig().crew, null, "the crew stays");
+  assert.equal(created[1].flags["cpr-sam-agent"].mapCrewPick.answer, "");
+  assert.match(created[1].content, /The crew stays where it is\./);
+});
+
+test("Map scenes: a recommended scene's key finds this world's scene: compendium source, then sourceId, or background", () => {
+  const key = "Compendium.fragmaps-free.scenes.Scene.AbCdEfGhIj123456";
+  const scenes = [
+    { id: "s1", name: "Dive Bar (old copy)", compendiumSource: null, sourceId: key, backgroundSrc: "maps/bar.webp" },
+    { id: "s2", name: "Dive Bar", compendiumSource: key, sourceId: null, backgroundSrc: "maps/bar.webp" },
+    { id: "s3", name: "B Rooftop", compendiumSource: null, sourceId: null, backgroundSrc: "maps/Roof%20Top%20(night).webp" },
+    { id: "s4", name: "A Rooftop", compendiumSource: null, sourceId: null, backgroundSrc: "maps/Roof Top (night).webp" }
+  ];
+  assert.equal(resolveSceneKey(key, scenes), "s2", "v12's compendium source first");
+  assert.equal(resolveSceneKey(key, scenes.filter(s => s.id !== "s2")), "s1", "else the older flags.core.sourceId");
+  assert.equal(resolveSceneKey("bg:maps/Roof Top (night).webp", scenes), "s4", "background, URL escapes undone on both sides; of several, the first by name");
+  assert.equal(resolveSceneKey("bg:maps/Roof%20Top%20(night).webp", scenes.slice(0, 3)), "s3");
+  assert.equal(resolveSceneKey("bg:maps/gone.webp", scenes), null, "missing");
+  assert.equal(resolveSceneKey("Compendium.other.pack.Scene.ZZZZZZZZZZ123456", scenes), null, "missing");
+  assert.equal(resolveSceneKey("S0042", scenes), null, "not a key");
+  assert.equal(resolveSceneKey(undefined, scenes), null);
+});
+
+test("Map scenes: applying the recommended scenes skips linked pins (unless replacing) and pins not on the Map", async () => {
+  const file = { version: 1, pins: {
+    p1: { name: "Lizzie's Bar", scenes: [{ key: "bg:a.webp", label: "Main" }, { key: "bg:gone.webp", label: "Alt" }, { key: "bg:a.webp", label: "Twice" }] },
+    p2: { name: "Afterlife", scenes: [{ key: "bg:b.webp", label: " Night " }] },
+    p3: { name: "Elsewhere", scenes: [{ key: "bg:gone.webp", label: "" }] },
+    zz: { name: "Not here", scenes: [{ key: "bg:a.webp", label: "" }] }
+  } };
+  const ids = { "bg:a.webp": "sceneAAAAAAAAAAA", "bg:b.webp": "sceneBBBBBBBBBBB" };
+  const resolve = async key => ids[key] ?? null;
+  const rows = scenePins();
+  const kept = await planPinMaps(file, rows, { resolve });
+  assert.deepEqual(kept.changes, {}, "p1 and p2 are linked already; p3 resolves to nothing");
+  assert.deepEqual(kept.report, { pins: 0, links: 0, missing: 1, missingKeys: ["bg:gone.webp"], skipped: 2, notHere: 1 });
+  const all = await planPinMaps(file, rows, { replace: true, resolve });
+  assert.deepEqual(all.changes, {
+    p1: { scenes: [{ sceneId: "sceneAAAAAAAAAAA", label: "Main" }] },
+    p2: { scenes: [{ sceneId: "sceneBBBBBBBBBBB", label: "Night" }] }
+  }, "unresolved links dropped, a scene once, labels from the file");
+  assert.deepEqual(all.report, { pins: 2, links: 2, missing: 2, missingKeys: ["bg:gone.webp"], skipped: 0, notHere: 1 });
 });
 
 test("Map phase 5: Combat Cabb's trip by road on the Map, in km", () => {

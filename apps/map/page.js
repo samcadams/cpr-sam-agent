@@ -7,7 +7,8 @@ import { cabbConfig, cabbMap, cabbPlaces, OPEN_RIDE, partyPickup, ZONES } from "
 import { isLapsed, poolOn } from "../pool/model.js";
 import { phoneApps } from "../../scripts/model/apps.js";
 import { store } from "../../scripts/store.js";
-import { mapCategories, mapConfig, mapReady, mapScene, navPlayers, ownLists, ownPicture, ownPins, ownRoute, pinsBox, seedNav, UNCATEGORISED } from "./model.js";
+import { mapCategories, mapConfig, mapReady, mapScene, MAX_PIN_SCENES, navPlayers, ownLists, ownPicture, ownPins, ownRoute, pinsBox, pinScenes, seedNav, UNCATEGORISED } from "./model.js";
+import { applyPinMaps } from "./pinScenes.js";
 import { formatMinutes } from "./route.js";
 import { loadGraph } from "./sidecars.js";
 import { patchSetting } from "../../scripts/util/settings.js";
@@ -24,8 +25,9 @@ import { NAMES_AT, NavMap } from "./navMap.js";
  * what it is and a look at its journal page (players: without its unrevealed secrets; the GM: all of it).
  *
  * The crew's GPS spot (Combat Cabb's `crew`, apps/cabb/model.js): everyone sees where the crew is; the GM drags it
- * anywhere or onto a pin, puts the crew at a pin from its card, or links a pin to a scene (activating that
- * scene puts the crew there, apps/map/host.js). Combat Cabb picks the crew up there.
+ * anywhere or onto a pin, puts the crew at a pin from its card, or links scenes to a pin (activating one puts the
+ * crew there, apps/map/host.js). Combat Cabb picks the crew up there. The GM's card shows a pin's linked scenes as
+ * chips: tap one to look at it (players stay where they are), its play button to activate it.
  *
  * Routes (apps/map/route.js, on the roads traced beside the map picture): anyone plans one from a pin's card
  * ("Route here" from the crew's spot or the start picked with "Start here"); it's drawn as a glowing line,
@@ -252,6 +254,18 @@ export const actions = {
   "map-crew-clear"() {
     if (game.user.isGM) setCrew(null);
   },
+  /** GM: look at a scene linked to the picked pin (only the GM goes there). */
+  "map-scene-view"({ sceneId }) {
+    if (game.user.isGM) game.scenes.get(sceneId)?.view();
+  },
+  /** GM: activate a scene linked to the picked pin (the players go there; the crew moves, host.js). */
+  "map-scene-activate"({ sceneId }) {
+    if (game.user.isGM) game.scenes.get(sceneId)?.activate();
+  },
+  /** GM: a linked scene off the picked pin. */
+  "map-scene-remove"({ sceneId }) {
+    if (this.mapPick) edit.removeScene(this.mapPick, sceneId);
+  },
 
   /* GM: the picked pin (apps/map/editor.js). */
 
@@ -361,6 +375,13 @@ export const inputs = {
       if (this.mapPick) edit.setField(this.mapPick, "named", event.currentTarget.checked);
     }
   },
+  // A linked scene's label (empty: the scene's name).
+  ".agent-map-edit input[name=mapSceneLabel]": {
+    change(event) {
+      const el = event.currentTarget;
+      if (this.mapPick) edit.labelScene(this.mapPick, el.dataset.sceneId, el.value);
+    }
+  },
   // Who sees it, some characters: the ones ticked (any the list doesn't show stay listed).
   ".agent-map-share input[name=mapPinSeenBy]": {
     change(event) {
@@ -450,10 +471,10 @@ export const dropdowns = {
     const [id, zone] = pinValue(value);
     edit.setZone(id, ZONES[zone] ? zone : null);
   },
-  /** GM: the scene linked to a pin: "pinId|sceneId" ("pinId|": none). */
-  mapLink(value) {
-    const [id, sceneId] = String(value).split("|");
-    edit.setLink(id, sceneId || null);
+  /** GM: one more scene linked to a pin: "pinId|sceneId" ("pinId|": Add scene…, nothing). */
+  mapSceneAdd(value) {
+    const [id, sceneId] = pinValue(value);
+    if (sceneId) edit.addScene(id, sceneId);
   }
 };
 
@@ -487,6 +508,12 @@ export const methods = {
     const journal = pinJournal(row);
     const page = journal ? previewPage(journal) : null;
     const crewPin = crew?.noteId ? pins.find(p => p.id === crew.noteId) : null;
+    // GM: the scenes linked to it, as chips (the label, else the scene's name; one that's gone, struck through).
+    const sceneChips = gm && row ? pinScenes(row).map(s => {
+      const scene = game.scenes.get(s.sceneId);
+      const name = scene ? scene.navName || scene.name : null;
+      return { sceneId: s.sceneId, label: s.label, name, text: s.label || name || "Missing scene", missing: !scene, active: !!scene?.active };
+    }) : [];
     const temps = gm ? pins.filter(p => p.temp).length : 0;
     // Combat Cabb's places are the Map's pins, unless the GM chose its city list ("No map").
     const cabbOnMap = !!cabbMap(cfg);
@@ -508,26 +535,24 @@ export const methods = {
         canRouteTo: !!(this.mapRoute?.from || crew),
         cabb: !!this._mapCabb(ctx, pin.id),
         isStart: this.mapRoute?.from?.x === pin.x && this.mapRoute?.from?.y === pin.y,
-        edit: gm ? this._mapEditData(row, journal, pin, pins) : null,
+        edit: gm ? this._mapEditData(row, journal, pin, pins, sceneChips, own) : null,
+        sceneChips,
         // Combat Cabb's zone (fare multiplier) for this pin: only when the Map is Cabb's own NAV scene's.
         zoneDropdown: gm && cabbOnMap ? dropdown("mapCabbZone", [
           { value: `${pin.id}|`, label: "No zone", selected: !row?.zone },
           ...Object.entries(ZONES).map(([z, label]) => ({ value: `${pin.id}|${z}`, label, selected: row?.zone === z }))
-        ], { title: `Combat Cabb's zone: fares into a zone cost ×${cfg.zoneMult}`, cls: "agent-wide" }) : null,
-        linkDropdown: gm ? dropdown("mapLink", [
-          { value: `${pin.id}|`, label: "No scene linked", selected: !row?.sceneId },
-          ...game.scenes.filter(s => s.id !== own.seeded.from).map(s => ({ value: `${pin.id}|${s.id}`, label: s.navName || s.name, selected: row?.sceneId === s.id }))
-        ], { title: "Scene linked to this pin: activating it puts the crew here", cls: "agent-wide", search: game.scenes.size > 8 }) : null
+        ], { title: `Combat Cabb's zone: fares into a zone cost ×${cfg.zoneMult}`, cls: "agent-wide" }) : null
       } : null
     };
   },
 
   /**
    * GM: the picked pin's editor on its card: its fields (name, category, district, colour, icon, the name always
-   * shown; a territory's size and opacity on the Map), who sees it and its journal, and the journal it's linked to.
+   * shown; a territory's size and opacity on the Map), who sees it and its journal, the journal it's linked to, and
+   * its linked scenes (`chips`, mapData's: each labelled or taken off; Add scene… lists the others but the Map's own).
    * From the pin's row (`journal`: pinJournal's).
    */
-  _mapEditData(row, journal, pin, pins) {
+  _mapEditData(row, journal, pin, pins, chips, own) {
     const id = pin.id;
     const opt = (value, label, selected, extra = {}) => ({ value: `${id}|${value}`, label, selected, ...extra });
     const categories = mapCategories(pins, filterLists());
@@ -558,6 +583,9 @@ export const methods = {
       : null;
     const entries = game.journal.contents.sort((a, b) => a.name.localeCompare(b.name));
     const entry = journal?.entry ?? null;
+    const linked = new Set(chips.map(c => c.sceneId));
+    const sceneName = s => s.navName || s.name;
+    const others = game.scenes.filter(s => s.id !== own.seeded?.from && !linked.has(s.id)).sort((a, b) => sceneName(a).localeCompare(sceneName(b)));
     return {
       open: !!this.mapEditOpen,
       name: row?.name ?? pin.name,
@@ -597,7 +625,10 @@ export const methods = {
       pageDropdown: entry && entry.pages.size > 1 ? dropdown("mapPinPage", [
         opt("", "The whole entry", !journal.page),
         ...entry.pages.contents.sort((a, b) => a.sort - b.sort).map(pg => opt(pg.id, pg.name, pg.id === journal.page?.id))
-      ], { title: "Which page of it", cls: "agent-wide", search: entry.pages.size > 8 }) : null
+      ], { title: "Which page of it", cls: "agent-wide", search: entry.pages.size > 8 }) : null,
+      scenes: chips,
+      sceneDropdown: chips.length < MAX_PIN_SCENES && others.length ? dropdown("mapSceneAdd", [opt("", "Add scene…", true), ...others.map(s => opt(s.id, sceneName(s), false))],
+        { title: "Link a scene: activating it puts the crew here", cls: "agent-wide", search: others.length > 8 }) : null
     };
   },
 
@@ -879,7 +910,8 @@ export const methods = {
       { id: "pin", label: "Drop a new pin here", icon: "fa-map-pin" },
       { id: "crew", label: "Put the crew here", icon: "fa-location-arrow" },
       ...(temps ? [{ id: "clear-temp", label: `Clear temporary pins (${temps})`, icon: "fa-broom" }] : []),
-      ...(seeded && mapScene() ? [{ id: "import", label: importLabel, icon: "fa-file-import" }] : [])
+      ...(seeded && mapScene() ? [{ id: "import", label: importLabel, icon: "fa-file-import" }] : []),
+      { id: "pin-maps", label: "Apply recommended scenes…", icon: "fa-clapperboard" }
     ];
   },
 
@@ -888,6 +920,7 @@ export const methods = {
     if (item === "crew") return setCrew(this._navMap?._snap(at) ?? { ...at, noteId: null });
     if (item === "clear-temp") return actions["map-clear-temp"].call(this);
     if (item === "import") return actions["map-import"].call(this);
+    if (item === "pin-maps") return applyPinMaps();
     const id = await edit.dropPin(at, { temp: item === "temp", district: this._navMap?.areaAt(at.x, at.y) ?? null });
     if (!id) return;
     // Picked, with its editor open for a new pin (the redraw comes with the host's push of its row).

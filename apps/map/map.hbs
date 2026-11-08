@@ -91,6 +91,18 @@
               {{/if}}
               <div class="agent-map-edit-row"><span>Journal</span>{{> agent-dropdown entryDropdown}}</div>
               {{#if pageDropdown}}<div class="agent-map-edit-row"><span>Page</span>{{> agent-dropdown pageDropdown}}</div>{{/if}}
+              {{!-- Its linked scenes: a label each (empty: the scene's name), unlinked with ×; Add scene… links another. --}}
+              <div class="agent-map-edit-row agent-map-scenes-edit"><span title="Activating one of these scenes puts the crew at this pin">Scenes</span>
+                <div class="agent-map-scenes-edit-list">
+                  {{#each scenes}}
+                    <div class="agent-map-scene-edit{{#if missing}} missing{{/if}}">
+                      <input type="text" name="mapSceneLabel" data-scene-id="{{sceneId}}" value="{{label}}" placeholder="{{#if name}}{{name}}{{else}}Missing scene{{/if}}" maxlength="60" autocomplete="off" title="Label (empty: the scene's name)" aria-label="Label for {{text}}">
+                      <a class="agent-icon-btn" data-action="map-scene-remove" data-scene-id="{{sceneId}}" role="button" title="Unlink this scene" aria-label="Unlink {{text}}"><i class="fas fa-xmark"></i></a>
+                    </div>
+                  {{/each}}
+                  {{#if sceneDropdown}}{{> agent-dropdown sceneDropdown}}{{/if}}
+                </div>
+              </div>
               <p class="agent-map-card-note">Drag the pin to move it{{#if territory}}, its corner to size it{{/if}}. Right-click the map (or hold) to drop a pin.</p>
             {{/if}}
           </div>
@@ -102,8 +114,18 @@
         {{#if zoneDropdown}}
           <div class="agent-map-card-link"><span title="Combat Cabb's fare multiplier for rides here"><i class="fas fa-taxi"></i> Cabb zone</span>{{> agent-dropdown zoneDropdown}}</div>
         {{/if}}
-        {{#if linkDropdown}}
-          <div class="agent-map-card-link"><span title="Activating this scene puts the crew at this pin"><i class="fas fa-link"></i> Scene</span>{{> agent-dropdown linkDropdown}}</div>
+        {{!-- GM: the scenes linked to it. Tap one to look at it yourself, its play button to activate it. --}}
+        {{#if sceneChips.length}}
+          <div class="agent-map-scenes" role="group" aria-label="Scenes linked to this pin">
+            <span class="agent-map-scenes-head" title="Activating one of these scenes puts the crew at this pin"><i class="fas fa-clapperboard"></i> Scenes</span>
+            {{#each sceneChips}}
+              <span class="agent-map-scene{{#if missing}} missing{{/if}}{{#if active}} active{{/if}}">
+                {{#if missing}}<span class="agent-map-scene-name" title="This scene is no longer in the world: unlink it in Edit pin">{{text}}</span>
+                {{else}}<a class="agent-map-scene-name" data-action="map-scene-view" data-scene-id="{{sceneId}}" role="button" title="Look at {{name}} (players stay where they are)">{{text}}</a>
+                <a class="agent-map-scene-play" data-action="map-scene-activate" data-scene-id="{{sceneId}}" role="button" title="Activate {{name}}: players go there, the crew moves here" aria-label="Activate {{name}}"><i class="fas fa-play"></i></a>{{/if}}
+              </span>
+            {{/each}}
+          </div>
         {{/if}}
       </div>
     {{/with}}

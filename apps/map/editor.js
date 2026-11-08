@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../../scripts/config.js";
 import { store } from "../../scripts/store.js";
-import { UNCATEGORISED } from "./model.js";
+import { MAX_SCENE_LABEL, pinScenes, UNCATEGORISED } from "./model.js";
 
 /*
  * The GM's edits to the Map's own pins (the table mapPins): each one is a map-pin request the host checks
@@ -15,6 +15,7 @@ import { UNCATEGORISED } from "./model.js";
  *   its entry to Limited (not Observer: the entry's other pages that inherit would open with it). Folders have no
  *   permissions in Foundry v12: a folder shows once something in it does.
  * - Drop a new pin, or a temporary one (players see it at once; cleared together).
+ * - The scenes linked to it (added, labelled, taken off: the whole list sent each time).
  */
 
 /**
@@ -103,9 +104,28 @@ export async function setZone(id, zone) {
   setRow(id, { zone: zone || null });
 }
 
-/** GM: the scene linked to a pin (activating it puts the crew here), or none. */
-export async function setLink(id, sceneId) {
-  setRow(id, { sceneId: sceneId || null });
+/** GM: the scenes linked to a pin, the whole list ([{ sceneId, label }]; activating one puts the crew here). */
+export async function setScenes(id, scenes) {
+  setRow(id, { scenes });
+}
+
+/** GM: link one more scene to a pin (last; once). */
+export async function addScene(id, sceneId) {
+  const scenes = pinScenes(rowOf(id));
+  if (sceneId && !scenes.some(s => s.sceneId === sceneId)) setScenes(id, [...scenes, { sceneId, label: "" }]);
+}
+
+/** GM: a linked scene off the pin. */
+export async function removeScene(id, sceneId) {
+  const scenes = pinScenes(rowOf(id));
+  if (scenes.some(s => s.sceneId === sceneId)) setScenes(id, scenes.filter(s => s.sceneId !== sceneId));
+}
+
+/** GM: a linked scene's label on the pin's card ("": the scene's name). */
+export async function labelScene(id, sceneId, label) {
+  const text = String(label ?? "").trim().slice(0, MAX_SCENE_LABEL);
+  const scenes = pinScenes(rowOf(id));
+  if (scenes.some(s => s.sceneId === sceneId && s.label !== text)) setScenes(id, scenes.map(s => (s.sceneId === sceneId ? { ...s, label: text } : s)));
 }
 
 /**

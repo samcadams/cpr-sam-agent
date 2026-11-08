@@ -15,8 +15,8 @@ export default {
   // Combat Cabb's zones, scene links and crew spot move onto the Map's pins once
   load: "_mapLoad",
   // Each character's planned route, for the GM's Map (host.js). The Map's own pins (model.js pinFromNote):
-  // everyone's, or the characters they list; the scene linked to a pin is the GM's (its Cabb zone isn't secret).
-  tables: { routes: { owner: "key" }, mapPins: { owner: "listed", secret: ["sceneId"] } },
+  // everyone's, or the characters they list; the scenes linked to a pin are the GM's (its Cabb zone isn't secret).
+  tables: { routes: { owner: "key" }, mapPins: { owner: "listed", secret: ["scenes"] } },
   settings: {
     // The Map's own map (model.js configFromScene): its picture, scale, traced files and pin categories.
     mapConfig: { scope: "world", type: Object, default: {}, redraw: ["mapConfig"] }
