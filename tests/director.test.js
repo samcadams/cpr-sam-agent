@@ -103,13 +103,33 @@ const direct = (id, actorId, contact) => ({
 
 test("Dashboard approvals: each waiting Garden draft batch, with Review opening the Garden's Drafts", async () => {
   store.garden.drafts = { batches: { b1: { id: "b1", ts: 150, summary: "3 posts, 1 reply", errors: [], items: [] }, b2: { id: "b2", ts: 50, summary: "1 post", errors: [{ message: "x" }], items: [] } }, reviews: [] };
-  await game.settings.set(MODULE_ID, "features", { app_garden: true });
+  await game.settings.set(MODULE_ID, "features", { app_garden: true, anthropic: true });
   const rows = approvals();
   assert.deepEqual(rows.map(r => r.key), ["b2", "b1"]);
   assert.match(rows[0].title, /1 error/);
   assert.deepEqual(rows[1].actions, [{ action: "goto", label: "Review", primary: true, data: { tab: "garden", gardenTab: "drafts" } }]);
-  await game.settings.set(MODULE_ID, "features", { app_garden: false });
+  await game.settings.set(MODULE_ID, "features", { app_garden: true, anthropic: false });
+  assert.deepEqual(approvals(), [], "the Anthropic API tools off: the writer's batches are hidden");
+  await game.settings.set(MODULE_ID, "features", { app_garden: false, anthropic: true });
   assert.deepEqual(approvals(), [], "the Garden switched off: none");
+});
+
+test("Director Garden: Drafts, Writer and the writer-profile feather only with the Anthropic API tools on", async () => {
+  store.garden.accounts = { n54: { id: "n54", handle: "@network54", name: "N54", kind: "news", followers: 1000 } };
+  const director = { logic: new GmLogic(), drafts: {} };
+  director.logic.gardenTab = "accounts";
+  await game.settings.set(MODULE_ID, "features", { app_garden: true, anthropic: true });
+  let html = gardenView.html(director);
+  assert.match(html, /data-tab="drafts"/);
+  assert.match(html, /data-tab="writer"/);
+  assert.match(html, /garden-writer-edit/);
+  await game.settings.set(MODULE_ID, "features", { app_garden: true, anthropic: false });
+  html = gardenView.html(director);
+  assert.doesNotMatch(html, /data-tab="drafts"|data-tab="writer"/);
+  assert.doesNotMatch(html, /garden-writer-edit/);
+  director.logic.gardenTab = "writer";
+  gardenView.html(director);
+  assert.equal(director.logic.gardenTab, "feed", "a hidden tab falls back to the feed");
 });
 
 test("GmLogic: the GM Phone's dropdowns and actions, never drawn; pick:persona narrows the inbox and redraws the Director", () => {

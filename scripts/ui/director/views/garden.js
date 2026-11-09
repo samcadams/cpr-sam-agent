@@ -113,7 +113,7 @@ function detailHtml(detail) {
   const a = detail.patch;
   const tools = a.actorId ? "" : phoneBtn("garden-post-as", "Post as", { data: { accountId: a.id }, icon: "fa-pen-nib" })
     + phoneBtn("garden-account-edit", "Edit", { data: { accountId: a.id }, icon: "fa-pen" })
-    + phoneBtn("garden-writer-edit", "Writer", { data: { accountId: a.id }, icon: "fa-feather" });
+    + (a.writerEdit ? phoneBtn("garden-writer-edit", "Writer", { data: { accountId: a.id }, icon: "fa-feather" }) : "");
   const replies = a.replies.map(r => `<li class="director-reply-row">
       ${phoneBtn("garden-open", `Replying to ${esc(r.to)}`, { data: { postId: r.postId }, cls: "director-plain" })}
       <span class="director-time">${esc(r.ago ?? "")}</span>
@@ -224,7 +224,7 @@ function accountsHtml(accounts) {
     tools: phoneBtn("garden-pin", "", { data: { accountId: a.id }, icon: "fa-thumbtack", cls: a.pinned ? "on" : "", title: a.pinned ? "Pinned: first in the As list. Unpin" : "Pin: first in the As list" })
       + (a.actorId ? "" : phoneBtn("garden-post-as", "", { data: { accountId: a.id }, icon: "fa-pen-nib", title: `Post as ${a.handle}` })
         + phoneBtn("garden-account-edit", "", { data: { accountId: a.id }, icon: "fa-pen", title: "Edit" })
-        + phoneBtn("garden-writer-edit", "", { data: { accountId: a.id }, icon: "fa-feather", cls: a.profiled ? "on" : "", title: `Writer profile${a.profiled ? " (set)" : ""}` }))
+        + (a.writerEdit ? phoneBtn("garden-writer-edit", "", { data: { accountId: a.id }, icon: "fa-feather", cls: a.profiled ? "on" : "", title: `Writer profile${a.profiled ? " (set)" : ""}` }) : ""))
       + phoneBtn("garden-account-delete", "", { data: { accountId: a.id }, icon: "fa-trash", cls: "danger", title: "Delete" })
   }));
   return `<div class="director-toolbar">${phoneBtn("garden-account-edit", "New account", { icon: "fa-plus" })}${phoneBtn("garden-generate", "Random citizens", { icon: "fa-dice" })}</div>

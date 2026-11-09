@@ -7,7 +7,7 @@ import {
   reputationOf, tierSummary, WORLD_PACE
 } from "./model.js";
 import { appearance } from "../../scripts/model/appearance.js";
-import { commsOn } from "../../scripts/model/features.js";
+import { commsOn, gardenWriterOn } from "../../scripts/model/features.js";
 import { patchSetting } from "../../scripts/util/settings.js";
 import { esc } from "../../scripts/util/text.js";
 import { displayName } from "../../scripts/model/threads.js";
@@ -16,7 +16,6 @@ import { initials } from "../../scripts/util/text.js";
 import { actions as writerActions, methods as writerMethods } from "./writer-page.js";
 import { actions as draftsActions, methods as draftsMethods } from "./drafts-page.js";
 import { hasProfile } from "./writer.js";
-import { RELEASE } from "../../scripts/release.js";
 
 /*
  * Phone page: The Garden and The Garden Dating (see apps/garden/model.js). Two feeds, Feed and News;
@@ -28,9 +27,8 @@ import { RELEASE } from "../../scripts/release.js";
  */
 
 const TABS = { feed: "Feed", news: "News", dating: "Dating" };
-// Drafts, Writer and the Accounts feather feed the garden-writer skill on Sam's machine: release builds leave them out.
-const WRITER_TABS = RELEASE ? {} : { drafts: "Drafts", writer: "Writer" };
-const GM_TABS = { ...TABS, accounts: "Accounts", queue: "Queue", ...WRITER_TABS, control: "Control" };
+// Drafts, Writer and the Accounts feather feed the garden-writer skill: shown only while gardenWriterOn().
+const GM_TABS = { ...TABS, accounts: "Accounts", queue: "Queue", drafts: "Drafts", writer: "Writer", control: "Control" };
 
 /** How often a player's phone tells the host its character opened the Garden (garden-seen), per character. */
 const SEEN_EVERY_MS = 5 * 60_000;
@@ -42,8 +40,13 @@ function gardenTabs(gm) {
   const tabs = { ...(gm ? GM_TABS : TABS) };
   if (mergeNews) delete tabs.news;
   if (!dating) delete tabs.dating;
+  const writer = gm && gardenWriterOn();
+  if (!writer) {
+    delete tabs.drafts;
+    delete tabs.writer;
+  }
   // Batches from the writer waiting for the GM (drafts-page.js).
-  const waiting = gm && !RELEASE ? Object.keys(store.garden.drafts?.batches ?? {}).length : 0;
+  const waiting = writer ? Object.keys(store.garden.drafts?.batches ?? {}).length : 0;
   if (waiting) tabs.drafts = `Drafts (${waiting})`;
   return tabs;
 }
@@ -628,6 +631,7 @@ export const methods = {
       data.patch = {
         ...this._gardenAccountRow(account),
         mine: !!me && me.id === account.id,
+        writerEdit: gm && gardenWriterOn(),
         canMessage: commsOn() && !gm && (!me || me.id !== account.id) && (!!account.npc || (!!account.actorId && account.actorId !== ctx.actorId)),
         reputation: actor ? reputationOf(actor) : null,
         repFeed: actor ? reputationFeed(actor) : [],
@@ -662,7 +666,7 @@ export const methods = {
     else if (tab === "accounts") {
       data.accounts = accounts.sort((a, b) => !!b.pinned - !!a.pinned || (a.kind === b.kind ? a.handle.localeCompare(b.handle) : a.kind.localeCompare(b.kind))).map(a => ({
         ...this._gardenAccountRow(a), owner: a.actorId ? displayName(game.actors.get(a.actorId)) : null, followersLabel: Number(a.followers).toLocaleString(),
-        attitude: ATTITUDES[a.mood] ?? null, profiled: hasProfile(a.writer), writerEdit: !RELEASE
+        attitude: ATTITUDES[a.mood] ?? null, profiled: hasProfile(a.writer), writerEdit: gardenWriterOn()
       }));
     } else if (tab === "writer") data.writer = this._gardenWriterData();
     else if (tab === "drafts") data.drafts = this._gardenDraftsData();

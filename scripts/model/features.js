@@ -1,6 +1,7 @@
 import { APP_IDS, APP_MANIFEST } from "../apps/manifest.js";
 import { MODULE_ID } from "../config.js";
 import { patchSetting } from "../util/settings.js";
+import { RELEASE } from "../release.js";
 
 /*
  * World-wide switches the GM sets in the GM Phone's Control app (world setting "features").
@@ -19,7 +20,7 @@ export const FEATURE_DEFAULTS = {
   agentChat: false, // chat says when someone takes out or puts away a carried Agent (ui/agentShown.js)
   agentChatWhisper: false, // ...whispered to the GM (and only the GM sees the bubble)
   shareTexts: true, // a few texts from a conversation can be shared to chat (model/share.js)
-  anthropic: false, // the GM's Anthropic API tools: Claude drafts in Ask Alex and DataPool, and Ask Alex's key settings
+  anthropic: false, // the GM's Anthropic API tools: Claude drafts in Ask Alex and DataPool, Ask Alex's key settings, and the Garden writer's tools
   // Every app (apps/manifest.js): on, unless the manifest says it starts off.
   ...Object.fromEntries(APP_IDS.map(id => [`app_${id}`, !APP_MANIFEST[id].off]))
 };
@@ -59,6 +60,12 @@ export const commsOn = () => !!feature("comms");
 
 /** Are the GM's Anthropic API tools (Claude drafts in Ask Alex and DataPool) shown? */
 export const anthropicOn = () => !!feature("anthropic");
+
+/**
+ * Are the Garden writer's tools (Drafts, Writer, writer profiles, draft batches on the Dashboard) shown?
+ * They feed the garden-writer skill on Sam's machine: never in release builds, and only with the Anthropic API tools.
+ */
+export const gardenWriterOn = () => !RELEASE && anthropicOn();
 
 /**
  * Requests the host refuses while Communications are off (host/index.js). Ending a call, reading,

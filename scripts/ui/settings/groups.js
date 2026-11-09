@@ -33,7 +33,7 @@ const FEATURE_FIELDS = {
   blood: { name: "Blood overlay when hurt", hint: "Blood on the screen of a Seriously or Mortally Wounded character's phone." },
   anthropic: {
     name: "Enable Anthropic API Tools",
-    hint: "Draft with Claude in Ask Alex and DataPool, and Ask Alex's Optional Anthropic API settings (the key stays in your browser, in Ask Alex). Off hides them all."
+    hint: "Draft with Claude in Ask Alex and DataPool, Ask Alex's Optional Anthropic API settings (the key stays in your browser, in Ask Alex), and the Garden writer's Drafts and Writer tabs and writer profiles. Off hides them all."
   }
 };
 
