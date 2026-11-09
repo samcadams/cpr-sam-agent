@@ -1,1 +1,0 @@
-- NCPD Crime Database: sold in the App Store for 500eb (once) instead of sideloaded by a Fixer. Worlds that saved their own NCPD listing keep it.

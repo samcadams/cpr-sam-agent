@@ -1,1 +1,0 @@
-- Director: a world setting turns it on (Configure Settings → Director (GM)), off by default while it's still being built. Off, there's no Director button, its keybinding does nothing, and calls ring on the GM Phone.

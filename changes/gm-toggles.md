@@ -1,4 +1,0 @@
-- The GM can say per CitiNet app whether it needs the CitiNet. Without a signal, The Garden, the App Store, Great River, CBK and Combat Cabb show "Cannot connect!"; the others stay browsable under the No CitiNet strip.
-- New GM settings: Require carried Agent item (off: every player character has an Agent), the Agent's and Big SAAI's Library Search bonuses as numbers, and a switch for the Sponsored Cybereye's ads (Control → Labels).
-- Weather Control: "A Blackout cuts the signal" can be switched off.
-- Configure Settings has submenus in setup order: Apps, Phone rules, Sounds, Clock and Integrations. Phone rules, the default sounds, the clock and the Anthropic API Tools switch moved there from Control, which links to them. GM pop-up timing, phone volume, in-world volume and text size are in Configure Settings too.

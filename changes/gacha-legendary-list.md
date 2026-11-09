@@ -1,1 +1,0 @@
-- Gacha on the GM Phone: a Legendary rewards list (add an item by search or by dropping one). "Make it real" offers those first, with "Pick any item…" under them; with an empty list it works as before.

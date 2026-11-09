@@ -1,2 +1,0 @@
-- BangMe! invoices: players and the GM can bill each other at any distance from a new Invoices list. The payer answers Pay or Decline on their Agent or in BangMe!, or the GM on a card; nothing moves until they pay, and the sender can cancel an unpaid one. The GM bills under any name.
-- An Agent without BangMe! hears "Someone is trying to invoice us. We should install BangMe! from the app store." The invoice waits, ready to pay once it's installed.

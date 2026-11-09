@@ -1,5 +1,0 @@
-- NC Market: a store on the Agent (starts off; switch it on in Control). Players browse world items and Item compendiums within the GM's price limits, fill a cart and send orders, as many as they like. The GM approves or denies each order on the GM Phone (setting a price for items that have none); approved items go straight into the character's gear and are paid through BangMe!.
-- NC Market setup on the GM Phone: which world items and compendiums are on sale, item types, lowest and highest price, markup, "ignore blank price", orders waiting per character, and whether players may order more than they have.
-- NC Market Shop: Featured items and a Hot Deals carousel (10% off and up) drawn anew each in-world day; the GM sets how many, the biggest discount, and can draw them again.
-- NC Market on the GM Phone: a Shop tab that shows what players see, where the GM can hide an item or list it as unavailable.
-- NC Market Cart: type the quantity. Orders: Re-order puts an old order back in the cart at today's names and prices.

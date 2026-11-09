@@ -1,1 +1,0 @@
-- Gacha: every Legendary, Epic and Rare collectible and 15 Uncommons now have a real picture instead of an icon (bundled in the module, credits in `images/gacha/CREDITS.md`), bigger on the shelf, in the reveal, in the pull show and on the show-off chat card. Pulls already on a shelf pick theirs up too.

@@ -1,1 +1,0 @@
-- Long lists in the phone's apps (BangMe!'s ledger and invoices, HusTool's hustles, order and receipt histories, leaderboards, notes and more) show five rows with a Show all button. Anything still waiting on an answer always shows.

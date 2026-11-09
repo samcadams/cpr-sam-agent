@@ -1,1 +1,0 @@
-- NCPD Crime Database: a record you get back now opens as a printed NCPD file in its own window: letterhead, your photo, the subject's details, warrants, bounties and priors in tables, and a WANTED stamp when it applies. Share it to chat, or Send to… a contact: their conversation opens with the record typed in, for you to send. The GM fills in the record the same way.

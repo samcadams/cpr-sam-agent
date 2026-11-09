@@ -1,1 +1,0 @@
-- App Store: the GM can reset ownership of an app on a character's row: it comes off their Agent and they must buy it again, with nothing refunded.
