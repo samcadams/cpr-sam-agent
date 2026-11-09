@@ -26,7 +26,7 @@ export function registerSettings() {
     world(setting, {
       config: false,
       name: label,
-      hint: `Every phone's ${label.toLowerCase()}: a bundled sound, or a file of the GM's own. Each phone can pick its own.`,
+      hint: `Every phone's ${label.toLowerCase()} default`,
       type: String,
       default: SOUND_DEFAULTS[kind]
     });
@@ -48,26 +48,26 @@ export function registerSettings() {
   world("ringRadius", {
     config: false, // set in Configure Settings → Sounds
     name: "In-world sound radius",
-    hint: "How far rings and text tones carry around the token, in scene distance units.",
+    hint: "How far world sounds play around a token, scene units",
     type: Number,
     range: { min: 1, max: 60, step: 1 },
     default: 10
   });
   world("agentNames", {
     name: "Agent item names",
-    hint: "Gear with these names (comma separated) counts as an Agent when carried or equipped.",
+    hint: "Comma separated, gear items that count as Agents",
     type: String,
     default: "Agent"
   });
   world("biomonitorNames", {
     name: "Biomonitor item names",
-    hint: "Cyberware or gear with these names (comma separated) is a Biomonitor the Agent can read: biometric alerts, and Trauma Team's automatic calls.",
+    hint: "Comma separated, cyberware/gear that counts as a biomonitor for Trauma Team automation",
     type: String,
     default: "Biomonitor"
   });
   world("internalAgentNames", {
     name: "Internal Agent item names",
-    hint: "Installed cyberware with these names (comma separated) counts as an Internal Agent.",
+    hint: "Comma separated, gear items that count as Internal Agents",
     type: String,
     default: "Internal Agent"
   });
@@ -78,7 +78,7 @@ export function registerSettings() {
   world("requireAgentItem", {
     config: false,
     name: "Require carried Agent item",
-    hint: "Player characters need an Agent item to have a phone. Off: every player character has an Agent, item or not (Internal Agents and Biomonitors still need theirs).",
+    hint: "Player characters need an Agent item carried to use.",
     type: Boolean,
     default: true,
     onChange: redrawPhones
@@ -86,7 +86,7 @@ export function registerSettings() {
   world("citinetApps", {
     config: false,
     name: "Apps that need the CitiNet",
-    hint: "Per app: whether it stops working without a signal. Only what differs from the app's own default is saved.",
+    hint: "Per app settings: CitiNet = Cellular signal",
     type: Object,
     default: {},
     onChange: redrawPhones
@@ -94,7 +94,7 @@ export function registerSettings() {
   world("agentLibraryBonus", {
     config: false,
     name: "Agent's Library Search bonus",
-    hint: "What an Agent adds to Library Search (Ask Alex Anything).",
+    hint: "Default 2",
     type: Number,
     range: { min: 0, max: 5, step: 1 },
     default: 2
@@ -102,7 +102,7 @@ export function registerSettings() {
   world("bigSaaiBonus", {
     config: false,
     name: "Big SAAI's Library Search bonus",
-    hint: "What the Big SAAI add-on adds to Library Search, on top of the Agent's bonus.",
+    hint: "Default 1 for '+3' w/ Agent",
     type: Number,
     range: { min: 0, max: 5, step: 1 },
     default: 1
@@ -110,7 +110,7 @@ export function registerSettings() {
   world("sponsoredAds", {
     config: false, // set in Control → Labels
     name: "Sponsored Cybereye ads",
-    hint: "An installed Sponsored Cybereye streams ad lines over the phone, whatever its skin (the lines are in Control → Labels).",
+    hint: "Show sponsored cybereye ads",
     type: Boolean,
     default: true,
     onChange: redrawPhones
@@ -118,7 +118,7 @@ export function registerSettings() {
 
   client("volume", { // also on the phone: Settings → Look (This GM Phone in Control)
     name: "Phone volume",
-    hint: "Your own phone: text tones and ringtones (0 mutes them). Also scaled by Foundry's Interface volume.",
+    hint: "Phone-specific volume setting, scaled by Foundry's volume sliders",
     type: Number,
     range: { min: 0, max: 1, step: 0.05 },
     default: 0.5,
@@ -126,14 +126,14 @@ export function registerSettings() {
   });
   client("worldVolume", { // also on the phone: Settings → Look (This GM Phone in Control)
     name: "In-world phone volume",
-    hint: "Phones ringing and buzzing near your tokens (0 mutes them). Also scaled by Foundry's Ambient volume.",
+    hint: "Phones ringing near your tokens (0 mutes). Also scaled by Foundry's Ambient volume.",
     type: Number,
     range: { min: 0, max: 1, step: 0.05 },
     default: 0.8
   });
   client("hudOpacity", {
     name: "Internal Agent HUD opacity",
-    hint: "How solid the Internal Agent HUD looks on your screen (also adjustable in the phone's settings).",
+    hint: "Accessibility: How 'holographic' the Internal Agent is. Modifiable within phone Settings as well.",
     type: Number,
     range: { min: 0.2, max: 1, step: 0.05 },
     default: 0.8,
@@ -143,13 +143,13 @@ export function registerSettings() {
   });
   client("directorCalls", {
     name: "Calls ring on the Director (GM)",
-    hint: "While the GM Director is open, calls ring in its call strip instead of on the GM Phone (no call pop-ups).",
+    hint: "Rather than ringing on the GM phone",
     type: Boolean,
     default: true
   });
   client("monitorOpacity", {
     name: "Agent Monitor opacity (GM)",
-    hint: "How solid the GM's Agent Monitor looks over the scene (also its footer slider). It turns solid while the pointer is on it.",
+    hint: "Standalone agent monitor opacity",
     type: Number,
     range: { min: 0.15, max: 1, step: 0.05 },
     default: 0.6,
@@ -157,37 +157,36 @@ export function registerSettings() {
   });
   // The Agent Monitor's dismissed history: { cleared: { [actorId]: ts }, hidden: [did id], off: bool }.
   client("monitorHistory", {
-    config: false, name: "Agent Monitor's cleared history", hint: "What the GM cleared or hid in the Agent Monitor's log.", type: Object, default: {}
+    config: false, name: "Agent Monitor's cleared history", type: Object, default: {}
   });
   client("reduceMotion", {
     name: "Reduce motion",
-    hint: "Stop the phone's blinking, pulsing, shaking and sliding, and show text all at once. Always on when your device asks for less motion.",
+    hint: "Reduces animations, flashes, etc.",
     type: Boolean,
     default: false,
     onChange: () => applyReduceMotion()
   });
   client("keepPopups", {
     name: "Keep phone pop-ups open",
-    hint: "Notifications and achievement celebrations stay until you close them, instead of going away after a few seconds.",
+    hint: "Notifications stay until you close them",
     type: Boolean,
     default: false
   });
   client("gmPopupSeconds", {
     name: "GM pop-ups close after",
-    hint: "Seconds before the GM's notification pop-ups close themselves (0 keeps the usual timing). Ringing calls stay until answered.",
+    hint: "GM-specific notifications close after X amount of seconds",
     type: Number,
     range: { min: 0, max: 60, step: 1 },
     default: 30
   });
   client("gmPopupAnswers", {
-    name: "GM pop-ups that ask for an answer close too",
-    hint: "With a time above: pop-ups waiting for the GM's answer (requests, approvals) close after it as well. Off: they stay until answered.",
+    name: "GM pop-ups that ask for an answer auto-close too",
+    hint: "Otherwise defaults to the gmPopupSeconds value above",
     type: Boolean,
     default: true
   });
   client("fontScale", { // also on the phone: Settings → Look (This GM Phone in Control)
     name: "Phone text size",
-    hint: "How big the text is on your phone.",
     type: Number,
     range: { min: 0.8, max: 1.5, step: 0.05 },
     default: 1,
