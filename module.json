@@ -2,7 +2,7 @@
   "id": "cpr-sam-agent",
   "title": "Sam's CPR Agent",
   "description": "A semi-functional Agent for texting, 'calling', and some apps based off All About Agents. Built with assistance from Claude. All code reviewed by the author. Project not affiliated with R. Talsorian Games.",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "license": "LICENSE",
   "readme": "README.md",
   "changelog": "CHANGELOG.md",

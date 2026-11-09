@@ -8,7 +8,6 @@ import { isLapsed, poolOn } from "../pool/model.js";
 import { phoneApps } from "../../scripts/model/apps.js";
 import { store } from "../../scripts/store.js";
 import { mapCategories, mapConfig, mapReady, mapScene, MAX_PIN_SCENES, navPlayers, ownLists, ownPicture, ownPins, ownRoute, pinsBox, pinScenes, seedNav, UNCATEGORISED } from "./model.js";
-import { applyPinMaps } from "./pinScenes.js";
 import { formatMinutes } from "./route.js";
 import { loadGraph } from "./sidecars.js";
 import { patchSetting } from "../../scripts/util/settings.js";
@@ -902,16 +901,11 @@ export const methods = {
   _mapMenu(at) {
     if (!game.user.isGM) return [];
     const temps = ownPins().filter(p => p.temp).length;
-    // (the default Night City wasn't imported from NAV: "again" only after an import; none without a NAV scene)
-    const seeded = mapConfig().seeded;
-    const importLabel = seeded?.defaults ? "Import from NAV" : "Import from NAV again";
     return [
       { id: "temp", label: "Drop a temporary pin here", icon: "fa-thumbtack" },
       { id: "pin", label: "Drop a new pin here", icon: "fa-map-pin" },
       { id: "crew", label: "Put the crew here", icon: "fa-location-arrow" },
-      ...(temps ? [{ id: "clear-temp", label: `Clear temporary pins (${temps})`, icon: "fa-broom" }] : []),
-      ...(seeded && mapScene() ? [{ id: "import", label: importLabel, icon: "fa-file-import" }] : []),
-      { id: "pin-maps", label: "Apply recommended scenes…", icon: "fa-clapperboard" }
+      ...(temps ? [{ id: "clear-temp", label: `Clear temporary pins (${temps})`, icon: "fa-broom" }] : [])
     ];
   },
 
@@ -919,8 +913,6 @@ export const methods = {
     if (!game.user.isGM) return;
     if (item === "crew") return setCrew(this._navMap?._snap(at) ?? { ...at, noteId: null });
     if (item === "clear-temp") return actions["map-clear-temp"].call(this);
-    if (item === "import") return actions["map-import"].call(this);
-    if (item === "pin-maps") return applyPinMaps();
     const id = await edit.dropPin(at, { temp: item === "temp", district: this._navMap?.areaAt(at.x, at.y) ?? null });
     if (!id) return;
     // Picked, with its editor open for a new pin (the redraw comes with the host's push of its row).
