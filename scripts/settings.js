@@ -2,6 +2,8 @@ import { MODULE_ID } from "./config.js";
 import { SOUND_DEFAULTS, SOUND_KINDS } from "./model/sounds.js";
 import { CallAudio } from "./ui/CallAudio.js";
 import { AgentPhone } from "./ui/phone/AgentPhone.js";
+import { updateButtons } from "./ui/buttons.js";
+import { Director } from "./ui/director/Director.js";
 import { applyReduceMotion } from "./ui/a11y.js";
 import { APP_SETTINGS } from "./apps/manifest.js";
 import * as clients from "../apps/clients.js";
@@ -114,6 +116,17 @@ export function registerSettings() {
     type: Boolean,
     default: true,
     onChange: redrawPhones
+  });
+  // Off: no Director button, keybinding or api.director, and calls ring on the GM Phone (it's still being built).
+  world("director", {
+    name: "Director (GM)",
+    hint: "The wide GM control window, still in progress. Off hides its button and calls ring on the GM Phone.",
+    type: Boolean,
+    default: false,
+    onChange: on => {
+      if (!on) Director.instance?.close();
+      updateButtons();
+    }
   });
 
   client("volume", { // also on the phone: Settings → Look (This GM Phone in Control)

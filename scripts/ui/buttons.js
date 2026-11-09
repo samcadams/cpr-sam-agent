@@ -1,6 +1,6 @@
 import { AgentPhone } from "./phone/AgentPhone.js";
 import { Director } from "./director/Director.js";
-import { directorTakesCalls } from "./director/state.js";
+import { directorOn, directorTakesCalls } from "./director/state.js";
 import { MODULE_ID } from "../config.js";
 import { phoneSubject } from "../model/agent.js";
 import { commsOn, noSignalSince } from "../model/features.js";
@@ -139,7 +139,7 @@ export function updateButtons() {
   if (game.user.isGM) {
     const director = directorTakesCalls(); // calls ring on the Director instead
     GmButton.update({ visible: true, unread: comms ? store.totalUnread() : 0, offline: !store.online, ringing: incoming && !director });
-    DirectorButton.update({ visible: true, offline: !store.online, ringing: incoming && director });
+    DirectorButton.update({ visible: directorOn(), offline: !store.online, ringing: incoming && director });
   }
 
   // The token phone closes when the Agent is put away (unless a call is up on it).

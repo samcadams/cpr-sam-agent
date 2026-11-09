@@ -16,6 +16,7 @@ import { activity, noteActivity, registerScreen } from "./ui/activity.js";
 import { AgentMonitor } from "./ui/AgentMonitor.js";
 import { Director } from "./ui/director/Director.js";
 import { detach } from "./ui/director/detach.js";
+import { directorOn } from "./ui/director/state.js";
 import { AgentPhone } from "./ui/phone/AgentPhone.js";
 import { openLocation } from "./ui/location.js";
 import { fields, getSetting, groups, setSetting } from "./ui/settings/groups.js";
@@ -542,13 +543,20 @@ const monitor = {
   registerScreen
 };
 
-/** The GM Director: open, close or toggle it; `detach()` (an open Director) needs a click, like any pop-up. */
+/**
+ * The GM Director: open, close or toggle it; `detach()` (an open Director) needs a click, like any pop-up.
+ * Fails while the world setting "director" is off.
+ */
+const requireDirector = () => {
+  requireGM("The Director");
+  if (!directorOn()) fail("The Director is off in this world (Configure Settings → Director).");
+};
 const director = {
-  open: () => (requireGM("The Director"), Director.open()),
+  open: () => (requireDirector(), Director.open()),
   close: () => Director.instance?.close(),
-  toggle: () => (requireGM("The Director"), Director.toggle()),
+  toggle: () => (requireDirector(), Director.toggle()),
   detach: () => {
-    requireGM("The Director");
+    requireDirector();
     if (!Director.instance?.rendered) fail("Open the Director first.");
     detach(Director.instance);
   }

@@ -1,6 +1,6 @@
 import { detach, redock } from "./detach.js";
 import { GmLogic } from "./logic.js";
-import { directorState } from "./state.js";
+import { directorOn, directorState } from "./state.js";
 import * as apps from "./views/apps.js";
 import { callStrip, callTimers, actions as callActions } from "./views/calls.js";
 import { agentStrip } from "./views/strip.js";
@@ -61,7 +61,7 @@ export class Director extends Application {
   static instance = null;
 
   static open() {
-    if (!game.user.isGM) return null;
+    if (!game.user.isGM || !directorOn()) return null;
     const director = (this.instance ??= new this());
     director.render(true);
     if (director.rendered) director.bringToTop();

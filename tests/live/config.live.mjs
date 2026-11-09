@@ -14,6 +14,7 @@ async function openConfig(open, keys) {
   const mod = game.modules.get(MODULE);
   window.__cfgSaved ??= { settings: mod.api.settings };
   if (keys) mod.api.settings = { groups: [{ id: "claude-test", label: "Claude test", keys }] };
+  if (!game.settings.get(MODULE, "director")) await game.settings.set(MODULE, "director", true); // off by default
   const director = api.director.open();
   await until(() => director.rendered, "the Director");
   (await until(() => document.querySelector('#ctp-director [data-director="tab"][data-tab="config"]'), "the Config tab button")).click();
