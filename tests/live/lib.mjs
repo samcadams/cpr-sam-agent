@@ -10,10 +10,11 @@ import os from "node:os";
 
 export const FPW = process.env.FPW ?? `${os.homedir()}/.claude/skills/foundry-playwright/scripts/fpw`;
 
-/** Run fpw; resolves with stdout. `[lanes]` news on stderr is passed through. */
+/** Run fpw; resolves with stdout (never cut: FPW_MAX=0). `[lanes]` news on stderr is passed through. */
 export function fpw(args, input) {
   return new Promise((resolve, reject) => {
-    const child = execFile(FPW, args, { maxBuffer: 32 << 20, timeout: 180_000 }, (err, stdout, stderr) => {
+    const env = { ...process.env, FPW_MAX: "0" };
+    const child = execFile(FPW, args, { env, maxBuffer: 32 << 20, timeout: 180_000 }, (err, stdout, stderr) => {
       const news = stderr.split("\n").filter(l => l.startsWith("[lanes]"));
       if (news.length) process.stderr.write(`${news.join("\n")}\n`);
       if (err) {
