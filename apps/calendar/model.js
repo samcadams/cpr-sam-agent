@@ -70,7 +70,8 @@ export function noteView(entry, user = game.user) {
     id: entry.id,
     title: entry.name,
     time: noteTime(data),
-    html: page?.text?.content ?? "",
+    // Empty paragraphs at either end (a note saved with no details is "<p></p>") would show as a gap.
+    html: (page?.text?.content ?? "").replace(/^(\s*<p>\s*<\/p>)+|(<p>\s*<\/p>\s*)+$/g, ""),
     mine: entry.testUserPermission?.(user, "OWNER") ?? false,
     sort: data.allDay ? -1 : (data.startDate?.hour ?? 0) * 60 + (data.startDate?.minute ?? 0)
   };

@@ -30,6 +30,9 @@ export const actions = {
     const api = scApi();
     if (!api) return;
     this.calMonth = stepMonth(this.calMonth ?? today(api), Number(step), api.getAllMonths().length);
+    // The selected day follows: today in this month, else its first day.
+    const t = today(api);
+    this.calDay = t.year === this.calMonth.year && t.month === this.calMonth.month ? t : { ...this.calMonth, day: 0 };
     this.calAdding = false;
     this.render();
   },
@@ -51,6 +54,7 @@ export const actions = {
   },
   "cal-add"() {
     this.calAdding = !this.calAdding;
+    this._calFormOpened = this.calAdding;
     this.render();
   },
   "cal-note-save"() {
@@ -88,6 +92,17 @@ export const actions = {
   "cal-downtime"() {
     const actor = this.calSubject();
     hqApi()?.openDowntime?.(game.user.isGM ? undefined : actor);
+  }
+};
+
+export const phone = {
+  /** A note form just opened below the day: bring it into view, ready to type. */
+  render(html) {
+    if (!this._calFormOpened) return;
+    this._calFormOpened = false;
+    const form = html.querySelector(".agent-cal-form");
+    form?.scrollIntoView({ block: "nearest" });
+    form?.querySelector("[name=calTitle]")?.focus({ preventScroll: true });
   }
 };
 

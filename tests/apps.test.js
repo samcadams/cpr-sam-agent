@@ -1058,6 +1058,13 @@ test("Calendar: a month's grid, stepping months, and note times", async () => {
   assert.equal(noteTime({ startDate: at(9, 5), endDate: at(9, 5) }), "09:05");
 });
 
+test("Calendar: a note with no details has no body; blank lines inside one stay", async () => {
+  const { noteView } = await import("../apps/calendar/model.js");
+  const entry = content => ({ id: "n", name: "N", pages: [{ type: "text", text: { content } }] });
+  assert.equal(noteView(entry("<p></p>")).html, "");
+  assert.equal(noteView(entry("<p></p><p>Go</p><p></p><p>Now</p><p></p>")).html, "<p>Go</p><p></p><p>Now</p>");
+});
+
 test("Flappy Chrome: hover until the first flap, fall, score through stacks, crash, and the board keeps each character's best", async () => {
   const { addScore, advance, FIELD, gapAt, newGame, PHYSICS, randomEntries, step, STEP, topScores } = await import("../apps/pigeon/model.js");
   // The same second of flight at 30 and at 144 frames per second.
