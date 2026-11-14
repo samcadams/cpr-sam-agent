@@ -355,6 +355,8 @@ test("host: a batch in the inbox is read on the tick, approved, and goes out bac
     "# note: check the Raven post"
   ].join("\n"));
   drop("other.txt", "garden-drafts v1\nbatch: o1 world: some-other-world\nbase: 0\n@x | now | hi\n");
+  folders.add("assets/garden-avatars/citizens");
+  files.set("assets/garden-avatars/citizens/07.webp", "");
 
   await store._tickGarden();
   const batch = store.garden.drafts.batches.b1;
@@ -389,7 +391,9 @@ test("host: a batch in the inbox is read on the tick, approved, and goes out bac
   const reply = old.replies.find(r => !r.auto);
   assert.equal(reply.text, "they're mapping the block");
   assert.ok(Math.abs(reply.wt - (base - 6600)) < 2);
-  assert.ok(Object.values(store.garden.accounts).some(a => a.handle === "@gridghost"), "a new handle is a new citizen");
+  const grid = Object.values(store.garden.accounts).find(a => a.handle === "@gridghost");
+  assert.ok(grid, "a new handle is a new citizen");
+  assert.equal(grid.avatar, "assets/garden-avatars/citizens/07.webp", "with a picture from the citizen pool");
   // The later post waits in the queue, edited; the cut one and its reply are gone.
   assert.deepEqual(store.garden.queue.filter(q => q.draft).map(q => q.text), ["Raven proudly welcomes new leadership"]);
   assert.ok(!Object.values(store.garden.posts).some(p => p.text === "this one gets cut"));

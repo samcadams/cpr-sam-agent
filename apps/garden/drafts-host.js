@@ -38,6 +38,7 @@ export const requests = {
 
 const MAX_REVIEWS = 10;
 const MAX_IMPORTED = 500;
+const CITIZEN_PICTURES = "assets/garden-avatars/citizens";
 /** Seconds between the old drip lines of a batch without times. */
 const LEGACY_EVERY = 5 * 60;
 /** The pack is written at most this often (real ms) when the Garden changes. */
@@ -259,13 +260,15 @@ export const methods = {
     let approved = 0;
     let cut = 0;
     const byHandle = new Map(Object.values(this.garden.accounts).map(a => [a.handle, a]));
+    // A handle nobody has becomes a citizen with a picture from the citizen pool.
+    const pictures = await FilePicker.browse("data", CITIZEN_PICTURES).then(r => r.files, () => []);
     const accountFor = item => {
       if (item.accountId === "@random") return "@random";
       if (item.accountId && this.garden.accounts[item.accountId]) return item.accountId;
       const handle = cleanHandle(item.newHandle ?? item.handle);
       let account = byHandle.get(handle);
       if (!account) {
-        account = this._addAccount({ ...randomCitizen(), handle });
+        account = this._addAccount({ ...randomCitizen(pictures), handle });
         byHandle.set(account.handle, account);
       }
       return account.id;
