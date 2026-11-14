@@ -42,6 +42,7 @@ export const requests = {
   "garden-account-delete": gm("_onGardenAccountDelete"),
   "garden-generate": gm("_onGardenGenerate"),
   "garden-post-edit": gm("_onGardenPostEdit"),
+  "garden-reply-edit": gm("_onGardenReplyEdit"),
   "garden-reply-delete": gm("_onGardenReplyDelete"),
   "dating-profile": gm("_onDatingProfile"),
   "dating-profile-delete": gm("_onDatingProfileDelete"),
@@ -466,6 +467,15 @@ export const methods = {
       post.eng = { ...post.eng, likes: eng.likes, grafts: eng.grafts, replies: eng.replies, peak: eng.peak };
       post.ts = Math.min(post.ts, Date.now() - 60_000); // keep it growing from where it is
     }
+    this._pushGarden();
+  },
+
+  /** GM: change the text of a reply by an NPC or organization (no "edited" mark, no new mention alerts). */
+  _onGardenReplyEdit(user, { postId, replyId, text }) {
+    const reply = this.garden.posts[postId]?.replies.find(r => r.id === replyId);
+    text = clean(text, 300);
+    if (!reply || this.garden.accounts[reply.accountId]?.kind === "pc" || !text) return;
+    reply.text = text;
     this._pushGarden();
   },
 

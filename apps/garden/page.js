@@ -273,6 +273,15 @@ export const actions = {
   "garden-reply-delete"({ postId, replyId }) {
     store.request("garden-reply-delete", { postId, replyId });
   },
+  async "garden-reply-edit"({ postId, replyId }) {
+    const reply = store.garden.posts[postId]?.replies.find(r => r.id === replyId);
+    if (!reply) return;
+    const result = await fieldsDialog({
+      title: "Edit reply",
+      fields: [{ name: "text", label: "Text", type: "textarea", rows: 3, value: reply.text }]
+    });
+    if (result) store.request("garden-reply-edit", { postId, replyId, text: result.text });
+  },
   async "garden-account-edit"({ accountId }) {
     const a = store.garden.accounts[accountId] ?? { handle: "", name: "", bio: "", kind: "citizen", followers: 100, verified: false };
     const result = await fieldsDialog({
@@ -695,7 +704,7 @@ export const methods = {
     };
   },
 
-  /** A reply: its author, and whether the GM can delete it (anyone's but a character's). */
+  /** A reply: its author, and whether the GM can edit or delete it (anyone's but a character's). */
   _gardenReplyRow(reply, post, gm) {
     const author = this._gardenAccountRow(store.garden.accounts[reply.accountId]);
     return { ...reply, postId: post.id, author, ago: gardenAgo(reply.wt ?? reply.ts / 1000), canDelete: gm && author.kind !== "pc" };

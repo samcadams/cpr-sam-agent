@@ -67,7 +67,7 @@
           <li class="agent-garden-reply">
             <a data-action="garden-open" data-post-id="{{postId}}"><span class="agent-garden-handle">Replying to {{to}}</span></a>
             <span class="agent-row-time">{{ago}}</span>
-            {{#if canDelete}}<a class="agent-garden-reply-delete" data-action="garden-reply-delete" data-post-id="{{postId}}" data-reply-id="{{id}}" title="Delete reply"><i class="fas fa-trash"></i></a>{{/if}}
+            {{#if canDelete}}<a class="agent-garden-reply-delete" data-action="garden-reply-delete" data-post-id="{{postId}}" data-reply-id="{{id}}" title="Delete reply"><i class="fas fa-trash"></i></a><a class="agent-garden-reply-delete" data-action="garden-reply-edit" data-post-id="{{postId}}" data-reply-id="{{id}}" title="Edit reply"><i class="fas fa-pen"></i></a>{{/if}}
             <div class="agent-garden-reply-to" data-action="garden-open" data-post-id="{{postId}}">{{toText}}</div>
             <div>{{text}}</div>
           </li>

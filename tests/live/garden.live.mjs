@@ -366,3 +366,33 @@ test("the GM edits a post's text after it went out: the pen opens it, Save chang
   same(out.row, `${tag} fixed post`, "the feed shows the edited text");
   same(out.after, `${tag} fixed post`, "an empty edit leaves the post alone");
 }, { player: false });
+
+test("the GM edits an NPC's reply: the pen beside its trash opens it, Save changes it on the post's page", async ({ gm, tag }) => {
+  const out = await gm.run(async a => {
+    await api.garden.post({ as: "@network54", text: `${a.tag} post with a typo'd reply` });
+    const post = await until(() => Object.values(store.garden.posts).find(p => p.text === `${a.tag} post with a typo'd reply`), "the post");
+    const n54 = Object.values(store.garden.accounts).find(x => x.handle === "@network54").id;
+    store.request("garden-gm-reply", { accountId: n54, postId: post.id, text: `${a.tag} typo'd reply` });
+    const reply = await until(() => store.garden.posts[post.id].replies.find(r => r.text === `${a.tag} typo'd reply`), "the reply");
+    const p = await go("garden");
+    p.gardenPost = post.id;
+    p.render();
+    await sleep(300);
+    await tap(`[data-action="garden-reply-edit"][data-reply-id="${reply.id}"]`);
+    const d = await dialog("Edit reply");
+    const shown = d.querySelector('textarea[name="text"]').value;
+    inDialog(d, 'textarea[name="text"]', `${a.tag} fixed reply`);
+    await press(d, "Save");
+    const find = () => store.garden.posts[post.id].replies.find(r => r.id === reply.id);
+    await until(() => find().text === `${a.tag} fixed reply`, "the edit");
+    await sleep(300);
+    const row = root().querySelector(`[data-action="garden-reply-edit"][data-reply-id="${reply.id}"]`)?.closest("li")?.textContent ?? "";
+    // No text: the reply is left as it was.
+    store.request("garden-reply-edit", { postId: post.id, replyId: reply.id, text: "  " });
+    await sleep(500);
+    return { shown, row, after: find().text };
+  }, { tag });
+  same(out.shown, `${tag} typo'd reply`, "the dialog opens with the reply's text");
+  check(out.row.includes(`${tag} fixed reply`), `the post's page shows the edited reply (${out.row.trim()})`);
+  same(out.after, `${tag} fixed reply`, "an empty edit leaves the reply alone");
+}, { player: false });
