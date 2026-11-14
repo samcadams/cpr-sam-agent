@@ -20,7 +20,7 @@ import { newBlock, newSheet, OUTLETS, sheetText, summary } from "./render.js";
  *     everyone (a Front Page headline), actorIds (the characters who pulled it) }
  *   screamCrawls (keyed by actorId) { extra: [terms], aliases: [..], muted: [auto terms switched off], read: { clipId: 1 },
  *     day (last passive crawl's world day), last (its time), deep: { total, detail, status, ts, n }, found (GM only) }
- *     plus the desk's own row, "_desk": { day, garden (newest Garden post seen), rep: { actorId: { n, value } }, journal: [entry ids made into drafts] }
+ *     plus the desk's own row, "_desk": { day, rep: { actorId: { n, value } }, journal: [entry ids made into drafts] }
  */
 
 export const DESK = "_desk";
@@ -186,24 +186,6 @@ export function repSuggestion({ actorId, name, delta, reason }) {
     subjects: [actorId], tags: [], dv: repDepth(delta), reach: "public", spin: "sensational", rep: [],
     title: `Rep ${up ? "+" : ""}${delta}: ${name}`, notes: reason ? `Reputation event: ${reason}` : "Reputation event",
     source: { kind: "rep", ref: actorId, label: `${name} ${up ? "+" : ""}${delta}` }
-  };
-}
-
-/** The Garden tiers whose posts get picked up as news. */
-export const PICKUP_TIERS = new Set(["viral", "explosive"]);
-
-/** An "As seen on The Garden" pickup of a viral post. */
-export function gardenSuggestion(post, account) {
-  const subjects = [account?.actorId, ...(Array.isArray(post.rep) ? post.rep : post.rep ? [post.rep] : []).map(r => r?.actorId)].filter(Boolean);
-  const quote = String(post.text ?? "").trim();
-  return {
-    sheet: plainSheet({
-      outlet: "board", headline: `AS SEEN ON THE GARDEN: ${account?.handle ?? "a post"} goes ${post.tier === "explosive" ? "nuclear" : "viral"}`,
-      byline: "reposted by poolrat_77", text: `${quote}\n\nEveryone's grafting it. Thoughts?`, image: post.image ?? ""
-    }),
-    subjects: [...new Set(subjects)], tags: [account?.handle].filter(Boolean), dv: 0, reach: "public", spin: "sensational", rep: [],
-    title: `Garden pickup: ${account?.handle ?? ""}`, notes: "",
-    source: { kind: "garden", ref: post.id, label: account?.handle ?? "The Garden" }
   };
 }
 

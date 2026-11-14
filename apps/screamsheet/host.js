@@ -13,7 +13,7 @@ import { reputationOf } from "../garden/model.js";
 import { hqApi } from "../notes/model.js";
 import { weatherDay } from "../weather/dates.js";
 import {
-  activeTerms, clipFields, DESK, gardenSuggestion, isFrontPage, journalDraft, PICKUP_TIERS, repSuggestion, screamsheetPool,
+  activeTerms, clipFields, DESK, isFrontPage, journalDraft, repSuggestion, screamsheetPool,
   surfaced, uniqueTerms, watchTerms
 } from "./model.js";
 import { cleanSheet, summary } from "./render.js";
@@ -21,8 +21,8 @@ import { cleanSheet, summary } from "./render.js";
 /*
  * Host: DataPool (see apps/screamsheet/model.js). The GM's desk (write, schedule, publish, bin), the
  * crawls (passive once per in-world day per character and on every publish; the deep crawl's roll, which
- * the GM confirms), and the suggested clippings: Reputation events on a character's sheet, viral Garden
- * posts, and journal entries prepared as screamsheets.
+ * the GM confirms), and the suggested clippings: Reputation events on a character's sheet and journal
+ * entries prepared as screamsheets.
  * Players' pushes are their share of the tables (model/apps.js appsFor): Front Page headlines, the
  * clippings their characters pulled, their own crawl rows; drafts, GM notes and the deep crawl's
  * proposed finds never leave the host.
@@ -94,7 +94,7 @@ export const methods = {
     await this._tickScream({ push: false });
   },
 
-  /** The clock: scheduled clippings go out, each character's daily crawl, viral Garden posts become suggestions. */
+  /** The clock: scheduled clippings go out, each character's daily crawl. */
   async _tickScream({ push = true } = {}) {
     if (!feature("app_screamsheet")) return;
     let published = false;
@@ -105,10 +105,9 @@ export const methods = {
         published = true;
       }
     }
-    const picked = this._screamGarden();
     // Something went out: everyone's Agent crawls; otherwise only those who haven't today.
     const crawled = this._screamCrawl({ daily: !published });
-    if ((published || picked || crawled.changed) && push) this._pushApps([...told, ...crawled.alerts].filter(Boolean));
+    if ((published || crawled.changed) && push) this._pushApps([...told, ...crawled.alerts].filter(Boolean));
   },
 
   /**
@@ -169,30 +168,6 @@ export const methods = {
     this._clips()[id] = { id, ts: Date.now(), status: "draft", ...data };
     if (card) this._gmCard({ title: "DataPool: suggested clipping", body: `${summary(data.sheet).headline} (${data.source?.label ?? ""})`, icon: "fa-newspaper", open: { app: "screamsheet" } });
     return id;
-  },
-
-  /** Viral Garden posts since the last look. Returns whether any were picked up. */
-  _screamGarden() {
-    const posts = Object.values(this.garden?.posts ?? {});
-    if (!posts.length) return false;
-    const desk = this._screamDesk();
-    const newest = Math.max(...posts.map(p => p.ts ?? 0));
-    // The first look only marks where the feed is: old posts aren't news.
-    if (desk.garden === undefined) {
-      desk.garden = newest;
-      return true;
-    }
-    let found = false;
-    const viral = posts.filter(p => (p.ts ?? 0) > desk.garden && PICKUP_TIERS.has(p.tier)).sort((a, b) => a.ts - b.ts);
-    // One card for a busy tick.
-    for (const post of viral) this._screamSuggest(gardenSuggestion(post, this.garden.accounts?.[post.accountId]), { card: viral.length === 1 });
-    if (viral.length > 1) this._gmCard({ title: `DataPool: ${viral.length} suggested clippings`, body: "Viral Garden posts are waiting on the desk.", icon: "fa-newspaper", open: { app: "screamsheet" } });
-    if (viral.length) found = true;
-    if (newest > desk.garden) {
-      desk.garden = newest;
-      found = true;
-    }
-    return found;
   },
 
   /** A character's sheet changed (client.js, updateActor): a new Reputation event becomes a suggested clipping. */

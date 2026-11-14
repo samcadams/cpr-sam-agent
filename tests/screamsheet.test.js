@@ -6,7 +6,7 @@ import { store } from "../scripts/store.js";
 import { appsFor, emptyApps } from "../scripts/model/apps.js";
 import { emptyGarden } from "../apps/garden/model.js";
 import {
-  activeTerms, canReach, clipFields, depthOf, DESK, gardenSuggestion, isFrontPage, journalDraft, matches, parseLine, repDepth, screamsheetPool, surfaced, watchTerms
+  activeTerms, canReach, clipFields, depthOf, DESK, isFrontPage, journalDraft, matches, parseLine, repDepth, screamsheetPool, surfaced, watchTerms
 } from "../apps/screamsheet/model.js";
 import { cleanSheet, contrast, inkOn, newBlock, newSheet, renderSheet, safeSrc, sheetText, summary, switchOutlet, teaser } from "../apps/screamsheet/render.js";
 import { clipRequest, clipSheet, clipTags, runClip } from "../apps/screamsheet/ai.js";
@@ -15,7 +15,7 @@ import { clipRequest, clipSheet, clipTags, runClip } from "../apps/screamsheet/a
  * DataPool (apps/screamsheet): the sheet renderer (escaping, unsafe images, cleaning what the GM sends), the
  * crawl's rules (watchlists, matching, depth, reach), journal entries as a source, what players may see,
  * and the host's flows: publish and the passive crawl, the deep crawl and the GM's confirm, suggestions
- * from Reputation events and viral Garden posts.
+ * from Reputation events.
  */
 
 let gm, alice, bob, dice;
@@ -196,13 +196,6 @@ test("journal entries: the Screamsheet: line, the folder, secrets dropped", () =
   assert.equal(draft.source.kind, "journal");
 });
 
-test("a viral Garden post: an 'As seen on The Garden' pickup about its author and the post's Reputation subjects", () => {
-  const s = gardenSuggestion({ id: "p1", text: "lol", tier: "viral", rep: [{ actorId: "pcB", delta: 1 }] }, { handle: "@vexr", actorId: "pcA" });
-  assert.deepEqual(s.subjects, ["pcA", "pcB"]);
-  assert.equal(s.sheet.outlet, "board");
-  assert.match(summary(s.sheet).headline, /@vexr goes viral/);
-});
-
 /* ---------- the host ---------- */
 
 test("players see the Front Page and what they pulled; drafts, GM fields and proposed finds stay on the host", async () => {
@@ -317,17 +310,6 @@ test("a Reputation event on a sheet becomes a suggested draft; the app's own eve
   actor.system.reputation = { value: 6, transactions: [...actor.system.reputation.transactions, ["…", "DataPool: the hijack"]] };
   store._onScreamActor(actor, { system: { reputation: { value: 6 } } });
   assert.equal(clips().length, 1);
-});
-
-test("viral Garden posts become pickups; posts from before the first look don't", async () => {
-  store.garden.accounts = { acc: { id: "acc", handle: "@vexr", actorId: "pcA", kind: "pc" } };
-  store.garden.posts = { old: { id: "old", accountId: "acc", text: "old news", tier: "viral", ts: 10 } };
-  await store._tickScream();
-  assert.equal(clips().length, 0);
-  store.garden.posts.n1 = { id: "n1", accountId: "acc", text: "fresh", tier: "explosive", ts: 20 };
-  store.garden.posts.n2 = { id: "n2", accountId: "acc", text: "meh", tier: "normal", ts: 30 };
-  await store._tickScream();
-  assert.deepEqual(clips().map(c => [c.source.kind, c.source.ref, c.status]), [["garden", "n1", "draft"]]);
 });
 
 test("journal drafts: made once, the desk remembers which entries", async () => {
