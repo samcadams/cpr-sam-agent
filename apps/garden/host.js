@@ -447,12 +447,18 @@ export const methods = {
     this._pushGarden();
   },
 
-  /** GM: change how far a post travels (its numbers re-aim), or delete it. */
-  _onGardenPostEdit(user, { postId, tier, remove }) {
+  /** GM: change a post's text and picture, or how far it travels (its numbers re-aim), or delete it. */
+  _onGardenPostEdit(user, { postId, tier, remove, text, image }) {
     const post = this.garden.posts[postId];
     if (!post) return;
     if (remove) delete this.garden.posts[postId];
-    else if (tier in gardenTiers()) {
+    else if (text !== undefined) {
+      text = clean(text, 500);
+      image = cleanImage(image, user);
+      if (!text && !image) return;
+      post.text = text;
+      post.image = image;
+    } else if (tier in gardenTiers()) {
       const account = this.garden.accounts[post.accountId];
       const eng = engagement(account?.followers ?? 50, tier);
       post.tier = tier;

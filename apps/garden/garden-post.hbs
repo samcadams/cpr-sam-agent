@@ -17,6 +17,7 @@
       <a class="{{#if grafted}}on{{/if}}" {{#if @root.garden.me}}data-action="garden-graft" data-post-id="{{id}}"{{/if}} title="Grafts"><i class="fas fa-code-branch"></i> {{grafts}}</a>
       <a data-action="garden-open" data-post-id="{{id}}" title="Replies"><i class="far fa-comment"></i> {{replyCount}}</a>
       {{#if tierName}}<span class="agent-garden-tier">{{tierName}}</span>{{/if}}
+      {{#if @root.garden.gm}}<a data-action="garden-edit" data-post-id="{{id}}" title="Edit"><i class="fas fa-pen"></i></a>{{/if}}
       {{#if @root.garden.gm}}<a data-action="garden-delete" data-post-id="{{id}}" title="Delete"><i class="fas fa-trash"></i></a>{{/if}}
     </div>
     {{#if subPosts.length}}

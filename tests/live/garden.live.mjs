@@ -338,3 +338,31 @@ test("feed peeks: some posts show a reply and its answer underneath; tapping one
   check(paired, `each peek is the reply, then its answer indented: ${JSON.stringify(ui.peeks[0])}`);
   same(ui.opened, ui.first, "tapping a peek opens its post");
 });
+
+/* ---------------- Editing a post ---------------- */
+
+test("the GM edits a post's text after it went out: the pen opens it, Save changes it in the feed", async ({ gm, tag }) => {
+  const out = await gm.run(async a => {
+    await api.garden.post({ as: "@network54", text: `${a.tag} typo'd post` });
+    const post = await until(() => Object.values(store.garden.posts).find(p => p.text === `${a.tag} typo'd post`), "the post");
+    const p = await go("garden");
+    p.gardenTab = "feed";
+    p.render();
+    await sleep(300);
+    await tap(`[data-action="garden-edit"][data-post-id="${post.id}"]`);
+    const d = await dialog("Edit post");
+    const shown = d.querySelector('textarea[name="text"]').value;
+    inDialog(d, 'textarea[name="text"]', `${a.tag} fixed post`);
+    await press(d, "Save");
+    await until(() => store.garden.posts[post.id].text === `${a.tag} fixed post`, "the edit");
+    await sleep(300);
+    const row = [...root().querySelectorAll(".agent-garden-text")].find(e => e.dataset.postId === post.id)?.textContent;
+    // Neither text nor picture: the post is left as it was.
+    store.request("garden-post-edit", { postId: post.id, text: "  ", image: "" });
+    await sleep(500);
+    return { shown, row, after: store.garden.posts[post.id].text };
+  }, { tag });
+  same(out.shown, `${tag} typo'd post`, "the dialog opens with the post's text");
+  same(out.row, `${tag} fixed post`, "the feed shows the edited text");
+  same(out.after, `${tag} fixed post`, "an empty edit leaves the post alone");
+}, { player: false });

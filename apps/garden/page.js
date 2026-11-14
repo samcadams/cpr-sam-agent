@@ -258,6 +258,18 @@ export const actions = {
     store.request("garden-post-edit", { postId, remove: true });
     if (this.gardenPost === postId) this.gardenPost = null;
   },
+  async "garden-edit"({ postId }) {
+    const post = store.garden.posts[postId];
+    if (!post) return;
+    const result = await fieldsDialog({
+      title: "Edit post",
+      fields: [
+        { name: "text", label: "Text", type: "textarea", rows: 4, value: post.text },
+        { name: "image", label: "Picture", type: "image", value: post.image ?? "" }
+      ]
+    });
+    if (result) store.request("garden-post-edit", { postId, text: result.text, image: result.image });
+  },
   "garden-reply-delete"({ postId, replyId }) {
     store.request("garden-reply-delete", { postId, replyId });
   },
