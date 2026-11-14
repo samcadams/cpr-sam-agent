@@ -6,7 +6,7 @@ import fs from "node:fs";
 import { store } from "../scripts/store.js";
 import { emptyApps } from "../scripts/model/apps.js";
 import {
-  avatarGender, emptyGarden, gardenAgo, gardenClockMode, gardenNow, gardenWhen, growth, LIST_FILES, parseList, postGrowth, postSettled, queueWhen, randomCitizen, replyParent, replyThreads, replyTime,
+  avatarGender, emptyGarden, gardenAgo, gardenClockMode, gardenNow, gardenWhen, growth, LIST_FILES, parseList, postGrowth, postSettled, queueWhen, randomCitizen, replyParent, replyThreads, replyTime, subPosts,
   setGardenLists, shiftGarden, spanLabel, syncGardenClock, WORLD_PACE
 } from "../apps/garden/model.js";
 
@@ -272,6 +272,31 @@ test("replyThreads: answers sit under their top-level reply; an answer whose rep
   const replies = [{ id: "a" }, { id: "b" }, { id: "a1", parentId: "a" }, { id: "x1", parentId: "gone" }, { id: "a2", parentId: "a" }];
   assert.deepEqual(replyThreads(replies).map(t => [t.reply.id, t.answers.map(r => r.id)]), [["a", ["a1", "a2"]], ["b", []], ["x1", []]]);
   assert.deepEqual(replyThreads(), []);
+});
+
+test("subPosts: at most a reply and an answer under it, mostly written ones, stable per seed", () => {
+  assert.deepEqual(subPosts({ id: "p", replies: [] }, "s"), []);
+  const posts = Array.from({ length: 400 }, (_, i) => ({
+    id: `p${i}`,
+    replies: [
+      { id: "c1", auto: true }, { id: "c2", auto: true }, { id: "c3", auto: true },
+      { id: "w", accountId: "writer" }, { id: "w1", parentId: "w" }, { id: "c1a", parentId: "c1", auto: true }
+    ]
+  }));
+  const peeks = posts.map(p => subPosts(p, "seed"));
+  const shown = peeks.filter(x => x.length);
+  assert.ok(shown.length > 180 && shown.length < 300, `about 60% shown (${shown.length})`);
+  for (const peek of shown) {
+    assert.ok(peek.length <= 2);
+    if (peek[1]) assert.equal(peek[1].parentId, peek[0].id);
+  }
+  const writerShare = shown.filter(x => x[0].id === "w").length / shown.length;
+  assert.ok(writerShare > 0.85, `mostly the written thread (${writerShare})`);
+  assert.deepEqual(shown.find(x => x[0].id === "w").map(r => r.id), ["w", "w1"]);
+  // The same seed picks the same peek; only crowd replies → shown rarely.
+  assert.deepEqual(posts.map(p => subPosts(p, "seed")), peeks);
+  const crowd = posts.map(p => subPosts({ ...p, replies: p.replies.filter(r => r.auto) }, "seed")).filter(x => x.length).length;
+  assert.ok(crowd > 25 && crowd < 100, `about 15% shown (${crowd})`);
 });
 
 test("replyParent: a reply to a top-level reply answers it; a reply to an answer joins its discussion", () => {

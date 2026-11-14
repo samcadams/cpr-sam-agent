@@ -299,3 +299,42 @@ test("replies to replies: one level under a reply, its author told, NPC answers 
   check(ui.target.includes("@network54") && ui.draft.startsWith("@network54 "), `Reply on an answer: "${ui.target}", draft "${ui.draft}"`);
   check(ui.cleared, "× goes back to replying to the post");
 });
+
+/* ---------------- Sub-post peeks on the feed ---------------- */
+
+test("feed peeks: some posts show a reply and its answer underneath; tapping one opens the post", async ({ gm, tag }) => {
+  // Eight posts, each with a written reply and an answer: each shows a peek 60% of the time (all
+  // hidden: 0.4^8, about 1 in 1500).
+  const ids = await gm.run(async a => {
+    const others = Object.values(store.garden.accounts).filter(x => x.kind !== "pc" && x.kind !== "news" && x.handle !== "@network54");
+    const ids = [];
+    for (let i = 0; i < 8; i++) {
+      await api.garden.post({ as: "@network54", text: `${a.tag} peek ${i}` });
+      const post = await until(() => Object.values(store.garden.posts).find(p => p.text === `${a.tag} peek ${i}`), "the post");
+      store.request("garden-gm-reply", { accountId: others[0].id, postId: post.id, text: `${a.tag} reply ${i}` });
+      const reply = await until(() => store.garden.posts[post.id].replies.find(r => r.text === `${a.tag} reply ${i}`), "the reply");
+      store.request("garden-gm-reply", { accountId: others[1].id, postId: post.id, text: `${a.tag} answer ${i}`, replyTo: reply.id });
+      await until(() => store.garden.posts[post.id].replies.some(r => r.text === `${a.tag} answer ${i}`), "the answer");
+      ids.push(post.id);
+    }
+    return ids;
+  }, { tag });
+  const ui = await gm.run(async a => {
+    const p = await go("garden");
+    p.gardenTab = "feed";
+    p.render();
+    await sleep(400);
+    const peeks = a.ids.map(id => el(`.agent-garden-peek[data-post-id="${id}"]`)).filter(Boolean)
+      .map(ol => [...ol.querySelectorAll("li")].map(li => `${li.className}|${li.querySelector("div").textContent}`));
+    const first = a.ids.find(id => el(`.agent-garden-peek[data-post-id="${id}"]`));
+    if (first) await tap(`.agent-garden-peek[data-post-id="${first}"]`);
+    return { peeks, first, opened: p.gardenPost };
+  }, { ids });
+  check(ui.peeks.length > 0, `${ui.peeks.length} of 8 posts show a peek`);
+  const paired = ui.peeks.every(([reply, answer]) => {
+    const n = reply.split(" ").at(-1);
+    return reply === `|${tag} reply ${n}` && answer === `answer|${tag} answer ${n}`;
+  });
+  check(paired, `each peek is the reply, then its answer indented: ${JSON.stringify(ui.peeks[0])}`);
+  same(ui.opened, ui.first, "tapping a peek opens its post");
+});

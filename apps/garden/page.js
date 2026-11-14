@@ -4,7 +4,7 @@ import { attachPhotoDialog, fieldsDialog } from "../../scripts/ui/dialogs/forms.
 import { findContact, getContacts, playerCharacters } from "../../scripts/model/contacts.js";
 import {
   ATTITUDES, byNewest, DEFAULT_TIERS, defaultListPath, gardenAgo, gardenConfig, gardenLists, gardenNow, gardenTiers, KINDS, LIST_FILES, MATCHED, queueWhen, replyParent, replyThreads,
-  repsOf, reputationOf, tierSummary, WORLD_PACE
+  repsOf, subPosts, reputationOf, tierSummary, WORLD_PACE
 } from "./model.js";
 import { appearance } from "../../scripts/model/appearance.js";
 import { commsOn, gardenWriterOn } from "../../scripts/model/features.js";
@@ -34,6 +34,9 @@ const GM_TABS = { ...TABS, accounts: "Accounts", queue: "Queue", drafts: "Drafts
 /** How often a player's phone tells the host its character opened the Garden (garden-seen), per character. */
 const SEEN_EVERY_MS = 5 * 60_000;
 const seenSent = new Map();
+
+/** Which feed posts show a peek at their replies (subPosts): new each time the page loads, steady while browsing. */
+const PEEK_SEED = Math.random().toString(36).slice(2);
 
 /** The tabs this phone has: News only when it's apart from the Feed, Dating only when it's on. */
 function gardenTabs(gm) {
@@ -769,7 +772,10 @@ export const methods = {
     if (tab === "feed" || tab === "news") {
       const isNews = p => garden.accounts[p.accountId]?.kind === "news";
       const all = gardenConfig().mergeNews;
-      data.feed = posts.filter(p => all || (tab === "news" ? isNews(p) : !isNews(p))).slice(0, 60).map(p => this._gardenPostRow(p, me, gm));
+      data.feed = posts.filter(p => all || (tab === "news" ? isNews(p) : !isNews(p))).slice(0, 60).map(p => ({
+        ...this._gardenPostRow(p, me, gm),
+        subPosts: subPosts(p, PEEK_SEED).map(r => ({ ...r, author: this._gardenAccountRow(garden.accounts[r.accountId]), ago: gardenAgo(r.wt ?? r.ts / 1000) }))
+      }));
       data.draft = this.gardenDraft ?? "";
       data.image = this.gardenImage ?? null;
       if (gm) {

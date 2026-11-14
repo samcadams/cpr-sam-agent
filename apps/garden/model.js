@@ -165,6 +165,36 @@ export function replyParent(post, replyId) {
   return to.parentId && replies.some(r => r.id === to.parentId) ? to.parentId : to.id;
 }
 
+/** A number in [0, 1) from a string, the same every time (FNV-1a). */
+function hashUnit(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return (h >>> 0) / 2 ** 32;
+}
+
+/**
+ * A peek at a post's replies for the feed: one top-level reply and, when its discussion has one, an
+ * answer (at most 2). Mostly written replies (the writer's, the GM's, the characters'; not `auto`):
+ * a post with one shows a peek 60% of the time and picks a written thread 9 times in 10 (one with a
+ * written answer, a conversation, weighs double); a post with only crowd auto-replies shows one 15%.
+ * Picked by `seed` + post id, so the feed doesn't reshuffle on every redraw. [] = no peek.
+ */
+export function subPosts(post, seed = "") {
+  const threads = replyThreads(post?.replies);
+  if (!threads.length) return [];
+  const written = r => !r.auto;
+  const roll = k => hashUnit(`${seed}:${post.id}:${k}`);
+  const writtenThreads = threads.filter(t => written(t.reply) || t.answers.some(written));
+  if (roll("show") >= (writtenThreads.length ? 0.6 : 0.15)) return [];
+  const pool = writtenThreads.length && roll("kind") < 0.9 ? writtenThreads : threads;
+  const weight = t => (t.answers.some(written) ? 2 : 1);
+  let left = roll("pick") * pool.reduce((sum, t) => sum + weight(t), 0);
+  const thread = pool.find(t => (left -= weight(t)) < 0) ?? pool.at(-1);
+  const answers = thread.answers.filter(written).length ? thread.answers.filter(written) : thread.answers;
+  const answer = answers[Math.floor(roll("answer") * answers.length)];
+  return answer ? [thread.reply, answer] : [thread.reply];
+}
+
 /** "3h", "2d" style length of a span in seconds. */
 export function spanLabel(seconds) {
   const s = Math.max(0, Math.round(seconds));

@@ -19,5 +19,12 @@
       {{#if tierName}}<span class="agent-garden-tier">{{tierName}}</span>{{/if}}
       {{#if @root.garden.gm}}<a data-action="garden-delete" data-post-id="{{id}}" title="Delete"><i class="fas fa-trash"></i></a>{{/if}}
     </div>
+    {{#if subPosts.length}}
+    <ol class="agent-garden-peek" data-action="garden-open" data-post-id="{{id}}">
+      {{#each subPosts}}
+      <li class="{{#if parentId}}answer{{/if}}"><b>{{author.name}}</b> <span class="agent-garden-handle">{{author.handle}}</span> <span class="agent-row-time">{{ago}}</span><div>{{text}}</div></li>
+      {{/each}}
+    </ol>
+    {{/if}}
   </div>
 </li>
