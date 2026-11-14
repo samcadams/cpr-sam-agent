@@ -63,6 +63,15 @@ test("the desk's editor publishes a clipping: Front Page, My Crawl with the badg
     w.querySelector("[data-ed=publish]").click();
     await until(() => !document.querySelector("[id^=agent-scream-editor]"), "the editor to close");
   }, { headline, name: pc.name });
+  const told = await gm.run(async a => {
+    const { store } = game.modules.get("cpr-sam-agent").api;
+    const of = await until(() => {
+      const list = Object.values(store.apps.alerts ?? {}).filter(x => x.text.includes(a.headline));
+      return list.some(x => x.actorId !== a.id) && list;
+    }, "the Front Page alert to other characters");
+    return { mine: of.filter(x => x.actorId === a.id).length, front: of.some(x => x.actorId !== a.id && /front page/.test(x.text)) };
+  }, { headline, id: pc.id });
+  check(told.mine === 1 && told.front, "a Front Page headline alerts every character; the one it's about only by the crawl");
   await open(pl, "front");
   const front = await pl.run(async a => until(() => els(".agent-scream-row .agent-scream-head").map(h => h.textContent).find(t => t.includes(a.headline)), "the headline on the Front Page"), { headline });
   check(front, "the Front Page shows the new headline");

@@ -137,7 +137,7 @@ export const methods = {
     return clips;
   },
 
-  /** Out it goes: dated in world time, its Reputation events on the sheets, and everyone's Agent crawls. */
+  /** Out it goes: dated in world time, its Reputation events on the sheets, a Front Page headline told to everyone, and everyone's Agent crawls. */
   async _screamPublish(clip, { crawl = true } = {}) {
     const { time, date } = agentTimestamp();
     Object.assign(clip, { status: "published", pub: Date.now(), date, time, actorIds: clip.actorIds ?? [] });
@@ -150,8 +150,18 @@ export const methods = {
       // Told like the Garden's Reputation events.
       if (actor && r.delta) told.push(this._alert(actor.id, { kind: "event", from: FROM, app: "screamsheet", text: `Reputation ${r.delta > 0 ? "+" : ""}${r.delta}: ${summary(clip.sheet).headline}` }));
     }
+    if (clip.everyone) told.push(...this._screamFront(clip));
     Hooks.callAll(`${MODULE_ID}.screamPublished`, foundry.utils.deepClone(clip));
     return [...told, ...(crawl ? this._screamCrawl().alerts : [])];
+  },
+
+  /** A Front Page headline: every character with signal hears of it, but those whose crawl pulls it (the crawl tells them). */
+  _screamFront(clip) {
+    const ctx = this._screamCtx();
+    const text = `New on the Pool's front page: "${summary(clip.sheet).headline}"`;
+    return playerCharacters()
+      .filter(actor => canUsePhone(actor) && !surfaced({ [clip.id]: clip }, actor.id, activeTerms(this._screamTerms(actor, ctx)), 0, ctx).length)
+      .map(actor => this._screamAlert(actor.id, text));
   },
 
   /** A clipping's Reputation event, on the sheet's ledger when the system keeps one. */

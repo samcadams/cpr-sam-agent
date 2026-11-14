@@ -226,8 +226,10 @@ test("publishing: the passive crawl pulls matching Headlines, alerts once, and t
   await settle();
   const c = clips()[0];
   assert.deepEqual(c.actorIds, ["pcA"]);
-  assert.match(alertsOf("pcA").at(-1).text, /Gang war in Watson/);
-  assert.equal(alertsOf("pcB").length, 0);
+  assert.match(alertsOf("pcA").at(-1).text, /pulled a new mention.*Gang war in Watson/);
+  assert.equal(alertsOf("pcA").length, 1, "the crawl's alert, not a second one for the Front Page");
+  assert.match(alertsOf("pcB").at(-1).text, /front page: "Gang war in Watson"/, "a Front Page headline: everyone hears of it");
+  assert.equal(clips()[0].actorIds.includes("pcB"), false);
   assert.ok(hooks.some(h => h.hook === "cpr-sam-agent.screamPublished" && h.args[0].id === c.id));
   from(gm, "scream-crawl", {});
   await settle();
@@ -258,6 +260,13 @@ test("scheduling: out when world time gets there, then everyone crawls", async (
   await store._tickScream();
   assert.equal(clips()[0].status, "published");
   assert.deepEqual(clips()[0].actorIds, ["pcA"]);
+  assert.match(alertsOf("pcB").at(-1).text, /front page/, "a scheduled Front Page headline is told to everyone too");
+  from(gm, "scream-save", { clip: clip({ headline: "Buried one", dv: 13 }), publish: true, hours: 1 });
+  await settle();
+  game.time.worldTime = 10800;
+  await store._tickScream();
+  assert.equal(clips().find(c => c.dv === 13).status, "published");
+  assert.equal(alertsOf("pcB").filter(a => /Buried one/.test(a.text)).length, 0, "a hidden one waits for a crawl");
 });
 
 test("the deep crawl: the roll reaches by DV, waits for the GM, who confirms, trims or adds", async () => {
