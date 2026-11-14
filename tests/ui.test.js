@@ -833,7 +833,8 @@ test("The Garden: a player's handle opens their own Patch; the GM replies as an 
       n54: { id: "n54", handle: "@network54", name: "Network 54", kind: "news", followers: 4200000 }
     },
     posts: { p1: { id: "p1", accountId: "n54", text: "News", ts: 1, likes: 0, grafts: 0, likedBy: [], graftedBy: [], replies: [
-      { id: "r1", accountId: "me", text: "fake news", ts: 2 }, { id: "r2", accountId: "n54", text: "it's real", ts: 3 }
+      { id: "r1", accountId: "me", text: "fake news", ts: 2 }, { id: "r2", accountId: "n54", text: "it's real", ts: 3 },
+      { id: "r3", accountId: "n54", text: "source?", ts: 4, parentId: "r1" }
     ] } }
   };
   try {
@@ -860,6 +861,27 @@ test("The Garden: a player's handle opens their own Patch; the GM replies as an 
     assert.deepEqual(data.garden.replyAs.options.map(o => o.value), ["n54"], "no characters' accounts");
     assert.equal(data.garden.me, null, "the GM has no Patch of their own");
     assert.deepEqual(data.garden.post.replies.map(r => r.canDelete), [false, true], "the GM deletes NPCs' replies, not characters'");
+    assert.deepEqual(data.garden.post.replies.map(r => [r.id, r.answers.map(a => a.id), r.open]), [["r1", ["r3"], true], ["r2", [], true]], "answers sit under the reply they answer, shown");
+    assert.equal(data.garden.replyTo, null);
+
+    ACTIONS.get("garden-reply-to").call(gmPhone, { replyId: "r3" });
+    data = gmPhone.getData();
+    assert.deepEqual(data.garden.replyTo, { id: "r3", handle: "@network54" }, "replying to an answer");
+    assert.equal(data.garden.post.replies[0].open, true, "opens its discussion");
+    assert.equal(data.garden.replyDraft, "@network54 ", "and starts with its @handle");
+    ACTIONS.get("garden-reply-cancel").call(gmPhone, {});
+    ACTIONS.get("garden-thread").call(gmPhone, { replyId: "r1" });
+    data = gmPhone.getData();
+    assert.equal(data.garden.replyTo, null);
+    assert.equal(data.garden.post.replies[0].open, false, "the toggle hides it");
+    ACTIONS.get("garden-reply-to").call(gmPhone, { replyId: "r3" });
+    assert.equal(gmPhone.getData().garden.post.replies[0].open, true, "replying in a hidden discussion shows it again");
+    ACTIONS.get("garden-reply-cancel").call(gmPhone, {});
+
+    gmPhone.gardenPost = null;
+    gmPhone.gardenAccount = "n54";
+    const answer = gmPhone.getData().garden.patch.replies.find(r => r.text === "source?");
+    assert.deepEqual([answer.to, answer.toText], ["@v", "fake news"], "on a Patch, an answer quotes the reply it answers");
   } finally {
     store.garden = saved;
   }

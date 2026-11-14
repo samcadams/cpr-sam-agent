@@ -1,0 +1,6 @@
+{{!-- One reply on a post's page, a top-level reply or an answer in its discussion (garden.hbs). --}}
+<a data-action="garden-profile" data-account-id="{{author.id}}"><b>{{author.name}}</b> <span class="agent-garden-handle">{{author.handle}}</span></a>
+<span class="agent-row-time">{{ago}}</span>
+{{#if canDelete}}<a class="agent-garden-reply-delete" data-action="garden-reply-delete" data-post-id="{{postId}}" data-reply-id="{{id}}" title="Delete reply"><i class="fas fa-trash"></i></a>{{/if}}
+<div>{{text}}</div>
+{{#if @root.garden.canReply}}<a class="agent-garden-reply-link" data-action="garden-reply-to" data-reply-id="{{id}}">Reply</a>{{/if}}

@@ -144,7 +144,7 @@ test("seeds, formats, feeds and the mix: GM-only, cleaned", async () => {
   assert.equal(store.garden.writer.formats.length, 0);
 });
 
-test("profiles: accounts' and characters'; the cast's own lines are their replies; players see none of it", async () => {
+test("profiles: accounts' and characters'; the cast never auto-replies; players see none of it", async () => {
   const n54 = account("@network54");
   from(gm, "garden-writer-profile", { accountId: n54.id, profile: { keywords: "watson", agenda: "secret plan", lines: ["NEWS AT ELEVEN", "back to you"] } });
   from(gm, "garden-writer-profile", { actorId: "pcB", profile: { keywords: "raven, exec" } });
@@ -152,18 +152,16 @@ test("profiles: accounts' and characters'; the cast's own lines are their replie
   await settle();
   assert.deepEqual(store.garden.accounts[n54.id].writer.keywords, ["watson"]);
   assert.deepEqual(store.garden.writer.pcs, { pcB: store.garden.writer.pcs.pcB });
-  // A post that's fully grown at once, with one of their keywords: the cast member (no mood, own
-  // lines) is among who replies (news and corps never auto-reply: make the newsdesk a citizen).
+  assert.deepEqual(store.garden.accounts[n54.id].writer.lines, ["NEWS AT ELEVEN", "back to you"]);
+  // A post that's fully grown at once, with one of their keywords: the cast member (a citizen with
+  // own lines) still doesn't reply; their replies come from the writer's batches.
   n54.kind = "citizen";
   const zig = account("@ziggurat_trends");
   await store._publish(zig, { text: "trend in Watson", tier: "explosive", wt: Date.now() / 1000 - 86400 });
-  for (const a of Object.values(store.garden.accounts)) if (a !== n54) a.mood = null; // only the cast can reply
+  for (const a of Object.values(store.garden.accounts)) a.mood = a === n54 ? "hype" : null; // only the cast could reply
   await store._tickGarden();
   const post = Object.values(store.garden.posts).find(p => p.text === "trend in Watson");
-  // Their own lines (once per thread: one of them).
-  const theirs = post.replies.filter(r => r.accountId === n54.id).map(r => r.text);
-  assert.equal(theirs.length, 1);
-  assert.ok(["NEWS AT ELEVEN", "back to you"].includes(theirs[0]), theirs[0]);
+  assert.deepEqual(post.replies, []);
   // The player's view: no profiles, agendas, happenings, seeds or who looked when.
   await api.garden.logEvent({ what: "GM-only thing", public: false });
   const view = gardenFor(alice, store.garden);

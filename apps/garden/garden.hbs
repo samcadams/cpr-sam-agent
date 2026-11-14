@@ -11,16 +11,24 @@
     <ol class="agent-garden-replies">
       {{#each garden.post.replies}}
         <li class="agent-garden-reply">
-          <a data-action="garden-profile" data-account-id="{{author.id}}"><b>{{author.name}}</b> <span class="agent-garden-handle">{{author.handle}}</span></a>
-          <span class="agent-row-time">{{ago}}</span>
-          {{#if canDelete}}<a class="agent-garden-reply-delete" data-action="garden-reply-delete" data-post-id="{{postId}}" data-reply-id="{{id}}" title="Delete reply"><i class="fas fa-trash"></i></a>{{/if}}
-          <div>{{text}}</div>
+          {{> agent-garden-reply-row}}
+          {{#if answers.length}}
+            <a class="agent-garden-thread-toggle" data-action="garden-thread" data-reply-id="{{id}}">{{#if open}}Hide replies{{else}}View {{answers.length}} {{#if (eq answers.length 1)}}reply{{else}}replies{{/if}}{{/if}}</a>
+            {{#if open}}
+              <ol class="agent-garden-answers">
+                {{#each answers}}<li class="agent-garden-reply">{{> agent-garden-reply-row}}</li>{{/each}}
+              </ol>
+            {{/if}}
+          {{/if}}
         </li>
       {{else}}
         <li class="agent-empty">No replies yet.</li>
       {{/each}}
     </ol>
   </div>
+  {{#if garden.replyTo}}
+    <div class="agent-garden-reply-target">Replying to {{garden.replyTo.handle}}<a data-action="garden-reply-cancel" title="Reply to the post instead"><i class="fas fa-xmark"></i></a></div>
+  {{/if}}
   {{#if garden.gm}}
     <div class="agent-setting-row agent-garden-reply-as"><span>As</span>{{> agent-dropdown garden.replyAs}}</div>
     <div class="agent-garden-compose">
@@ -345,14 +353,24 @@
       </div>
       <ol class="agent-app-list">
         {{#each garden.queue.items}}
-          <li class="agent-app-item compact">
-            <div class="agent-app-item-main"><b>{{author.handle}}</b> <span class="agent-row-time">{{inLabel}}</span><small>{{#if image}}<i class="fas fa-image" title="{{image}}"></i> {{/if}}{{text}}{{#if outcome}} · <em>{{outcome}}</em>{{/if}}</small></div>
-            <a class="agent-icon-btn" data-action="garden-queue-edit" data-id="{{id}}" title="Edit"><i class="fas fa-pen"></i></a>
-            <a class="agent-icon-btn{{#if first}} disabled{{/if}}" data-action="garden-queue" data-op="up" data-id="{{id}}" title="Earlier"><i class="fas fa-arrow-up"></i></a>
-            <a class="agent-icon-btn{{#if last}} disabled{{/if}}" data-action="garden-queue" data-op="down" data-id="{{id}}" title="Later"><i class="fas fa-arrow-down"></i></a>
-            <a class="agent-icon-btn" data-action="garden-queue" data-op="now" data-id="{{id}}" title="Post now"><i class="fas fa-paper-plane"></i></a>
-            <a class="agent-icon-btn" data-action="garden-queue" data-op="remove" data-id="{{id}}" title="Skip"><i class="fas fa-xmark"></i></a>
+          {{#if ctx}}
+          <li class="agent-app-item compact agent-garden-thread-row context depth-{{depth}}" title="Already on the feed">
+            <div class="agent-app-item-main"><b>{{author.handle}}</b> <span class="agent-row-time">{{inLabel}}</span><small>{{#if image}}<i class="fas fa-image" title="{{image}}"></i> {{/if}}{{text}}</small></div>
+            <a class="agent-icon-btn" data-action="garden-queue-reply" data-post="{{postId}}" data-reply="{{replyId}}" title="Queue a reply under this"><i class="fas fa-reply"></i></a>
           </li>
+          {{else}}
+          <li class="agent-app-item compact agent-garden-thread-row depth-{{depth}}{{#if gone}} faded{{/if}}">
+            <div class="agent-app-item-main"><b><i class="fas {{kindIcon}}"></i> {{author.handle}}</b> <span class="agent-row-time">{{inLabel}}</span><small>{{#if image}}<i class="fas fa-image" title="{{image}}"></i> {{/if}}{{text}}{{#if outcome}} · <em>{{outcome}}</em>{{/if}}{{#if why}}<br><em>why: {{why}}</em>{{/if}}{{#if gone}}<br><span class="agent-garden-problem"><i class="fas fa-triangle-exclamation"></i> What it's under is gone: it'll be dropped.</span>{{/if}}</small></div>
+            <a class="agent-icon-btn" data-action="garden-queue-edit" data-id="{{id}}" title="Edit"><i class="fas fa-pen"></i></a>
+            {{#if canReply}}<a class="agent-icon-btn" data-action="garden-queue-reply" data-id="{{id}}" title="Queue a reply under this"><i class="fas fa-reply"></i></a>{{/if}}
+            {{#if canMove}}
+            <a class="agent-icon-btn{{#unless prev}} disabled{{/unless}}" data-action="garden-queue" data-op="up" data-id="{{id}}" data-other="{{prev}}" title="Earlier"><i class="fas fa-arrow-up"></i></a>
+            <a class="agent-icon-btn{{#unless next}} disabled{{/unless}}" data-action="garden-queue" data-op="down" data-id="{{id}}" data-other="{{next}}" title="Later"><i class="fas fa-arrow-down"></i></a>
+            {{/if}}
+            {{#unless queuedUnder}}<a class="agent-icon-btn" data-action="garden-queue" data-op="now" data-id="{{id}}" title="Post now"><i class="fas fa-paper-plane"></i></a>{{/unless}}
+            <a class="agent-icon-btn" data-action="garden-queue" data-op="remove" data-id="{{id}}" title="Skip{{#if canReply}} (and what's queued under it){{/if}}"><i class="fas fa-xmark"></i></a>
+          </li>
+          {{/if}}
         {{else}}
           <li class="agent-empty">Nothing queued. Posts with a delay, and queued lists, wait here.</li>
         {{/each}}

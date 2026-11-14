@@ -30,7 +30,6 @@ test("a batch in the inbox shows in the Drafts tab; approving sends what's due, 
     `[cut] @network54 | +1h | ${tag} this one gets cut`,
     `msg: ${tag} Roach -> ${pc.shown} | -1h | ${tag} HEY. JOB AT THE DOCKS. 明天.`,
     `dating: ${tag} Ines | 29 | Medtech, nights | Buy me coffee at 6am`,
-    `chatter: any | ${tag.toLowerCase()} | ${tag} anyone else hear that?`,
     "# note: live test batch"
   ].join("\n");
   // Like the skill: a temp file, then a rename, so Foundry never reads half a file.
@@ -50,8 +49,7 @@ test("a batch in the inbox shows in the Drafts tab; approving sends what's due, 
       tabLabel: text('[data-action="garden-tab"][data-tab="drafts"]'),
       rows: els(".agent-garden-drafts .agent-garden-draft").length,
       mix: text(".agent-garden-mix"),
-      private: !!el(".agent-garden-badge.private"), hook: !!el(".agent-garden-badge.hook"),
-      chatterRow: !!els(".agent-garden-draft").find(d => d.textContent.includes(`${a.tag} anyone else hear that?`))
+      private: !!el(".agent-garden-badge.private"), hook: !!el(".agent-garden-badge.hook")
     };
     // Cut one, then approve.
     const cut = b.items.find(i => i.label === "cut");
@@ -61,11 +59,10 @@ test("a batch in the inbox shows in the Drafts tab; approving sends what's due, 
     return r;
   }, { id, tag });
   same(out.errors, [], "the batch reads without errors");
-  same(out.summary, "3 posts, 1 reply, 1 text, 1 dating profile, 1 chatter line", "summary");
+  same(out.summary, "3 posts, 1 reply, 1 text, 1 dating profile", "summary");
   same(out.notes, ["live test batch"], "the writer's note is shown");
   check(/Drafts \(\d+\)/.test(out.tabLabel ?? ""), `the tab counts waiting batches: "${out.tabLabel}"`);
-  same(out.rows, 7, "every draft is listed");
-  check(out.chatterRow, "the chatter line is listed");
+  same(out.rows, 6, "every draft is listed");
   check(/City/.test(out.mix ?? "") && /Close to home/.test(out.mix ?? ""), `the mix bar: "${out.mix}"`);
   check(out.private && out.hook, "private and hook badges");
   await gm.shot("garden-drafts-tab");
@@ -82,7 +79,6 @@ test("a batch in the inbox shows in the Drafts tab; approving sends what's due, 
       cutOut: Object.values(store.garden.posts).some(p => p.text === `${a.tag} this one gets cut`),
       text: thread?.messages.at(-1)?.text ?? null,
       dating: Object.values(store.garden.dating.profiles).some(p => p.name === `${a.tag} Ines` && p.age === 29),
-      chatter: (store.garden.chatter ?? []).filter(c => c.text.startsWith(a.tag)).map(c => [c.mood, c.keywords, c.until - a.base]),
       review: store.garden.drafts.reviews.at(-1)
     };
   }, { id, tag, pc, base: setup.base });
@@ -92,8 +88,7 @@ test("a batch in the inbox shows in the Drafts tab; approving sends what's due, 
   same(done.cutOut, false, "the cut post never went out");
   same(done.text, `${tag} HEY. JOB AT THE DOCKS. 明天.`, "the private text reached the character");
   same(done.dating, true, "the Dating profile was made");
-  same(done.chatter, [[null, [tag.toLowerCase()], 7 * 86400]], "the chatter joined the crowd's pool for the batch's week");
-  same([done.review.batch, done.review.approved, done.review.cut], [id, 6, 1], "the review is remembered for the writer");
+  same([done.review.batch, done.review.approved, done.review.cut], [id, 5, 1], "the review is remembered for the writer");
 
   const pack = await gm.run(async a => {
     await store._enqueue(() => store._writePack());

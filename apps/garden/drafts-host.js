@@ -4,7 +4,7 @@ import { simpleCalendar } from "../../scripts/util/agentTime.js";
 import { playerCharacters } from "../../scripts/model/contacts.js";
 import { displayName } from "../../scripts/model/threads.js";
 import { clean } from "../../scripts/util/text.js";
-import { cleanHandle, gardenClockMode, gardenNow, gardenTiers, gardenWhen, randomCitizen, reputationOf } from "./model.js";
+import { cleanHandle, gardenClockMode, gardenNow, gardenTiers, gardenWhen, randomCitizen, replyParent, reputationOf } from "./model.js";
 import { batchMix, batchSummary, CORP_FIELDS, handleKey, parseDrafts, resolveDrafts } from "./drafts.js";
 import { buildPack, INBOX, PACK_FILE, PACK_MD, packMarkdown } from "./pack.js";
 import { cleanCorp, cleanFormat, cleanProfile, writerCharacters } from "./writer.js";
@@ -20,10 +20,11 @@ import { cleanCorp, cleanFormat, cleanProfile, writerCharacters } from "./writer
  *     imported: [file names],                 never read again
  *     batches: { [id]: Batch },               waiting in the Drafts tab
  *     reviews: [{ batch, ts, approved, cut, edited: [{ key, before, after }], note }]   for the next pack
- *     posted: { "<batch>:<key>": postId }     where a batch's posts went (its replies attach there)
+ *     posted: { "<batch>:<key>": id }         where a batch's posts and replies went (its replies and answers attach there)
  *   }
  *   Batch: { id, file, world, base, baseNote, ts, notes, errors, warnings, summary, mix, items }
- *   queue items from a batch carry draft: { batch, key, kind: "post"|"reply"|"msg", parent?, postId?, from?, to? }
+ *   queue items from a batch carry draft: { batch, key, kind: "post"|"reply"|"msg", why?, parent?, postId?, replyTo?, under?, from?, to? }
+ *     (a reply: parent/postId its post; replyTo an existing reply it answers, under the batch's reply it answers)
  *
  * Methods run on the store (`this`); see host/index.js.
  */
@@ -39,8 +40,6 @@ const MAX_REVIEWS = 10;
 const MAX_IMPORTED = 500;
 /** Seconds between the old drip lines of a batch without times. */
 const LEGACY_EVERY = 5 * 60;
-/** How long a batch's chatter lines stay in the crowd's mouth (Garden time): the week the batch covers. */
-const CHATTER_LIFE = 7 * 86400;
 /** The pack is written at most this often (real ms) when the Garden changes. */
 const PACK_EVERY = 10_000;
 
@@ -98,13 +97,6 @@ export const methods = {
     g.drafts.reviews ??= [];
     g.drafts.posted ??= {};
     return g.drafts;
-  },
-
-  /** The writer's chatter still live at Garden time `now` (expired lines dropped): replies.js chatterLine. */
-  _gardenChatter(now = gardenNow()) {
-    const g = this.garden;
-    g.chatter = (g.chatter ?? []).filter(c => c.until > now);
-    return g.chatter;
   },
 
   /* ---------------- The clock: the inbox and the pack ---------------- */
@@ -298,8 +290,8 @@ export const methods = {
       if (Number.isFinite(Number(s.wt)) && s.wt !== null && s.wt !== "") item.wt = Number(s.wt);
       if (s.tier !== undefined) item.tier = s.tier || null;
       const include = s.include ?? original.include;
-      // A reply whose post was cut goes too.
-      const parentGone = item.kind === "reply" && item.to.key && !queuedWt.has(item.to.key);
+      // A reply whose post was cut goes too, and an answer whose reply was.
+      const parentGone = item.kind === "reply" && ((item.to.key && !queuedWt.has(item.to.key)) || (item.under && !queuedWt.has(item.under)));
       if (item.kind === "account") {
         if (include && !item.problems.length) approved++;
         else cut++;
@@ -310,7 +302,8 @@ export const methods = {
         continue;
       }
       approved++;
-      const draft = { batch: batch.id, key: item.key, kind: item.kind };
+      // The writer's why stays with it, for the Queue.
+      const draft = { batch: batch.id, key: item.key, kind: item.kind, ...(item.why ? { why: clean(item.why, 300) } : {}) };
       // Drafts by an account this batch made: its id only now.
       if (!item.accountId && ["dating", "format", "profile"].includes(item.kind)) item.accountId = named(item.kind === "format" ? item.handle : item.who?.startsWith("@") ? item.who : null)?.id ?? null;
       if (item.kind === "post") {
@@ -319,8 +312,10 @@ export const methods = {
         queuedWt.set(item.key, q.wt);
         this._enqueuePost(q);
       } else if (item.kind === "reply") {
-        const wt = item.to.key ? Math.max(item.wt, queuedWt.get(item.to.key)) : item.wt;
-        this._enqueuePost({ id: foundry.utils.randomID(), accountId: accountFor(item), text: clean(item.text, 300), image: null, tier: null, wt, draft: { ...draft, parent: item.to.key ?? null, postId: item.to.postId ?? null } });
+        const after = [item.to.key, item.under].filter(Boolean).map(k => queuedWt.get(k));
+        const wt = Math.max(item.wt, ...after);
+        queuedWt.set(item.key, wt);
+        this._enqueuePost({ id: foundry.utils.randomID(), accountId: accountFor(item), text: clean(item.text, 300), image: null, tier: null, wt, draft: { ...draft, parent: item.to.key ?? null, postId: item.to.postId ?? item.postId ?? null, replyTo: item.to.replyId ?? null, under: item.under ?? null } });
       } else if (item.kind === "msg") {
         this._enqueuePost({ id: foundry.utils.randomID(), accountId: null, text: clean(item.text, 1000), image: null, tier: null, wt: item.wt, draft: { ...draft, from: clean(item.from, 60), to: item.toIds.filter(Boolean) } });
       } else if (item.kind === "dating") this._applyDraftDating(item);
@@ -329,10 +324,6 @@ export const methods = {
         if (f) this._gardenWriter().formats.push(f);
       }
       else if (item.kind === "profile") this._applyDraftProfile(item);
-      else if (item.kind === "chatter") {
-        const until = (batch.base ?? gardenNow()) + CHATTER_LIFE;
-        this._gardenChatter().push({ id: foundry.utils.randomID(), batch: batch.id, mood: item.mood, keywords: item.keywords, text: clean(item.text, 300), until, used: 0 });
-      }
       else if (item.kind === "stage") {
         const target = (item.what === "seed" ? this.garden.seeds : this.garden.happenings)?.[item.id];
         if (target) target.stage = item.stage;
@@ -422,7 +413,8 @@ export const methods = {
 
   /**
    * A queued item goes out (the tick, or "Post now"): a post (any), or from a batch a reply or a
-   * private text. Replies are dated with their own time (never before their post); texts go out now.
+   * private text. Replies are dated with their own time (never before their post, or the reply they
+   * answer); texts go out now. An answer whose reply isn't there (cut, or deleted) doesn't go out.
    */
   async _releaseQueued(item, { now = false } = {}) {
     const draft = item.draft;
@@ -430,10 +422,15 @@ export const methods = {
       const drafts = this._gardenDrafts();
       const post = this.garden.posts[draft.postId ?? drafts.posted[`${draft.batch}:${draft.parent}`]];
       if (!post) return null;
+      const answering = draft.replyTo ?? (draft.under ? drafts.posted[`${draft.batch}:${draft.under}`] : null);
+      const parentId = answering ? replyParent(post, answering) : null;
+      if (answering !== null && !parentId) return null;
       const account = this._queuedAccount(item);
       if (!account) return null;
-      const wt = now ? gardenNow() : Math.min(gardenNow(), Math.max(item.wt, post.wt));
-      const reply = this._addReply(post, account.id, item.text, wt);
+      const answered = parentId ? post.replies.find(r => r.id === answering) : null;
+      const wt = now ? gardenNow() : Math.min(gardenNow(), Math.max(item.wt, post.wt, answered?.wt ?? post.wt));
+      const reply = this._addReply(post, account.id, item.text, wt, { parentId });
+      this._posted(draft, reply.id);
       this._mentions(account, item.text);
       return reply;
     }
@@ -446,13 +443,16 @@ export const methods = {
     const account = this._queuedAccount(item);
     if (!account) return null;
     const post = await this._publish(account, now ? { ...item, wt: null } : item);
-    if (draft && post) {
-      const drafts = this._gardenDrafts();
-      drafts.posted[`${draft.batch}:${draft.key}`] = post.id;
-      // Old batches' posts: forget them after a while (the newest 300 are plenty for late replies).
-      const keys = Object.keys(drafts.posted);
-      if (keys.length > 300) for (const k of keys.slice(0, keys.length - 300)) delete drafts.posted[k];
-    }
+    if (draft && post) this._posted(draft, post.id);
     return post;
+  },
+
+  /** Where a batch's post or reply went (drafts.posted). */
+  _posted(draft, id) {
+    const drafts = this._gardenDrafts();
+    drafts.posted[`${draft.batch}:${draft.key}`] = id;
+    // Old batches' posts: forget them after a while (the newest 300 are plenty for late replies).
+    const keys = Object.keys(drafts.posted);
+    if (keys.length > 300) for (const k of keys.slice(0, keys.length - 300)) delete drafts.posted[k];
   }
 };

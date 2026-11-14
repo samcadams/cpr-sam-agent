@@ -14,7 +14,7 @@
  *
  * WriterProfile: { keywords, voice, agenda, reacts, cadence, avoid, ties, arc, lines }
  *   The GM types keywords; the skill fills voice, agenda, reacts (and the GM edits). arc and lines are the
- *   cast's: their storyline in a line, and their own auto-replies (the tick uses them first).
+ *   cast's: their storyline in a line, and what they say about a happening (Stir: the ones with {place}/{thing}).
  * Happening: { id, wt, ts, place, what, who: [actorId], heat, public, keywords, direction, stage }
  * Seed: { id, ts, what, keywords, obvious, by: wt|null, sources: [accountId], stage }
  * Format: { id, accountId, when, what }   a recurring post the skill fills ("daily 07:00", "weekly Thu 20:00", "after violent nights")

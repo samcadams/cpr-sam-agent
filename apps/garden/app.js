@@ -12,7 +12,7 @@ export default {
   refreshOn: ["garden"],
   // Every 30 real seconds and whenever world time moves (catch-up: due posts go out backdated).
   tick: { method: "_tickGarden" },
-  partials: { "agent-garden-post": "garden-post.hbs", "agent-dating-edit": "dating-edit.hbs", "agent-garden-drafts": "drafts.hbs" },
+  partials: { "agent-garden-post": "garden-post.hbs", "agent-dating-edit": "dating-edit.hbs", "agent-garden-drafts": "drafts.hbs", "agent-garden-reply-row": "garden-reply.hbs" },
   settings: {
     // The Garden's outcome types and word lists (Garden → Control; apps/garden/model.js gardenConfig).
     gardenConfig: { scope: "world", type: Object, default: {} }

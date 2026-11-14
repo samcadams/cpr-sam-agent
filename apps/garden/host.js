@@ -4,13 +4,14 @@ import { findContact, getContacts, setContacts } from "../../scripts/model/conta
 import { commsOn } from "../../scripts/model/features.js";
 import {
   ATTITUDES, byNewest, cleanHandle, MATCHED, engagement, followersForRep, gardenClockMode, gardenConfig, gardenNow, gardenTiers, handleFrom, KINDS,
-  postGrowth, postSettled, randomCitizen, randomPrompts, randomTier, replyMix, replyTime, repsOf, reputationOf, SEED_ACCOUNTS, syncGardenClock
+  postGrowth, postSettled, randomCitizen, randomPrompts, randomTier, replyMix, replyParent, replyTime, repsOf, reputationOf, SEED_ACCOUNTS, syncGardenClock
 } from "./model.js";
 import { displayName } from "../../scripts/model/threads.js";
 import { clean } from "../../scripts/util/text.js";
 import { methods as writerMethods, requests as writerRequests } from "./writer-host.js";
 import { methods as draftsMethods, requests as draftsRequests } from "./drafts-host.js";
-import { pickAutoReply } from "./replies.js";
+import { MAX_REACTIONS, pickReaction } from "./replies.js";
+import { queuedParent } from "./drafts.js";
 
 /*
  * Host: The Garden and The Garden Dating (see apps/garden/model.js). The Garden runs on its clock
@@ -218,37 +219,47 @@ export const methods = {
     this._toggleMark(user, data, "graftedBy", "grafts");
   },
 
-  _onGardenReply(user, { actorId, postId, text }) {
+  /** A character's reply to a post, or (`replyTo`: one of its replies) in that reply's discussion. */
+  _onGardenReply(user, { actorId, postId, text, replyTo }) {
     const post = this.garden.posts[postId];
     const account = this._playerGarden(user, actorId) ? this._pcAccount(actorId) : null;
     text = clean(text, 300);
     if (!post || !account || !text) return;
-    this._addReply(post, account.id, text);
+    this._addReply(post, account.id, text, gardenNow(), { parentId: replyParent(post, replyTo) });
     this._mentions(account, text, post.accountId, post.id);
     this._pushGarden();
   },
 
-  /** GM: reply to any post as an NPC or organization account (not a character's). */
-  _onGardenGmReply(user, { accountId, postId, text }) {
+  /** GM: reply to any post (or one of its replies) as an NPC or organization account (not a character's). */
+  _onGardenGmReply(user, { accountId, postId, text, replyTo }) {
     const post = this.garden.posts[postId];
     const account = this.garden.accounts[accountId];
     text = clean(text, 300);
     if (!post || !account || account.kind === "pc" || !text) return;
-    this._addReply(post, account.id, text);
+    this._addReply(post, account.id, text, gardenNow(), { parentId: replyParent(post, replyTo) });
     this._mentions(account, text, post.accountId, post.id);
     this._pushGarden();
   },
 
   /**
    * A reply on a post. A character's own post: their Agent tells them (sent with the next _pushGarden),
-   * unless it's `quiet` (the simulated chatter).
+   * unless it's `quiet` (a crowd reaction). `parentId`: the top-level reply it answers (see
+   * replyParent); a character's reply answered hears about it the same way.
    */
-  _addReply(post, accountId, text, wt = gardenNow(), { quiet = false } = {}) {
+  _addReply(post, accountId, text, wt = gardenNow(), { quiet = false, parentId = null } = {}) {
     const reply = { id: foundry.utils.randomID(), accountId, text, ts: Date.now(), wt };
-    const author = this.garden.accounts[post.accountId];
-    if (!quiet && author?.actorId && author.id !== accountId) {
+    if (parentId) reply.parentId = parentId;
+    if (!quiet) {
       const by = this.garden.accounts[accountId]?.handle ?? "Someone";
-      (this._gardenAlerts ??= []).push(this._alert(author.actorId, { kind: "garden", from: "The Garden", text: `${by} replied to your post: "${clean(text, 120)}"`, ref: { type: "garden-post", postId: post.id } }));
+      // The post's author and the answered reply's, once each (as the reply's author when they're both).
+      const told = new Map([[post.accountId, "your post"]]);
+      const parent = parentId ? post.replies.find(r => r.id === parentId) : null;
+      if (parent) told.set(parent.accountId, "your reply");
+      for (const [id, what] of told) {
+        const to = this.garden.accounts[id];
+        if (!to?.actorId || id === accountId) continue;
+        (this._gardenAlerts ??= []).push(this._alert(to.actorId, { kind: "garden", from: "The Garden", text: `${by} replied to ${what}: "${clean(text, 120)}"`, ref: { type: "garden-post", postId: post.id } }));
+      }
     }
     post.replies.push(reply);
     post.replies.sort((a, b) => a.wt - b.wt || a.ts - b.ts);
@@ -310,36 +321,76 @@ export const methods = {
     this._pushGarden();
   },
 
-  /** GM: manage the queue: remove, move up or down, post now, pause, resume, edit. */
-  async _onGardenQueue(user, { op, id, item: change }) {
+  /**
+   * GM: manage the queue: remove, move up or down (past `other`, the next post up or down in the
+   * Queue's threads; else the next item), post now, pause, resume, edit, or queue a new reply
+   * (`reply`: under queued item `id`, or `item.postId`'s post on the feed, answering `item.replyId`).
+   * A post's replies move with it, and are skipped with it.
+   */
+  async _onGardenQueue(user, { op, id, other, item: change }) {
     const q = this.garden.queue;
     const i = q.findIndex(x => x.id === id);
+    // Everything queued under `root`: its replies and their answers.
+    const under = root => q.filter(x => {
+      for (let p = queuedParent(q, x); p; p = queuedParent(q, p)) if (p === root) return true;
+      return false;
+    });
+    const shiftThread = (root, delta) => under(root).forEach(x => (x.wt += delta));
     if (op === "pause" && !this.garden.paused) this.garden.paused = gardenNow();
     else if (op === "resume" && this.garden.paused) {
       // Paused in Garden time: the queue moves on by however far the clock went meanwhile.
       const shift = Math.max(0, gardenNow() - this.garden.paused);
       for (const item of q) item.wt += shift;
       this.garden.paused = null;
-    } else if (op === "remove" && i >= 0) q.splice(i, 1);
+    } else if (op === "remove" && i >= 0) {
+      // Its replies would have nothing to go under.
+      const gone = new Set([q[i], ...under(q[i])]);
+      this.garden.queue = q.filter(x => !gone.has(x));
+    }
     else if ((op === "up" || op === "down") && i >= 0) {
-      const j = i + (op === "up" ? -1 : 1);
-      if (j < 0 || j >= q.length) return;
+      const j = other ? q.findIndex(x => x.id === other) : i + (op === "up" ? -1 : 1);
+      if (j < 0 || j >= q.length || j === i) return;
       // Swap places, keeping the times where they were.
-      [q[i].wt, q[j].wt] = [q[j].wt, q[i].wt];
+      const [a, b] = [q[i], q[j]];
+      const delta = b.wt - a.wt;
+      [a.wt, b.wt] = [b.wt, a.wt];
+      shiftThread(a, delta);
+      shiftThread(b, -delta);
       this._sortQueue();
     } else if (op === "edit" && i >= 0 && change) {
       // Every field: who, text, picture, outcome, when (in-game minutes from now, or from the pause), Reputation.
       const item = q[i];
-      const text = clean(change.text, 500);
+      const text = clean(change.text, item.draft?.kind === "reply" ? 300 : 500);
       const image = cleanImage(change.image, user);
       if (!text && !image) return;
       if (change.accountId === "@random" || this.garden.accounts[change.accountId]) item.accountId = change.accountId;
       Object.assign(item, { text, image, tier: change.tier in gardenTiers() ? change.tier : null, rep: cleanRep(change.rep) });
-      if (change.minutes !== undefined) item.wt = (this.garden.paused ?? gardenNow()) + Math.max(0, Number(change.minutes) || 0) * 60;
+      if (change.minutes !== undefined) {
+        const was = item.wt;
+        item.wt = (this.garden.paused ?? gardenNow()) + Math.max(0, Number(change.minutes) || 0) * 60;
+        shiftThread(item, item.wt - was);
+      }
       this._sortQueue();
     } else if (op === "now" && i >= 0) {
+      // A reply whose post is still queued goes out after it, not before.
+      if (queuedParent(q, q[i])) return;
       const [item] = q.splice(i, 1);
       await this._releaseQueued(item, { now: true });
+    } else if (op === "reply" && change) {
+      const text = clean(change.text, 300);
+      if (!text || !(change.accountId === "@random" || this.garden.accounts[change.accountId])) return;
+      const target = q[i] ?? null;
+      let draft;
+      if (target) {
+        // Under a queued post (one queued by hand gets a draft's key, so its replies can find it) or reply.
+        if (target.draft?.kind === "msg") return;
+        const d = (target.draft ??= { batch: "gm", key: target.id, kind: "post" });
+        draft = d.kind === "reply" ? { batch: d.batch, parent: d.parent, postId: d.postId, replyTo: d.replyTo, under: d.key } : { batch: d.batch, parent: d.key, postId: null, replyTo: null, under: null };
+      } else if (this.garden.posts[change.postId]) draft = { batch: "gm", parent: null, postId: change.postId, replyTo: change.replyId || null, under: null };
+      else return;
+      const key = foundry.utils.randomID();
+      const wt = Math.max(target?.wt ?? 0, (this.garden.paused ?? gardenNow()) + Math.max(0, Number(change.minutes) || 0) * 60);
+      this._enqueuePost({ id: key, accountId: change.accountId, text, image: null, tier: null, wt, draft: { ...draft, key, kind: "reply" } });
     } else return;
     this._pushGarden();
   },
@@ -412,12 +463,16 @@ export const methods = {
     this._pushGarden();
   },
 
-  /** GM: delete a reply by an NPC or organization (characters' replies are the players'). */
+  /**
+   * GM: delete a reply by an NPC or organization (characters' replies are the players'), with the
+   * NPCs' answers under it (characters' answers stay, as top-level replies).
+   */
   _onGardenReplyDelete(user, { postId, replyId }) {
     const post = this.garden.posts[postId];
     const reply = post?.replies.find(r => r.id === replyId);
-    if (!reply || this.garden.accounts[reply.accountId]?.kind === "pc") return;
-    post.replies = post.replies.filter(r => r !== reply);
+    const pc = r => this.garden.accounts[r.accountId]?.kind === "pc";
+    if (!reply || pc(reply)) return;
+    post.replies = post.replies.filter(r => r !== reply && !(r.parentId === reply.id && !pc(r)));
     this._pushGarden();
   },
 
@@ -435,19 +490,24 @@ export const methods = {
     const now = gardenNow();
     if (!this.garden.paused) {
       // Due on Garden time, or (Stir) on real time while the clock stands still: then dated now.
-      const due = this.garden.queue.filter(q => q.wt <= now || q.realAt <= nowMs);
-      this.garden.queue = this.garden.queue.filter(q => !due.includes(q));
+      const queue = this.garden.queue;
+      let due = queue.filter(q => q.wt <= now || q.realAt <= nowMs);
+      // A reply waits while its post (or the reply it answers) is still queued, and goes out after it.
+      for (let n = -1; n !== due.length;) {
+        n = due.length;
+        due = due.filter(q => !queuedParent(queue, q) || due.includes(queuedParent(queue, q)));
+      }
+      const depth = q => (queuedParent(queue, q) ? 1 + depth(queuedParent(queue, q)) : 0);
+      due.sort((a, b) => depth(a) - depth(b));
+      this.garden.queue = queue.filter(q => !due.includes(q));
       // A post (a batch's reply or private text too: drafts-host.js).
       for (const item of due) {
         await this._releaseQueued(item);
         changed = true;
       }
     }
-    // Random citizens reply from the writer's chatter, then the word lists; the cast only to posts for
-    // them (a mention, a tie, their keywords), corps and news never (their replies come from the
-    // writer's batches): replies.js.
-    const names = Object.fromEntries(game.actors.map(a => [a.id, a.name]));
-    const chatter = this._gardenChatter(now);
+    // A growing post gets a reaction or two from random citizens (replies.js); the rest of its thread
+    // is the writer's (its batches) and the players'.
     for (const post of Object.values(this.garden.posts)) {
       if (!post.eng || postSettled(post, now, nowMs)) continue;
       const g = postGrowth(post, now, nowMs);
@@ -455,13 +515,12 @@ export const methods = {
       const grafts = Math.round(post.eng.grafts * g) + post.graftedBy.length;
       if (likes > post.likes) [post.likes, changed] = [likes, true];
       if (grafts > post.grafts) [post.grafts, changed] = [grafts, true];
-      // Auto-replies, a few at a time as the post grows.
+      // Reactions, early in the post's growth.
       const auto = post.replies.filter(r => r.auto).length;
-      const target = Math.round(post.eng.replies * g);
+      const target = Math.min(MAX_REACTIONS, Math.round(post.eng.replies * g));
       for (let n = auto; n < target; n++) {
-        const pick = pickAutoReply(post, this.garden.accounts, { total: post.eng.replies, names, chatter });
-        if (!pick) continue; // their kind of reply has all been said in this thread
-        if (pick.chatter) chatter.find(c => c.id === pick.chatter).used++;
+        const pick = pickReaction(post, this.garden.accounts);
+        if (!pick) continue; // no one left to react, or nothing new to say
         this._addReply(post, pick.account.id, pick.text, replyTime(post, (n + Math.random()) / Math.max(1, post.eng.replies), now), { quiet: true }).auto = true;
         changed = true;
       }

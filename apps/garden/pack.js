@@ -1,3 +1,5 @@
+import { MAX_THREAD } from "./drafts.js";
+import { replyParent, replyThreads } from "./model.js";
 import { matchAccounts } from "./writer.js";
 
 /*
@@ -5,7 +7,8 @@ import { matchAccounts } from "./writer.js";
  * garden-writer skill needs from one world, saved by the host as cpr-sam-agent/garden/writer-pack.json
  * (for the skill) and writer-pack.md (for the GM). Pure: the host passes what only Foundry knows (ctx).
  * The pack does the keyword legwork: who fits each happening and seed, who's been quiet, which
- * characters' posts nobody answered.
+ * characters' posts and replies nobody answered. Replies are listed as threads, each line with its id
+ * ("reply:<id> @handle: text", answers under it as "↳ reply:<id> …") for the batch's "> on reply:<id>".
  *
  * ctx: {
  *   world, worldTitle, now (Garden time), nowMs, clock ("world"|"real"),
@@ -25,6 +28,8 @@ const QUIET_DAYS = 3;
 /** A handle as "@name" (accounts keep theirs with the "@"; older data may not). */
 const tag = h => (String(h ?? "").startsWith("@") ? String(h) : `@${h}`);
 const cut = (s, n) => (String(s ?? "").length > n ? `${String(s).slice(0, n - 1)}…` : String(s ?? ""));
+/** How many characters' replies wait for an answer in the pack at most. */
+const WAITING = 20;
 
 /** How far a character can be named, from their Reputation (the Facedown idea). */
 export function naming(rep) {
@@ -47,6 +52,9 @@ export function buildPack(garden, ctx) {
   const accounts = garden.accounts ?? {};
   const posts = Object.values(garden.posts ?? {}).sort((a, b) => b.wt - a.wt || b.ts - a.ts);
   const handle = id => (id === "@random" ? "@random" : accounts[id] ? tag(accounts[id].handle) : null);
+  // A post's replies as thread lines: each top-level reply, its answers under it.
+  const thread = (replies, n = Infinity) => replyThreads(replies).flatMap(({ reply, answers }) => [reply, ...answers]
+    .map(r => `${r === reply ? "" : "↳ "}reply:${r.id} ${handle(r.accountId)}: ${cut(r.text, n)}`));
   const lastPost = new Map();
   for (const p of posts) if (!lastPost.has(p.accountId)) lastPost.set(p.accountId, p.wt);
   const lastSeen = id => (lastPost.has(id) ? { wt: lastPost.get(id), label: when(lastPost.get(id)) } : null);
@@ -96,13 +104,23 @@ export function buildPack(garden, ctx) {
   const pcIds = new Set(pcs.map(p => p.actorId));
   const pcAccountIds = new Set(Object.values(accounts).filter(a => a.actorId && pcIds.has(a.actorId)).map(a => a.id));
   const anyPcAccount = new Set(Object.values(accounts).filter(a => a.actorId).map(a => a.id));
-  // Characters' posts nobody but citizens' auto-replies (or other characters) answered yet.
+  // Characters' posts nobody but citizens' reactions (or other characters) answered yet; `wanted`: how
+  // many replies the post's reach calls for (the thread the writer writes, MAX_THREAD at most).
   const unanswered = posts.filter(p => pcAccountIds.has(p.accountId) && !(p.replies ?? []).some(r => !r.auto && !anyPcAccount.has(r.accountId)))
-    .slice(0, 20).map(p => ({ id: p.id, by: handle(p.accountId), wt: p.wt, when: when(p.wt), text: p.text, replies: (p.replies ?? []).map(r => `${handle(r.accountId)}: ${r.text}`) }));
+    .slice(0, 20).map(p => ({ id: p.id, by: handle(p.accountId), wt: p.wt, when: when(p.wt), text: p.text, wanted: Math.min(MAX_THREAD, p.eng?.replies ?? 3), replies: thread(p.replies ?? []) }));
+  // Characters' replies of the last week (on posts not listed above) that no NPC answered since in their
+  // discussion (`thread`: that reply and its answers): the writer answers them with "> on reply:<id>".
+  const unansweredIds = new Set(unanswered.map(p => p.id));
+  const waiting = posts.filter(p => !unansweredIds.has(p.id)).flatMap(p => (p.replies ?? []).filter(r => pcAccountIds.has(r.accountId) && r.wt >= now - 7 * 86400).flatMap(r => {
+    const top = replyParent(p, r.id);
+    const discussion = p.replies.filter(x => x.id === top || x.parentId === top);
+    if (discussion.some(x => x !== r && x.wt >= r.wt && !x.auto && !anyPcAccount.has(x.accountId))) return [];
+    return [{ id: r.id, postId: p.id, on: handle(p.accountId), post: cut(p.text, 100), by: handle(r.accountId), wt: r.wt, when: when(r.wt), text: r.text, thread: thread(discussion, 120) }];
+  })).sort((a, b) => b.wt - a.wt).slice(0, WAITING);
 
   const recent = posts.slice(0, RECENT_POSTS).map(p => ({
     id: p.id, by: handle(p.accountId), wt: p.wt, when: when(p.wt), tier: p.tier, text: p.text, sprouts: p.likes, grafts: p.grafts,
-    replies: (p.replies ?? []).filter(r => !r.auto).map(r => `${handle(r.accountId)}: ${cut(r.text, 120)}`), autoReplies: (p.replies ?? []).filter(r => r.auto).length
+    replies: thread((p.replies ?? []).filter(r => !r.auto), 120), autoReplies: (p.replies ?? []).filter(r => r.auto).length
   }));
 
   const queue = garden.queue ?? [];
@@ -143,13 +161,13 @@ export function buildPack(garden, ctx) {
     happenings,
     seeds,
     unanswered,
+    waiting,
     quiet: {
       voices: [...cast, ...corps].filter(a => !a.lastPost || a.lastPost.wt < quietCut).map(a => a.handle),
       pcs: pcs.filter(p => !p.lastAppeared || p.lastAppeared.wt < now - 7 * 86400).map(p => p.name),
       arcs: cast.filter(a => a.writer?.arc && (!a.lastPost || a.lastPost.wt < quietCut)).map(a => `${a.handle}: ${a.writer.arc}`)
     },
     recent,
-    chatter: (garden.chatter ?? []).filter(c => c.until > now).map(c => ({ mood: c.mood ?? "any", keywords: c.keywords, text: c.text, until: when(c.until), used: c.used })),
     dating: { npcProfiles: Object.values(garden.dating?.profiles ?? {}).filter(p => !p.actorId).map(p => `${p.name} (${tag(p.handle)}, ${p.age})`) },
     drafts: ctx.drafts ?? { pending: [], reviews: [] }
   };
@@ -169,14 +187,14 @@ export function packMarkdown(pack) {
   if (pack.paused) line(`\n**The queue is paused** since ${pack.paused.label}.`);
   line(`\nQueue: ${pack.queue.count} waiting${pack.queue.until ? `, until ${pack.queue.until.label}` : ""}. Mix ${pack.mix ? `${pack.mix.city}/${pack.mix.close}/${pack.mix.about}` : "default"} (city/close/about).`);
   list("Characters", pack.pcs, p => `**${p.name}** ${p.handle ?? "(no account)"}, Rep ${p.reputation} (${p.naming}); last opened the Garden: ${p.lastOpenedGarden?.label ?? "never"}; last in the feed: ${p.lastAppeared?.label ?? "never"}`);
-  list("Unanswered character posts", pack.unanswered, p => `${p.by} (${p.when}): ${cut(p.text, 100)}`);
+  list("Unanswered character posts", pack.unanswered, p => `${p.by} (${p.when}, ~${p.wanted} replies): ${cut(p.text, 100)}`);
+  list("Character replies waiting for an answer", pack.waiting, r => `${r.by} on ${r.on}'s post (${r.when}, reply:${r.id}): ${cut(r.text, 100)}`);
   list("Happenings", pack.happenings, h => `[${h.stage}] ${h.what} @ ${h.place || "?"} (${h.heat}${h.public ? "" : ", GM-only"}, ${h.when})${h.direction ? ` — note: ${h.direction}` : ""}; fits: ${h.fits.map(f => f.handle).join(" ") || "nobody"}`);
   list("Seeds", pack.seeds, s => `[${s.stage}] ${s.what} (${s.obvious}${s.byLabel ? `, by ${s.byLabel}` : ""}); fits: ${s.fits.map(f => f.handle).join(" ") || "nobody"}`);
   list("Cast", pack.cast, a => `${a.handle} ${a.name}${a.writer?.arc ? `: ${a.writer.arc}` : ""} (last post ${a.lastPost?.label ?? "never"})`);
   list("Corporations", pack.corps, a => `${a.handle} ${a.name} (${a.corp?.tier ?? "?"}${a.corp?.face ? `, "${a.corp.face}"` : ""}; last post ${a.lastPost?.label ?? "never"})`);
   list("Formats", pack.formats, f => `${f.handle} ${f.when}: ${f.what}`);
   list("Quiet for a while", [...pack.quiet.voices, ...pack.quiet.pcs.map(n => `${n} (not in the feed for a week)`)]);
-  line(`\nCrowd chatter live: ${pack.chatter?.length ?? 0} line(s)${pack.chatter?.length ? `, until ${pack.chatter.at(-1).until}` : ""}.`);
   list("Pending batches", pack.drafts.pending, b => `${b.id}: ${b.summary}`);
   list("Last reviews", pack.drafts.reviews, r => `${r.batch}: ${r.approved} approved, ${r.cut} cut, ${r.edited?.length ?? 0} edited${r.note ? `; note: ${r.note}` : ""}`);
   list("Recent posts", pack.recent.slice(0, 15), p => `${p.when} ${p.by}: ${cut(p.text, 100)}`);

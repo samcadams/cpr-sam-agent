@@ -219,3 +219,83 @@ test("the player opening the Garden is noted for the writer, and they see none o
   }));
   same(leak, { happenings: 0, seen: 0, profiles: 0, tab: false }, "players get no events, profiles, who-looked-when or Writer tab");
 });
+
+/* ---------------- Replies to replies ---------------- */
+
+test("replies to replies: one level under a reply, its author told, NPC answers deleted with it", async ({ gm, pl, pc, tag }) => {
+  const postId = await gm.run(async a => {
+    await api.garden.post({ as: "@network54", text: `${a.tag} threads` });
+    return (await until(() => Object.values(store.garden.posts).find(p => p.text === `${a.tag} threads`), "the post")).id;
+  }, { tag });
+  // The player replies on their phone; the GM answers it, then answers the answer.
+  await pl.run(async a => {
+    const p = await go("garden");
+    // An account first, if this character has none.
+    if (el("[data-action=garden-join]")) {
+      await tap("[data-action=garden-join]");
+      const d = await until(() => [...document.querySelectorAll(".app.dialog")].at(-1), "the account dialog", 2000).catch(() => null);
+      if (d) await press(d, [...d.querySelectorAll(".dialog-button")].at(0)?.textContent.trim() ?? "OK");
+      await until(() => el("[name=gardenPost]"), "the composer");
+    }
+    p.gardenPost = a.postId;
+    p.render();
+    await fill("input[name=gardenReply]", `${a.tag} first`);
+    await tap('[data-action="garden-reply"]');
+  }, { tag, postId });
+  const host = await gm.run(async a => {
+    const post = () => store.garden.posts[a.postId];
+    const reply = text => until(() => post().replies.find(r => r.text === `${a.tag} ${text}`), `the reply "${text}"`);
+    const n54 = Object.values(store.garden.accounts).find(x => x.handle === "@network54").id;
+    const answer = (text, replyTo) => store.request("garden-gm-reply", { accountId: n54, postId: a.postId, text: `${a.tag} ${text}`, replyTo });
+    const first = await reply("first");
+    answer("answer", first.id);
+    const ans = await reply("answer");
+    answer("answer to the answer", ans.id);
+    const deep = await reply("answer to the answer");
+    answer("npc top", null);
+    const top = await reply("npc top");
+    answer("npc under npc", top.id);
+    await reply("npc under npc");
+    const alerts = Object.values(store.apps.alerts).filter(x => x.actorId === a.pc.id && x.text.includes(a.tag)).map(x => x.text);
+    return { first: first.parentId ?? null, ans: ans.parentId, deep: deep.parentId, firstId: first.id, topId: top.id, alerts };
+  }, { tag, postId, pc });
+  same([host.first, host.ans, host.deep], [null, host.firstId, host.firstId], "the answer and the answer to it are both in the first reply's discussion");
+  check(host.alerts.some(t => t.includes("replied to your reply")), `the player is told their reply was answered (${host.alerts.join(" | ")})`);
+
+  // The player answers the NPC's reply too; deleting that reply takes the NPC's answer with it, not theirs.
+  await pl.run(async a => {
+    await tap(`[data-action="garden-reply-to"][data-reply-id="${a.host.topId}"]`);
+    await fill("input[name=gardenReply]", `${a.tag} pc under npc`);
+    await tap('[data-action="garden-reply"]');
+  }, { tag, host });
+  const after = await gm.run(async a => {
+    const post = () => store.garden.posts[a.postId];
+    const pcAnswer = await until(() => post().replies.find(r => r.text === `${a.tag} pc under npc`), "the player's answer");
+    store.request("garden-reply-delete", { postId: a.postId, replyId: a.topId });
+    await until(() => !post().replies.some(r => r.id === a.topId), "the reply deleted");
+    return { parent: pcAnswer.parentId, left: post().replies.map(r => r.text.replace(`${a.tag} `, "")) };
+  }, { tag, postId, topId: host.topId });
+  same(after.parent, host.topId, "the player's answer was under the NPC's reply");
+  same(after.left, ["first", "answer", "answer to the answer", "pc under npc"], "the NPC's answer goes with it; the player's stays, on its own");
+
+  // The player's phone: the discussion shows under its reply (the toggle hides it), and answering an answer starts with its @handle.
+  const ui = await pl.run(async a => {
+    await until(() => text(".agent-garden-thread-toggle"), "the toggle");
+    const r = { toggle: text(".agent-garden-thread-toggle"), answers: els(".agent-garden-answers > li").length };
+    await tap(`[data-action="garden-thread"][data-reply-id="${a.firstId}"]`);
+    r.hidden = await until(() => (!el(".agent-garden-answers") && text(".agent-garden-thread-toggle")) || null, "the discussion hidden");
+    await tap(`[data-action="garden-thread"][data-reply-id="${a.firstId}"]`);
+    await until(() => el(".agent-garden-answers"), "the discussion shown again");
+    const answer = els(".agent-garden-answers [data-action=garden-reply-to]")[0];
+    hit(answer);
+    r.target = await until(() => text(".agent-garden-reply-target"), "Replying to");
+    r.draft = el("input[name=gardenReply]").value;
+    await tap('[data-action="garden-reply-cancel"]');
+    r.cleared = !el(".agent-garden-reply-target");
+    return r;
+  }, { firstId: host.firstId });
+  same([ui.toggle, ui.answers], ["Hide replies", 2], "the first reply's discussion is shown when the post opens");
+  same(ui.hidden, "View 2 replies", "the toggle hides it");
+  check(ui.target.includes("@network54") && ui.draft.startsWith("@network54 "), `Reply on an answer: "${ui.target}", draft "${ui.draft}"`);
+  check(ui.cleared, "× goes back to replying to the post");
+});

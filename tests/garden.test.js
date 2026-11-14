@@ -6,7 +6,7 @@ import fs from "node:fs";
 import { store } from "../scripts/store.js";
 import { emptyApps } from "../scripts/model/apps.js";
 import {
-  avatarGender, emptyGarden, gardenAgo, gardenClockMode, gardenNow, gardenWhen, growth, LIST_FILES, parseList, postGrowth, postSettled, queueWhen, randomCitizen, replyTime,
+  avatarGender, emptyGarden, gardenAgo, gardenClockMode, gardenNow, gardenWhen, growth, LIST_FILES, parseList, postGrowth, postSettled, queueWhen, randomCitizen, replyParent, replyThreads, replyTime,
   setGardenLists, shiftGarden, spanLabel, syncGardenClock, WORLD_PACE
 } from "../apps/garden/model.js";
 
@@ -266,4 +266,19 @@ test("the shipped gendered name lists are real, disjoint, and drawn from the com
   assert.ok(f.length > 20 && m.length > 20);
   assert.deepEqual(f.filter(n => m.includes(n)), []);
   assert.deepEqual([...f, ...m].filter(n => !all.includes(n)), []);
+});
+
+test("replyThreads: answers sit under their top-level reply; an answer whose reply is gone stands alone", () => {
+  const replies = [{ id: "a" }, { id: "b" }, { id: "a1", parentId: "a" }, { id: "x1", parentId: "gone" }, { id: "a2", parentId: "a" }];
+  assert.deepEqual(replyThreads(replies).map(t => [t.reply.id, t.answers.map(r => r.id)]), [["a", ["a1", "a2"]], ["b", []], ["x1", []]]);
+  assert.deepEqual(replyThreads(), []);
+});
+
+test("replyParent: a reply to a top-level reply answers it; a reply to an answer joins its discussion", () => {
+  const post = { replies: [{ id: "a" }, { id: "a1", parentId: "a" }, { id: "x1", parentId: "gone" }] };
+  assert.equal(replyParent(post, "a"), "a");
+  assert.equal(replyParent(post, "a1"), "a");
+  assert.equal(replyParent(post, "x1"), "x1");
+  assert.equal(replyParent(post, "nope"), null);
+  assert.equal(replyParent(post, null), null);
 });

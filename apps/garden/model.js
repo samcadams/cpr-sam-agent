@@ -25,7 +25,8 @@ import { emptyWriter, REACTION_MOODS } from "./writer.js";
  *       matched → "invited" (asked out) → "accepted" | "declined"
  *   }
  * }
- * Post: { id, accountId, text, image, ts, wt, tier, reach, likes, grafts, replies: [{ id, accountId, text, ts, wt, auto? }],
+ * Post: { id, accountId, text, image, ts, wt, tier, reach, likes, grafts, replies: [{ id, accountId, text, ts, wt, auto?, parentId? }],
+ *   (parentId: the top-level reply it answers, one level deep; see replyThreads)
  *   likedBy: [accountId], graftedBy: [accountId], rep?: [{ actorId, delta, reason }] (one per character),
  *   eng: { likes, grafts, replies, mix } (where the counts are heading; see engagement()) }
  * Likes are "sprouts" and shares are "grafts".
@@ -138,6 +139,31 @@ export function replyTime(post, fraction, now) {
 
 /** Newest first: by Garden time, then by when they really went up. */
 export const byNewest = (a, b) => b.wt - a.wt || b.ts - a.ts;
+
+/*
+ * Replies are one level deep: a reply answers the post (no parentId) or one of its top-level replies
+ * (parentId), and everything under a top-level reply is its discussion. An answer whose reply is gone
+ * (deleted, or trimmed off a long thread) stands on its own as a top-level reply.
+ */
+
+/** A post's replies as threads: the top-level replies in order, each with its answers in order. */
+export function replyThreads(replies = []) {
+  const ids = new Set(replies.map(r => r.id));
+  const answers = new Map();
+  for (const r of replies) if (r.parentId && ids.has(r.parentId)) answers.set(r.parentId, [...(answers.get(r.parentId) ?? []), r]);
+  return replies.filter(r => !r.parentId || !ids.has(r.parentId)).map(r => ({ reply: r, answers: answers.get(r.id) ?? [] }));
+}
+
+/**
+ * The parentId for a reply to `replyId` on `post`: that reply if it's top-level, else the reply its
+ * discussion is under (an answer to an answer joins the same discussion). null: not one of its replies.
+ */
+export function replyParent(post, replyId) {
+  const replies = post?.replies ?? [];
+  const to = replyId ? replies.find(r => r.id === replyId) : null;
+  if (!to) return null;
+  return to.parentId && replies.some(r => r.id === to.parentId) ? to.parentId : to.id;
+}
 
 /** "3h", "2d" style length of a span in seconds. */
 export function spanLabel(seconds) {

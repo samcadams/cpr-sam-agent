@@ -3,8 +3,8 @@ import { appBar } from "../../scripts/ui/phone/pages/home.js";
 import { attachPhotoDialog, fieldsDialog } from "../../scripts/ui/dialogs/forms.js";
 import { findContact, getContacts, playerCharacters } from "../../scripts/model/contacts.js";
 import {
-  ATTITUDES, byNewest, DEFAULT_TIERS, defaultListPath, gardenAgo, gardenConfig, gardenLists, gardenNow, gardenTiers, KINDS, LIST_FILES, MATCHED, queueWhen, repsOf,
-  reputationOf, tierSummary, WORLD_PACE
+  ATTITUDES, byNewest, DEFAULT_TIERS, defaultListPath, gardenAgo, gardenConfig, gardenLists, gardenNow, gardenTiers, KINDS, LIST_FILES, MATCHED, queueWhen, replyParent, replyThreads,
+  repsOf, reputationOf, tierSummary, WORLD_PACE
 } from "./model.js";
 import { appearance } from "../../scripts/model/appearance.js";
 import { commsOn, gardenWriterOn } from "../../scripts/model/features.js";
@@ -16,6 +16,7 @@ import { initials } from "../../scripts/util/text.js";
 import { actions as writerActions, methods as writerMethods } from "./writer-page.js";
 import { actions as draftsActions, methods as draftsMethods } from "./drafts-page.js";
 import { hasProfile } from "./writer.js";
+import { nestRows, queuedParent } from "./drafts.js";
 
 /*
  * Phone page: The Garden and The Garden Dating (see apps/garden/model.js). Two feeds, Feed and News;
@@ -192,9 +193,36 @@ export const actions = {
     const ctx = this.context();
     const input = this.element[0].querySelector("input[name=gardenReply]");
     const text = input?.value.trim();
-    if (text && ctx.perspective === "gm") store.request("garden-gm-reply", { accountId: this.gardenAs, postId, text });
-    else if (text) store.request("garden-reply", { actorId: ctx?.actorId, postId, text });
+    const replyTo = this.gardenReplyTo ?? null;
+    if (text && ctx.perspective === "gm") store.request("garden-gm-reply", { accountId: this.gardenAs, postId, text, replyTo });
+    else if (text) store.request("garden-reply", { actorId: ctx?.actorId, postId, text, replyTo });
     this.gardenReplyDraft = "";
+    this.gardenReplyTo = null;
+  },
+  /**
+   * Reply to a reply: the reply box answers it, in its discussion (opened). Answering an answer starts
+   * with its @handle, as the discussion is one level.
+   */
+  "garden-reply-to"({ replyId }) {
+    const post = store.garden.posts[this.gardenPost];
+    const reply = post?.replies.find(r => r.id === replyId);
+    if (!reply) return;
+    this.gardenReplyTo = reply.id;
+    this.gardenHidden?.delete(reply.parentId ?? reply.id);
+    const handle = store.garden.accounts[reply.accountId]?.handle;
+    const draft = this.gardenReplyDraft ?? "";
+    if (reply.parentId && handle && !draft.includes(handle)) this.gardenReplyDraft = `${handle} ${draft}`;
+    this.render();
+  },
+  "garden-reply-cancel"() {
+    this.gardenReplyTo = null;
+    this.render();
+  },
+  /** A reply's discussion: hidden or shown again (shown to begin with). */
+  "garden-thread"({ replyId }) {
+    const hidden = (this.gardenHidden ??= new Set());
+    if (!hidden.delete(replyId)) hidden.add(replyId);
+    this.render();
   },
   async "garden-edit-me"() {
     const ctx = this.context();
@@ -400,8 +428,25 @@ export const actions = {
       buttons: { ok: { label: "Close" } }
     }).render(true);
   },
-  "garden-queue"({ op, id }) {
-    store.request("garden-queue", { op, id });
+  "garden-queue"({ op, id, other }) {
+    store.request("garden-queue", { op, id, other: other || undefined });
+  },
+  /** GM: queue a reply under a queued post or reply (`id`), or one on the feed (`post`, answering `reply`). */
+  async "garden-queue-reply"({ id, post, reply }) {
+    const { garden } = store;
+    const accounts = Object.values(garden.accounts).filter(a => a.kind !== "pc").sort((a, b) => !!b.pinned - !!a.pinned || a.handle.localeCompare(b.handle));
+    const target = garden.queue.find(q => q.id === id);
+    const minutes = target ? Math.max(0, Math.round((target.wt - (garden.paused ?? gardenNow())) / 60)) : 0;
+    const result = await fieldsDialog({
+      title: "Queue a reply",
+      fields: [
+        { name: "accountId", label: "Reply as", type: "select", search: true, value: "@random", options: [{ value: "@random", label: "A random citizen" }, ...accounts.map(a => ({ value: a.id, label: `${a.handle} · ${a.name}` }))] },
+        { name: "text", label: "Text", type: "textarea", rows: 3, value: "" },
+        { name: "minutes", label: "Goes out in (in-game minutes)", type: "number", step: "0.5", value: minutes, hint: target ? "Never before what it's under." : garden.paused ? "Counted from when you resume the queue." : "" }
+      ]
+    });
+    if (!result?.text) return;
+    store.request("garden-queue", { op: "reply", id: id || null, item: { accountId: result.accountId, text: result.text, minutes: result.minutes, postId: post || null, replyId: reply || null } });
   },
   /** GM: change anything about a queued post: who, text, picture, outcome, when, Reputation event. */
   async "garden-queue-edit"({ id }) {
@@ -410,9 +455,14 @@ export const actions = {
     if (!item) return;
     const accounts = Object.values(garden.accounts).filter(a => a.kind !== "pc").sort((a, b) => !!b.pinned - !!a.pinned || a.handle.localeCompare(b.handle));
     const minutes = Math.max(0, Math.round((item.wt - (garden.paused ?? gardenNow())) / 60));
+    const reply = item.draft?.kind === "reply";
     const result = await fieldsDialog({
-      title: "Queued post",
-      fields: [
+      title: reply ? "Queued reply" : "Queued post",
+      fields: reply ? [
+        { name: "accountId", label: "Reply as", type: "select", search: true, value: item.accountId, options: [{ value: "@random", label: "A random citizen" }, ...accounts.map(a => ({ value: a.id, label: `${a.handle} · ${a.name}` }))] },
+        { name: "text", label: "Text", type: "textarea", rows: 3, value: item.text },
+        { name: "minutes", label: "Goes out in (in-game minutes)", type: "number", step: "0.5", value: minutes, hint: "Never before what it's under." }
+      ] : [
         { name: "accountId", label: "Posted by", type: "select", search: true, value: item.accountId, options: [{ value: "@random", label: "A random citizen" }, ...accounts.map(a => ({ value: a.id, label: `${a.handle} · ${a.name}` }))] },
         { name: "text", label: "Text", type: "textarea", rows: 4, value: item.text },
         { name: "image", label: "Picture", type: "image", value: item.image ?? "", placeholder: "Optional: a server path or https:// link" },
@@ -420,10 +470,11 @@ export const actions = {
         { name: "minutes", label: "Goes out in (in-game minutes)", type: "number", step: "0.5", value: minutes, hint: garden.paused ? "Counted from when you resume the queue." : "" },
         ...repFields(repsOf(item))
       ],
-      note: REP_HINT
+      note: reply ? "" : REP_HINT
     });
     if (!result) return;
     if (!result.text && !result.image) return ui.notifications.warn("A post needs text or a picture.");
+    if (reply) return store.request("garden-queue", { op: "edit", id, item: { accountId: result.accountId, text: result.text, image: null, tier: null, minutes: result.minutes, rep: null } });
     const rep = repsFrom(result);
     store.request("garden-queue", {
       op: "edit", id,
@@ -559,6 +610,57 @@ export const methods = {
     if (el) this.gardenDraft = el.value;
   },
 
+  /**
+   * The Queue as threads: each queued reply under its post (queued, or greyed from the feed, with the
+   * reply it answers), by when the thread starts. Up and down move a post past the next one, or a
+   * reply past its neighbour in the same thread; a post's replies move with it.
+   */
+  _gardenQueueData() {
+    const { garden } = store;
+    const now = gardenNow();
+    const posted = garden.drafts?.posted ?? {};
+    const context = new Map();
+    const live = (id, parent, src, postId, replyId = null) => {
+      if (!context.has(id)) context.set(id, { id, parent, ctx: true, postId, replyId, author: this._gardenAccountRow(garden.accounts[src.accountId]), text: src.text, image: src.image ?? null, inLabel: `${gardenAgo(src.wt ?? src.ts / 1000)} · on the feed` });
+      return id;
+    };
+    const rows = garden.queue.map(q => {
+      const d = q.draft;
+      const row = {
+        ...q,
+        author: d?.kind === "msg" ? { handle: `Text: ${d.from}`, name: "A private text" } : q.accountId === "@random" ? { handle: "@random", name: "A random citizen" } : this._gardenAccountRow(garden.accounts[q.accountId]),
+        kindIcon: d?.kind === "msg" ? "fa-envelope" : d?.kind === "reply" ? "fa-reply" : "fa-seedling",
+        outcome: gardenTiers()[q.tier]?.name ?? null,
+        inLabel: queueWhen(q.wt, now, garden.paused),
+        why: d?.why ?? null,
+        parent: queuedParent(garden.queue, q)?.id ?? null
+      };
+      if (d?.kind === "reply" && !row.parent) {
+        // Its post (and the reply it answers) are out already: shown above it, or it's dropped.
+        const post = garden.posts[d.postId ?? posted[`${d.batch}:${d.parent}`]];
+        const answering = d.replyTo ?? (d.under ? posted[`${d.batch}:${d.under}`] ?? "" : null);
+        const top = post && answering != null ? post.replies.find(r => r.id === replyParent(post, answering)) : null;
+        row.gone = !post || (answering != null && !top);
+        if (post) row.parent = live(`post:${post.id}`, null, post, post.id);
+        if (top) row.parent = live(`reply:${top.id}`, row.parent, top, post.id, top.id);
+      }
+      row.queuedUnder = !!queuedParent(garden.queue, q);
+      row.canReply = d?.kind !== "msg" && !row.gone;
+      return row;
+    });
+    const items = nestRows([...context.values(), ...rows]);
+    // Neighbours to swap with: the queued rows under the same parent (the posts, at the top).
+    for (const r of items) {
+      if (r.ctx) continue;
+      const level = items.filter(x => !x.ctx && x.parent === r.parent);
+      const i = level.indexOf(r);
+      r.prev = level[i - 1]?.id ?? null;
+      r.next = level[i + 1]?.id ?? null;
+      r.canMove = !!(r.prev || r.next);
+    }
+    return { paused: !!garden.paused, items };
+  },
+
   _gardenAccountRow(account) {
     if (!account) return { handle: "@deleted", name: "Deleted", initials: "?" };
     return { ...account, initials: initials(account.name), kindName: KINDS[account.kind] };
@@ -612,11 +714,19 @@ export const methods = {
       return dropdown("gardenAs", options.map(a => ({ value: a.id, label: `${a.pinned ? "★ " : ""}${a.handle} · ${a.name}`, selected: a.id === this.gardenAs })), { title, cls: "agent-wide", search: true });
     };
 
-    // A post and its replies.
+    // A post and its replies: each top-level reply with its discussion (open or not, on the phone).
     const post = this.gardenPost ? garden.posts[this.gardenPost] : null;
     if (post) {
       data.post = this._gardenPostRow(post, me, gm);
-      data.post.replies = post.replies.map(r => this._gardenReplyRow(r, post, gm));
+      data.post.replies = replyThreads(post.replies).map(({ reply, answers }) => ({
+        ...this._gardenReplyRow(reply, post, gm),
+        answers: answers.map(r => this._gardenReplyRow(r, post, gm)),
+        open: !this.gardenHidden?.has(reply.id)
+      }));
+      data.canReply = (gm || !!me) && this.online;
+      const to = post.replies.find(r => r.id === this.gardenReplyTo);
+      if (!to) this.gardenReplyTo = null;
+      data.replyTo = to ? { id: to.id, handle: this._gardenAccountRow(garden.accounts[to.accountId]).handle } : null;
       data.replyDraft = this.gardenReplyDraft ?? "";
       if (gm) data.replyAs = asDropdown("Reply as");
       if (gm) data.post.boost = dropdown("gardenBoost", Object.entries(gardenTiers()).map(([id, t]) => ({ value: `${post.id}:${id}`, label: t.name, selected: id === post.tier })), { title: "How far it travels" });
@@ -639,10 +749,15 @@ export const methods = {
         posts: posts.filter(p => p.accountId === account.id || p.graftedBy.includes(account.id)).slice(0, 30).map(p => ({
           ...this._gardenPostRow(p, me, gm), graftedHere: p.accountId === account.id ? null : account.handle
         })),
-        // Their replies to posts, newest first; each opens the post it answers.
+        // Their replies, newest first, with what each answers (the post, or the reply in its discussion);
+        // each opens the post.
         replies: posts.flatMap(p => p.replies.filter(r => r.accountId === account.id).map(r => ({ r, p })))
           .sort((a, b) => b.r.wt - a.r.wt || b.r.ts - a.r.ts).slice(0, 30)
-          .map(({ r, p }) => ({ ...this._gardenReplyRow(r, p, gm), to: this._gardenAccountRow(garden.accounts[p.accountId]).handle, toText: p.text || "(a picture)" })),
+          .map(({ r, p }) => {
+            const parent = r.parentId ? p.replies.find(x => x.id === r.parentId) : null;
+            const to = parent ?? p;
+            return { ...this._gardenReplyRow(r, p, gm), to: this._gardenAccountRow(garden.accounts[to.accountId]).handle, toText: to.text || "(a picture)" };
+          }),
         followersLabel: Number(account.followers).toLocaleString()
       };
       return data;
@@ -670,19 +785,7 @@ export const methods = {
       }));
     } else if (tab === "writer") data.writer = this._gardenWriterData();
     else if (tab === "drafts") data.drafts = this._gardenDraftsData();
-    else if (tab === "queue") {
-      const now = gardenNow();
-      data.queue = {
-        paused: !!garden.paused,
-        items: garden.queue.map((q, i, list) => ({
-          ...q,
-          author: q.draft?.kind === "msg" ? { handle: `Text: ${q.draft.from}`, name: "A private text" } : q.accountId === "@random" ? { handle: "@random", name: "A random citizen" } : this._gardenAccountRow(garden.accounts[q.accountId]),
-          outcome: gardenTiers()[q.tier]?.name ?? null,
-          inLabel: queueWhen(q.wt, now, garden.paused),
-          first: i === 0, last: i === list.length - 1
-        }))
-      };
-    } else if (tab === "control") {
+    else if (tab === "queue") data.queue = this._gardenQueueData(); else if (tab === "control") {
       const { tiers, files, mergeNews, dating } = gardenConfig();
       const lists = gardenLists();
       data.control = {

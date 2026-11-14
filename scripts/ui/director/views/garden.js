@@ -100,11 +100,15 @@ function detailHtml(detail) {
   const close = phoneBtn("garden-back", "", { icon: "fa-xmark", title: "Close" });
   if (detail.post) {
     const p = detail.post;
-    const replies = p.replies.map(r => `<li class="director-reply-row">
+    // A top-level reply with its discussion under it, always open here.
+    const replyRow = r => `<li class="director-reply-row">
         <button type="button" class="director-plain" data-director="phone:garden-profile" data-account-id="${esc(r.author.id ?? "")}"><strong>${esc(r.author.name)}</strong> <span class="director-handle">${esc(r.author.handle)}</span></button>
         <span class="director-time">${esc(r.ago ?? "")}</span>
+        ${detail.canReply ? phoneBtn("garden-reply-to", "", { data: { replyId: r.id }, icon: "fa-reply", title: "Reply to this" }) : ""}
         ${r.canDelete ? phoneBtn("garden-reply-delete", "", { data: { postId: r.postId, replyId: r.id }, icon: "fa-trash", cls: "danger", title: "Delete reply" }) : ""}
-        <div class="director-text">${esc(r.text)}</div></li>`).join("") || `<li class="director-empty">No replies yet.</li>`;
+        <div class="director-text">${esc(r.text)}</div>
+        ${r.answers?.length ? `<ol class="director-answers">${r.answers.map(replyRow).join("")}</ol>` : ""}</li>`;
+    const replies = p.replies.map(replyRow).join("") || `<li class="director-empty">No replies yet.</li>`;
     return `<header class="director-convo-head"><h2>Post</h2>
         <label class="director-boost"><span>Travels</span>${select(p.boost, "How far it travels")}</label>${close}</header>
       <div class="director-detail-body"><ol class="director-posts">${postHtml(p)}</ol>
@@ -130,19 +134,23 @@ function detailHtml(detail) {
     </div>`;
 }
 
-/** Reply as an account, under the open post (kept while that post stays open). */
+/**
+ * Reply as an account, under the open post (kept while that post, and the reply it answers, stay
+ * open). Answering an answer starts with the GM Phone's draft (its @handle).
+ */
 function replyHtml(director, detail) {
   if (!detail?.post) return "";
   const key = `garden-reply:${detail.post.id}`;
-  return `<form class="director-reply" data-director="garden-reply" data-post-id="${esc(detail.post.id)}">
+  const to = detail.replyTo ? `<div class="director-sub">Replying to ${esc(detail.replyTo.handle)} ${phoneBtn("garden-reply-cancel", "", { icon: "fa-xmark", title: "Reply to the post instead" })}</div>` : "";
+  return `${to}<form class="director-reply" data-director="garden-reply" data-post-id="${esc(detail.post.id)}">
     <label><span>As</span>${select(detail.replyAs, "Reply as")}</label>
-    <input type="text" name="text" data-draft="${esc(key)}" value="${esc(director.drafts[key] ?? "")}" placeholder="Reply…" aria-label="Reply" ${detail.online ? "" : "disabled"}>
+    <input type="text" name="text" data-draft="${esc(key)}" value="${esc(director.drafts[key] ?? detail.replyDraft ?? "")}" placeholder="Reply…" aria-label="Reply" ${detail.online ? "" : "disabled"}>
     <button type="submit" class="primary" ${detail.online ? "" : "disabled"}><i class="fas fa-reply" aria-hidden="true"></i> Reply</button>
   </form>`;
 }
 
-/** Which post or Patch is open: its reply box is kept while this stays the same. */
-const detailKey = logic => (logic.gardenPost ? `post:${logic.gardenPost}` : logic.gardenAccount ? `patch:${logic.gardenAccount}` : "");
+/** Which post (and reply it answers) or Patch is open: its reply box is kept while this stays the same. */
+const detailKey = logic => (logic.gardenPost ? `post:${logic.gardenPost}:${logic.gardenReplyTo ?? ""}` : logic.gardenAccount ? `patch:${logic.gardenAccount}` : "");
 
 /* ---------------- The wide pages ---------------- */
 
@@ -152,15 +160,23 @@ export const listOf = (rows, empty) => `<ol class="director-list">${rows.join(""
 export const label = (text, tools = "") => `<h3 class="director-label">${text}${tools ? ` <span class="director-toolbar">${tools}</span>` : ""}</h3>`;
 
 function queueHtml(q) {
-  const items = q.items.map(i => row({
+  // As threads (the phone's _gardenQueueData): replies under their post, the feed's own greyed.
+  const items = q.items.map(i => (i.ctx ? row({
+    cls: `context depth-${i.depth}`,
     main: `<strong>${esc(i.author.handle)}</strong> <span class="director-time">${esc(i.inLabel)}</span>`,
-    small: `${i.image ? `<i class="fas fa-image" title="${esc(i.image)}"></i> ` : ""}${esc(i.text ?? "")}${i.outcome ? ` · <em>${esc(i.outcome)}</em>` : ""}`,
+    small: esc(i.text ?? ""),
+    tools: phoneBtn("garden-queue-reply", "", { data: { post: i.postId, reply: i.replyId ?? "" }, icon: "fa-reply", title: "Queue a reply under this" })
+  }) : row({
+    cls: `depth-${i.depth}${i.gone ? " faded" : ""}`,
+    main: `<strong><i class="fas ${i.kindIcon}"></i> ${esc(i.author.handle)}</strong> <span class="director-time">${esc(i.inLabel)}</span>`,
+    small: `${i.image ? `<i class="fas fa-image" title="${esc(i.image)}"></i> ` : ""}${esc(i.text ?? "")}${i.outcome ? ` · <em>${esc(i.outcome)}</em>` : ""}${i.why ? `<br><em>why: ${esc(i.why)}</em>` : ""}${i.gone ? `<br><span class="director-problem"><i class="fas fa-triangle-exclamation"></i> What it's under is gone: it'll be dropped.</span>` : ""}`,
     tools: phoneBtn("garden-queue-edit", "", { data: { id: i.id }, icon: "fa-pen", title: "Edit" })
-      + phoneBtn("garden-queue", "", { data: { op: "up", id: i.id }, icon: "fa-arrow-up", title: "Earlier", disabled: i.first })
-      + phoneBtn("garden-queue", "", { data: { op: "down", id: i.id }, icon: "fa-arrow-down", title: "Later", disabled: i.last })
-      + phoneBtn("garden-queue", "", { data: { op: "now", id: i.id }, icon: "fa-paper-plane", title: "Post now" })
+      + (i.canReply ? phoneBtn("garden-queue-reply", "", { data: { id: i.id }, icon: "fa-reply", title: "Queue a reply under this" }) : "")
+      + (i.canMove ? phoneBtn("garden-queue", "", { data: { op: "up", id: i.id, other: i.prev ?? "" }, icon: "fa-arrow-up", title: "Earlier", disabled: !i.prev })
+        + phoneBtn("garden-queue", "", { data: { op: "down", id: i.id, other: i.next ?? "" }, icon: "fa-arrow-down", title: "Later", disabled: !i.next }) : "")
+      + (i.queuedUnder ? "" : phoneBtn("garden-queue", "", { data: { op: "now", id: i.id }, icon: "fa-paper-plane", title: "Post now" }))
       + phoneBtn("garden-queue", "", { data: { op: "remove", id: i.id }, icon: "fa-xmark", title: "Skip" })
-  }));
+  })));
   return `<div class="director-toolbar">${phoneBtn("garden-drip", "Queue posts", { icon: "fa-list" })}
       ${q.paused ? phoneBtn("garden-queue", "Resume", { data: { op: "resume" }, icon: "fa-play", cls: "primary" }) : phoneBtn("garden-queue", "Pause", { data: { op: "pause" }, icon: "fa-pause" })}</div>
     ${listOf(items, "Nothing queued. Posts with a delay, and queued lists, wait here.")}
@@ -171,6 +187,7 @@ function draftsHtml(d) {
   const batches = d.batches.map(b => {
     const problems = (list, cls) => (list.length ? `<ul class="director-problems ${cls}">${list.map(p => `<li>${p.line ? `Line ${p.line}: ` : ""}${esc(p.message)}</li>`).join("")}</ul>` : "");
     const days = b.days.map(day => `<h4 class="director-day">${esc(day.label)}</h4>${listOf(day.rows.map(r => {
+      if (r.ctx) return row({ cls: `context depth-${r.depth}`, main: `<strong>${esc(r.author)}</strong>${r.when ? ` <span class="director-time">${esc(r.when)}</span>` : ""}`, small: esc(r.body ?? "") });
       const badges = [r.isNew && "new", r.private && "private", r.ringName, r.hook && "hook", ...(r.seeds ?? []).map(s => `seed ${s}`), r.tierName, r.edited && "edited"]
         .filter(Boolean).map(t => `<span class="director-tag">${esc(t)}</span>`).join("");
       const small = [
@@ -178,10 +195,11 @@ function draftsHtml(d) {
         r.img && `<i class="fas fa-image"></i> ${esc(r.img)}`,
         r.repNames && `<i class="fas fa-star"></i> Reputation: ${esc(r.repNames)}`,
         r.why && `<em>why: ${esc(r.why)}</em>`,
-        ...(r.problems ?? []).map(p => `<span class="director-problem"><i class="fas fa-triangle-exclamation"></i> ${esc(p)}</span>`)
+        ...(r.problems ?? []).map(p => `<span class="director-problem"><i class="fas fa-triangle-exclamation"></i> ${esc(p)}</span>`),
+        r.cutWith && "<em>cut with the post or reply it's under</em>"
       ].filter(Boolean).join("<br>");
       return row({
-        cls: r.include ? "" : "faded",
+        cls: `depth-${r.depth}${r.include && !r.cutWith ? "" : " faded"}`,
         lead: phoneBtn("garden-draft-toggle", "", { data: { batch: r.batch, key: r.key }, icon: r.include ? "fa-square-check" : "fa-square", cls: "director-check", title: r.include ? "Included: click to cut" : "Cut: click to include" }),
         main: `<strong><i class="fas ${r.kindIcon}" title="${esc(r.kindName)}"></i> ${esc(r.author)}</strong> ${badges}${r.when ? ` <span class="director-time">${esc(r.when)}</span>` : ""}`,
         small,
@@ -409,9 +427,12 @@ export const actions = {
   "garden-reply"({ postId }, event) {
     const input = event.target.elements.text;
     const text = input.value.trim();
-    if (!text || !store.request("garden-gm-reply", { accountId: this.logic.gardenAs, postId, text })) return;
+    const replyTo = this.logic.gardenReplyTo ?? null;
+    if (!text || !store.request("garden-gm-reply", { accountId: this.logic.gardenAs, postId, text, replyTo })) return;
     input.value = "";
     delete this.drafts[`garden-reply:${postId}`];
+    this.logic.gardenReplyDraft = "";
+    this.logic.gardenReplyTo = null;
   },
   /** Control: News merged into the Feed, Dating on or off. */
   "garden-setting"({ key }, event) {

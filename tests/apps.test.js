@@ -730,14 +730,14 @@ test("The Garden: citizens never repeat a reply already in the thread; a player'
   await settle();
   assert.ok(Object.values(store.apps.alerts).some(a => a.actorId === "pcB" && /mentioned you/.test(a.text)));
 
-  // A busy thread: forty citizens' replies, none the same.
+  // A busy thread: the crowd reacts twice at most (the rest is the writer's), never the same line.
   from(gm, "garden-generate", { count: 10 });
   await settle();
   post.eng = { ...post.eng, replies: 40, peak: 1 };
   post.ts = Date.now() - 60_000;
   await store._tickGarden();
   const lines = post.replies.filter(r => r.auto).map(r => r.text);
-  assert.ok(lines.length > 5);
+  assert.equal(lines.length, 2);
   assert.equal(new Set(lines).size, lines.length, "no line twice");
 });
 

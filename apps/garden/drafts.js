@@ -11,12 +11,13 @@ import { CORP_TIERS, keywordList, parseSpan, parseWhen, RELATIONS, SEED_STAGES, 
  *
  *   [mae1] @noodle_mae | +1h20m | normal | city | text            a post (label, tier, ring, hook optional)
  *     > @gridghost | +1h45m | text                                 a reply to the post above
+ *     >> @noodle_mae | +2h | text                                  an answer to the reply above (its discussion)
  *     why: ... / img: path / rep: Vex Kade +1 "reason"             details of the line above
  *   > on post:Xy7Qp2 @noodle_mae | +30m | about | text             a reply to an existing post
  *   > on [mae1] @someone | +3h | text                              a reply to a post of this batch
+ *   > on reply:Ab12Cd @someone | +1h | text                        an answer to an existing reply
  *   msg: Roach -> Vex Kade, Jun | +20h | text                      a private text (§9)
  *   dating: @noodle_mae | 41 | prompt | prompt | prompt            a Dating profile
- *   chatter: hype | watson, fire | text   chatter: any | text     a line for the crowd's auto-replies
  *   account: @roach | Roach | fixer | bio [| followers]            a new account (or a change to one)
  *   format: @inkwell | daily 07:00 | the morning headlines         a recurring post
  *   @noodle_mae :: arc: ...       Vex Kade :: keywords: ...        a profile change (@handle, or a character)
@@ -28,10 +29,10 @@ import { CORP_TIERS, keywordList, parseSpan, parseWhen, RELATIONS, SEED_STAGES, 
  *
  * Draft items (parseDrafts().items), each with `key` (unique in the batch) and `line`:
  *   post:    { label, handle, at, tier, ring, hook, seeds, text, why, img, rep: [{ who, delta, reason }] }
- *   reply:   { to: { key } | { postId }, handle, at, ring, text, why }
+ *   reply:   { to: { key } | { postId } | { replyId }, under, handle, at, ring, text, why }
+ *            (under: the key of the batch's reply it answers, a ">>" line; null: none)
  *   msg:     { from, to: [names], at, text, why }
  *   dating:  { who, age, prompts }
- *   chatter: { mood (null = any), keywords, text }
  *   account: { handle, name, accountKind, bio, followers }
  *   format:  { handle, when, what }
  *   profile: { who, field, value }
@@ -50,8 +51,8 @@ const MAX_TEXT = 500;
 const MAX_REPLY = 300;
 const MAX_MSG = 1000;
 
-/** The random citizens' moods (model.js MOODS; not imported, so the skill's check runs without Foundry). */
-export const CHATTER_MOODS = ["hype", "hater", "bot", "conspiracy", "lurker"];
+/** The most replies a batch gives one post (its thread; the crowd's reactions come on top). */
+export const MAX_THREAD = 10;
 
 const HEADER = /^garden-drafts\s+v(\d+)\s*$/i;
 const LABEL = /^\[([\w-]{1,24})\]\s*/;
@@ -86,6 +87,7 @@ export function parseDrafts(source, { tiers = null } = {}) {
   const labels = new Map();
   let last = null; // the item that indented detail lines and "  >" replies belong to
   let lastPost = null;
+  let lastReply = null; // the last ">" reply, the one ">>" answers
   let n = 0;
   const key = prefix => `${prefix}${++n}`;
   const knownTier = t => !tiers || tiers.includes(t.toLowerCase());
@@ -162,17 +164,33 @@ export function parseDrafts(source, { tiers = null } = {}) {
       continue;
     }
 
-    // Replies: indented under a post, or "> on post:<id>" / "> on [label]".
+    // Replies: indented under a post, or "> on post:<id>" / "> on [label]" / "> on reply:<id>"; ">>"
+    // answers the ">" reply above it (one level: answers to it all join its discussion).
     if (line.startsWith(">")) {
-      let rest = line.slice(1).trim();
+      const answer = line.startsWith(">>");
+      let rest = line.slice(answer ? 2 : 1).trim();
       let to = null;
-      m = /^on\s+(?:post:(\S+)|\[([\w-]+)\])\s+/i.exec(rest);
-      if (m) {
+      let under = null;
+      if (last?.kind !== "reply") lastReply = null;
+      m = /^on\s+(?:post:(\S+)|reply:(\S+)|\[([\w-]+)\])\s+/i.exec(rest);
+      if (answer) {
+        if (m) {
+          err(ln, "an answer (>>) goes right under its reply; for an existing reply use \"> on reply:<id>\"");
+          continue;
+        }
+        if (!lastReply) {
+          err(ln, "an answer (>>) needs a reply (>) right above it");
+          continue;
+        }
+        to = lastReply.to;
+        under = lastReply.to.replyId ? null : lastReply.key;
+      } else if (m) {
         rest = rest.slice(m[0].length);
         if (m[1]) to = { postId: m[1] };
-        else if (labels.has(m[2])) to = { key: labels.get(m[2]).key };
+        else if (m[2]) to = { replyId: m[2] };
+        else if (labels.has(m[3])) to = { key: labels.get(m[3]).key };
         else {
-          err(ln, `no post labelled [${m[2]}] above`);
+          err(ln, `no post labelled [${m[3]}] above`);
           continue;
         }
       } else if (indented && lastPost) to = { key: lastPost.key };
@@ -189,8 +207,10 @@ export function parseDrafts(source, { tiers = null } = {}) {
       const f = fields(parts, ln, { tierOk: false });
       if (!f) continue;
       if (f.text.length > MAX_REPLY) warn(ln, `reply cut to ${MAX_REPLY} characters`);
-      last = { kind: "reply", key: key("r"), line: ln, to, handle: who.slice(1).toLowerCase(), at: f.at, ring: f.ring, text: f.text.slice(0, MAX_REPLY), why: "" };
-      if (to.key && f.at < out.items.find(x => x.key === to.key).at) warn(ln, "reply is timed before its post (it goes out right after it)");
+      last = { kind: "reply", key: key("r"), line: ln, to, under, handle: who.slice(1).toLowerCase(), at: f.at, ring: f.ring, text: f.text.slice(0, MAX_REPLY), why: "" };
+      if (under && f.at < lastReply.at) warn(ln, "answer is timed before its reply (it goes out right after it)");
+      else if (to.key && f.at < out.items.find(x => x.key === to.key).at) warn(ln, "reply is timed before its post (it goes out right after it)");
+      if (!answer) lastReply = last;
       out.items.push(last);
       continue;
     }
@@ -249,22 +269,9 @@ export function parseDrafts(source, { tiers = null } = {}) {
       continue;
     }
 
-    // Crowd chatter: "chatter: mood | [keywords |] text" (mood "any" = whoever answers).
-    m = /^chatter:\s*(.+)$/i.exec(line);
-    if (m) {
-      const parts = m[1].split("|").map(s => s.trim());
-      const mood = parts[0].toLowerCase();
-      const text = parts.at(-1);
-      if (parts.length < 2 || parts.length > 3 || !text) {
-        err(ln, "chatter: needs \"mood | [keywords |] text\" (mood: any, " + CHATTER_MOODS.join(", ") + ")");
-        continue;
-      }
-      if (mood !== "any" && !CHATTER_MOODS.includes(mood)) {
-        err(ln, `chatter mood "${parts[0]}" isn't any, ${CHATTER_MOODS.join(", ")}`);
-        continue;
-      }
-      last = { kind: "chatter", key: key("c"), line: ln, mood: mood === "any" ? null : mood, keywords: parts.length === 3 ? keywordList(parts[1]) : [], text: text.slice(0, MAX_REPLY), why: "" };
-      out.items.push(last);
+    // Crowd chatter is retired (the crowd only reacts now: replies.js).
+    if (/^chatter:/i.test(line)) {
+      err(ln, "chatter: lines are retired: write the replies to each post instead");
       continue;
     }
 
@@ -366,6 +373,14 @@ export function parseDrafts(source, { tiers = null } = {}) {
     out.items.push(last);
   }
 
+  // A thread is MAX_THREAD replies at most, answers included.
+  const threads = new Map();
+  for (const item of out.items.filter(i => i.kind === "reply")) {
+    const id = item.to.key ?? (item.to.postId ? `post:${item.to.postId}` : `reply:${item.to.replyId}`);
+    threads.set(id, (threads.get(id) ?? 0) + 1);
+    if (threads.get(id) === MAX_THREAD + 1) err(item.line, `more than ${MAX_THREAD} replies to one post`);
+  }
+
   if (!out.legacy) {
     if (!out.batch) err(1, "missing \"batch: <id>\"");
     else if (!/^[\w.-]{1,64}$/.test(out.batch)) err(1, `batch id "${out.batch}" may only have letters, digits, - _ .`);
@@ -392,8 +407,7 @@ export function batchSummary(items) {
   const count = k => items.filter(i => i.kind === k).length;
   const parts = [
     [count("post"), "post"], [count("reply"), "reply", "replies"], [count("msg"), "text"],
-    [count("dating"), "dating profile"], [count("account"), "account"], [count("format"), "format"], [count("profile"), "profile change"], [count("stage"), "stage change"],
-    [count("chatter"), "chatter line"]
+    [count("dating"), "dating profile"], [count("account"), "account"], [count("format"), "format"], [count("profile"), "profile change"], [count("stage"), "stage change"]
   ];
   return parts.filter(([c]) => c).map(([c, one, many]) => `${c} ${c === 1 ? one : many ?? `${one}s`}`).join(", ") || "nothing";
 }
@@ -408,7 +422,7 @@ export const handleKey = h => String(h ?? "").replace(/^@/, "").toLowerCase().no
  * "@random").
  *   accounts: { [id]: { id, handle, name, kind, actorId } }
  *   actors:   [{ id, name, aliases? }]   the characters (PCs) by name
- *   posts:    { [id]: post }             existing posts (for "on post:")
+ *   posts:    { [id]: post }             existing posts (for "on post:", and "on reply:": its `postId`)
  *   happenings, seeds: { [id]: ... }
  */
 export function resolveDrafts(parsed, { accounts = {}, actors = [], posts = {}, happenings = {}, seeds = {} } = {}) {
@@ -436,6 +450,11 @@ export function resolveDrafts(parsed, { accounts = {}, actors = [], posts = {}, 
       for (const rep of r.rep) if (!rep.actorId) r.problems.push(`rep: no character "${rep.who}"`);
     }
     if (item.kind === "reply" && item.to.postId && !posts[item.to.postId]) r.problems.push(`no post ${item.to.postId} (deleted, or another world's)`);
+    if (item.kind === "reply" && item.to.replyId) {
+      // An answer to an existing reply: on that reply's post.
+      r.postId = Object.values(posts).find(p => (p.replies ?? []).some(x => x.id === item.to.replyId))?.id ?? null;
+      if (!r.postId) r.problems.push(`no reply ${item.to.replyId} (deleted, or another world's)`);
+    }
     if (item.kind === "msg") {
       r.toIds = item.to.map(name => actorOf(name)?.id ?? null);
       item.to.forEach((name, i) => !r.toIds[i] && r.problems.push(`no character "${name}"`));
@@ -476,4 +495,42 @@ export function resolveDrafts(parsed, { accounts = {}, actors = [], posts = {}, 
     if (item.kind === "stage" && !(item.what === "seed" ? seeds : happenings)[item.id]) r.problems.push(`no ${item.what} ${item.id}`);
     return r;
   });
+}
+
+/* ---------------- Threads in the GM's lists (the Drafts tab, the Queue) ---------------- */
+
+/**
+ * Rows in the order a thread reads: each post, then its replies, each followed by its answers.
+ * `rows`: { id, parent (another row's id, or null), wt, ctx? }; a row whose parent isn't among them
+ * is a root. `ctx` rows are context (already on the feed), so a thread is placed by its earliest
+ * other row; rows without a time come first. Returns the rows with `depth` (0 a post, 1 a reply,
+ * 2 an answer: deeper shows at 2) and `at` (where its thread is placed).
+ */
+export function nestRows(rows) {
+  const ids = new Set(rows.map(r => r.id));
+  const kids = new Map();
+  const roots = [];
+  for (const r of rows) {
+    if (r.parent != null && ids.has(r.parent)) kids.set(r.parent, [...(kids.get(r.parent) ?? []), r]);
+    else roots.push(r);
+  }
+  const first = r => Math.min(r.ctx ? Infinity : r.wt ?? -Infinity, ...(kids.get(r.id) ?? []).map(first));
+  const out = [];
+  const walk = (r, depth) => {
+    out.push({ ...r, depth: Math.min(depth, 2), at: first(r) });
+    for (const k of (kids.get(r.id) ?? []).sort((a, b) => first(a) - first(b))) walk(k, depth + 1);
+  };
+  for (const r of roots.sort((a, b) => first(a) - first(b))) walk(r, 0);
+  return out;
+}
+
+/** A queued reply's post or reply (the one it answers) while that's still in the queue, else null. */
+export function queuedParent(queue, item) {
+  const d = item.draft;
+  if (d?.kind !== "reply") return null;
+  for (const key of [d.under, d.parent]) {
+    const q = key && queue.find(x => x !== item && x.draft?.batch === d.batch && x.draft.key === key);
+    if (q) return q;
+  }
+  return null;
 }

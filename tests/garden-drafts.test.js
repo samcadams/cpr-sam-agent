@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { batchMix, batchSummary, parseAt, parseDrafts, parseRep, resolveDrafts } from "../apps/garden/drafts.js";
+import { batchMix, batchSummary, MAX_THREAD, nestRows, parseAt, parseDrafts, parseRep, queuedParent, resolveDrafts } from "../apps/garden/drafts.js";
 
 /*
  * garden-drafts v1 (apps/garden/drafts.js): the batches the garden-writer skill writes into the
@@ -501,37 +501,216 @@ test("host: a cast batch makes its accounts, a format, a corp's tier and relatio
   assert.equal(Object.values(store.garden.accounts).filter(a => a.handle.startsWith("@roach")).length, 1, "no random citizen made for @roach");
 });
 
-/* ---------------- Crowd chatter ---------------- */
+/* ---------------- Threads ---------------- */
 
-test("chatter: lines read with a mood or any, optional keywords; bad moods are errors", () => {
-  const parsed = parseDrafts([
-    "garden-drafts v1", "batch: c1 world: w", "base: 1000",
-    "chatter: hype | watson, Fire | Watson's lit up again",
-    "chatter: any | anyone else's Agent buzzing all night?",
-    "chatter: grumpy | nope",
-    "chatter: hype"
-  ].join("\n"));
-  const chatter = parsed.items.filter(i => i.kind === "chatter");
-  assert.deepEqual(chatter.map(c => [c.mood, c.keywords, c.text]), [["hype", ["watson", "fire"], "Watson's lit up again"], [null, [], "anyone else's Agent buzzing all night?"]]);
-  assert.deepEqual(parsed.errors.map(e => e.line), [6, 7]);
-  assert.equal(batchSummary(resolveDrafts(parsed)), "2 chatter lines");
+test("chatter: lines are retired: an error", () => {
+  const parsed = parseDrafts(["garden-drafts v1", "batch: c1 world: w", "base: 1000", "chatter: any | anyone else's Agent buzzing all night?"].join("\n"));
+  assert.deepEqual(parsed.errors.map(e => e.line), [4]);
+  assert.equal(parsed.items.length, 0);
 });
 
-test("host: approved chatter joins the pool for the batch's week; a cut line doesn't", async () => {
+test("a thread is MAX_THREAD replies at most, per post, in the batch", () => {
+  const replies = n => Array.from({ length: n }, (_, i) => `  > @cit${i} | +${i + 1}m | reply ${i}`);
+  const parsed = parseDrafts([
+    "garden-drafts v1", "batch: t1 world: w", "base: 1000",
+    "[a] @noodle_mae | +0m | first", ...replies(MAX_THREAD + 1),
+    "[b] @noodle_mae | +0m | second", ...replies(MAX_THREAD),
+    ...Array.from({ length: MAX_THREAD + 1 }, (_, i) => `> on post:Xy7Qp2 @cit${i} | +${i}m | on an old one`)
+  ].join("\n"));
+  assert.deepEqual(parsed.errors.map(e => e.message), ["more than 10 replies to one post", "more than 10 replies to one post"]);
+  assert.deepEqual(parsed.errors.map(e => e.line), [4 + MAX_THREAD + 1, 4 + 3 * MAX_THREAD + 3]);
+});
+
+/* ---------------- Answers: replies to a reply (one level) ---------------- */
+
+test("\">>\" answers the \">\" reply above (answers to it join its discussion); \"> on reply:<id>\" an existing one", () => {
+  const p = parseDrafts([
+    "garden-drafts v1", "batch: s1 world: w", "base: 0",
+    "[a] @x | +1h | post",
+    "  > @y | +2h | a reply",
+    "  >> @x | +3h | the post's author answers",
+    "  >> @z | +4h | and someone else",
+    "  > @w | +5h | another reply",
+    "> on reply:Ab12Cd @x | +1h | to an old reply",
+    ">> @y | +2h | under it too"
+  ].join("\n"));
+  assert.deepEqual(p.errors, []);
+  const [post, r1, a1, a2, r2, old, a3] = p.items;
+  assert.deepEqual([r1.under, a1.under, a2.under, r2.under], [null, r1.key, r1.key, null]);
+  assert.deepEqual([a1.to, a2.to], [{ key: post.key }, { key: post.key }]);
+  assert.deepEqual([old.to, old.under], [{ replyId: "Ab12Cd" }, null]);
+  assert.deepEqual([a3.to, a3.under], [{ replyId: "Ab12Cd" }, null]);
+});
+
+test("an answer needs a reply right above it, and isn't timed before it", () => {
+  const p = parseDrafts([
+    "garden-drafts v1", "batch: s2 world: w", "base: 0",
+    ">> @x | +1h | nothing above",
+    "@x | +1h | post",
+    "  >> @y | +2h | a post above, but no reply",
+    "  > @y | +3h | a reply",
+    "  >> @x | +2h | early",
+    "  >> on reply:Ab12Cd @x | +4h | not like this",
+    "msg: Roach -> Vex Kade | +1h | hi",
+    ">> @y | +5h | a text in between"
+  ].join("\n"));
+  assert.deepEqual(p.errors.map(e => e.line), [4, 6, 9, 11]);
+  assert.deepEqual(p.warnings.map(w => w.line), [8]);
+});
+
+test("answers count towards a post's MAX_THREAD", () => {
+  const parsed = parseDrafts([
+    "garden-drafts v1", "batch: s3 world: w", "base: 0", "@x | +0m | post", "  > @y | +1m | reply",
+    ...Array.from({ length: MAX_THREAD }, (_, i) => `  >> @cit${i} | +${i + 2}m | answer ${i}`)
+  ].join("\n"));
+  assert.deepEqual(parsed.errors.map(e => e.line), [5 + MAX_THREAD]);
+});
+
+test("resolving \"on reply:\": the reply's post, or a problem", () => {
+  const posts = { P1: { id: "P1", replies: [{ id: "R1", accountId: "a", text: "x" }] } };
+  const parsed = parseDrafts("garden-drafts v1\nbatch: s4 world: w\nbase: 0\n> on reply:R1 @y | +1h | yes\n> on reply:R9 @y | +1h | no\n");
+  const [ok, gone] = resolveDrafts(parsed, { posts });
+  assert.equal(ok.postId, "P1");
+  assert.deepEqual(ok.problems, []);
+  assert.match(gone.problems[0], /no reply R9/);
+});
+
+test("the writer pack: replies as threads with ids; characters' replies waiting for an answer", () => {
+  const { garden, ctx, now } = packGarden();
+  garden.posts.p2.replies.push({ id: "a2", accountId: "vex", text: "you're on", wt: now - 2 * DAY + 900, parentId: "r2" });
+  const pack = buildPack(garden, ctx);
+  assert.deepEqual(pack.recent.find(p => p.id === "p2").replies, ["reply:r2 @noodle_mae: welcome back, noodles on me", "↳ reply:a2 @vex: you're on"]);
+  // Vex's reply on Mae's post, and Vex's answer to Mae's reply on Vex's own post: nobody answered either since.
+  assert.deepEqual(pack.waiting.map(r => [r.id, r.postId, r.on]), [["a2", "p2", "@vex"], ["r3", "p3", "@noodle_mae"]]);
+  assert.deepEqual(pack.waiting[0].thread, ["reply:r2 @noodle_mae: welcome back, noodles on me", "↳ reply:a2 @vex: you're on"]);
+  assert.match(packMarkdown(pack), /@vex on @vex's post \(.*reply:a2\): you're on/);
+  // Mae answers in r3's discussion, and a crowd reaction elsewhere doesn't count; a month-old one is left out.
+  garden.posts.p3.replies.push({ id: "a3", accountId: "mae", text: "please", wt: now - 5 * DAY + 120, parentId: "r3" });
+  garden.posts.p2.replies.push({ id: "x2", accountId: "cit", text: "lol", wt: now - DAY, auto: true });
+  garden.posts.p4.replies.push({ id: "r4", accountId: "vex", text: "wasn't me", wt: now - 30 * DAY });
+  assert.deepEqual(buildPack(garden, ctx).waiting.map(r => r.id), ["a2"]);
+});
+
+test("host: a batch's answer goes out under its reply; an answer to an existing reply under that one", async () => {
   await hostSetup();
   const base = Math.floor(gardenNow());
-  drop("c1.txt", ["garden-drafts v1", "batch: c1  world: test-world", `base: ${base}`, "chatter: hype | militech | militech again??", "chatter: any | cut me", "chatter: lurker | 👀 same"].join("\n"));
+  const mae = store._addAccount({ handle: "noodle_mae", name: "Mae", kind: "citizen" });
+  store._addAccount({ handle: "gridghost", name: "Ghost", kind: "citizen" });
+  const old = await store._publish(mae, { text: "old post", wt: base - 6000 });
+  const top = store._addReply(old, mae.id, "top", base - 5000);
+  const sub = store._addReply(old, mae.id, "sub", base - 4000, { parentId: top.id });
+  drop("s5.txt", [
+    "garden-drafts v1", "batch: s5 world: test-world", `base: ${base}`,
+    "[n] @noodle_mae | -2h | new post",
+    "  > @gridghost | -1h | a reply",
+    "  >> @noodle_mae | -3h | timed before its reply",
+    `> on reply:${sub.id} @gridghost | -1h | joins top's discussion`
+  ].join("\n"));
   await store._tickGarden();
-  const batch = store.garden.drafts.batches.c1;
-  const cut = batch.items.find(i => i.text === "cut me");
-  const lurk = batch.items.find(i => i.text === "👀 same");
-  await gmSays("garden-drafts-approve", { batchId: "c1", items: [{ key: cut.key, include: false }, { key: lurk.key, text: "👀 same here" }] });
-  assert.deepEqual(store.garden.chatter.map(c => [c.mood, c.keywords, c.text, c.until - base, c.used]), [
-    ["hype", ["militech"], "militech again??", 7 * 86400, 0],
-    ["lurker", [], "👀 same here", 7 * 86400, 0]
+  await gmSays("garden-drafts-approve", { batchId: "s5", items: [] });
+  await store._tickGarden();
+  const fresh = Object.values(store.garden.posts).find(p => p.text === "new post");
+  const [reply, answer] = fresh.replies;
+  assert.equal(reply.text, "a reply");
+  assert.deepEqual([answer.text, answer.parentId], ["timed before its reply", reply.id]);
+  assert.ok(answer.wt >= reply.wt);
+  assert.equal(old.replies.find(r => r.text === "joins top's discussion").parentId, top.id);
+});
+
+test("host: an answer whose reply was cut is cut too", async () => {
+  await hostSetup();
+  const base = Math.floor(gardenNow());
+  store._addAccount({ handle: "noodle_mae", name: "Mae", kind: "citizen" });
+  drop("s6.txt", `garden-drafts v1\nbatch: s6 world: test-world\nbase: ${base}\n@noodle_mae | -2h | post\n  > @noodle_mae | -1h | reply\n  >> @noodle_mae | -1h | answer\n`);
+  await store._tickGarden();
+  const reply = store.garden.drafts.batches.s6.items.find(i => i.text === "reply");
+  await gmSays("garden-drafts-approve", { batchId: "s6", items: [{ key: reply.key, include: false }] });
+  await store._tickGarden();
+  const post = Object.values(store.garden.posts).find(p => p.text === "post");
+  assert.deepEqual(post.replies.map(r => r.text), []);
+  assert.equal(store.garden.drafts.reviews.at(-1).cut, 2);
+});
+
+/* ---------------- The Drafts tab and the Queue as threads ---------------- */
+
+test("nestRows: replies under their post, threads by when they start, the feed's own (ctx) untimed", () => {
+  const rows = nestRows([
+    { id: "late", wt: 50 },
+    { id: "r1", parent: "early", wt: 30 },
+    { id: "a1", parent: "r1", wt: 31 },
+    { id: "x", parent: "a1", wt: 32 },
+    { id: "early", wt: 20 },
+    { id: "post:p", ctx: true },
+    { id: "r2", parent: "post:p", wt: 10 },
+    { id: "lost", parent: "nowhere", wt: 40 }
   ]);
-  assert.equal(gardenFor(alice, store.garden).chatter, undefined, "players never get it");
-  await store._writePack();
-  const pack = JSON.parse(files.get("worlds/test-world/cpr-sam-agent/garden/writer-pack.json"));
-  assert.deepEqual(pack.chatter.map(c => c.text), ["militech again??", "👀 same here"]);
+  assert.deepEqual(rows.map(r => [r.id, r.depth]), [["post:p", 0], ["r2", 1], ["early", 0], ["r1", 1], ["a1", 2], ["x", 2], ["lost", 0], ["late", 0]]);
+  assert.equal(rows[0].at, 10);
+});
+
+test("queuedParent: the reply it answers, else its post, while queued", () => {
+  const post = { id: "q1", draft: { batch: "b", key: "p1", kind: "post" } };
+  const reply = { id: "q2", draft: { batch: "b", key: "r1", kind: "reply", parent: "p1", under: null } };
+  const answer = { id: "q3", draft: { batch: "b", key: "r2", kind: "reply", parent: "p1", under: "r1" } };
+  const other = { id: "q4", draft: { batch: "c", key: "r1", kind: "reply", parent: "p1" } };
+  const q = [post, reply, answer, other];
+  assert.equal(queuedParent(q, answer), reply);
+  assert.equal(queuedParent(q, reply), post);
+  assert.equal(queuedParent(q, other), null);
+  assert.equal(queuedParent([reply, answer], reply), null);
+  assert.equal(queuedParent(q, post), null);
+});
+
+test("host: a reply waits for its queued post, even when due; Post now waits too", async () => {
+  await hostSetup();
+  const base = Math.floor(gardenNow());
+  store._addAccount({ handle: "noodle_mae", name: "Mae", kind: "citizen" });
+  drop("t1.txt", `garden-drafts v1\nbatch: t1 world: test-world\nbase: ${base}\n@noodle_mae | +2h | later post\n  > @noodle_mae | +3h | its reply\n`);
+  await store._tickGarden();
+  await gmSays("garden-drafts-approve", { batchId: "t1", items: [] });
+  const [post, reply] = ["post", "reply"].map(k => store.garden.queue.find(q => q.draft.kind === k));
+  assert.equal(store.garden.queue.find(q => q.draft.why !== undefined), undefined, "no why: none kept");
+  await gmSays("garden-queue", { op: "edit", id: reply.id, item: { accountId: reply.accountId, text: "its reply", minutes: 0 } });
+  await store._tickGarden();
+  await gmSays("garden-queue", { op: "now", id: reply.id });
+  assert.equal(store.garden.queue.length, 2, "both still queued");
+  await gmSays("garden-queue", { op: "now", id: post.id });
+  await store._tickGarden();
+  const out = Object.values(store.garden.posts).find(p => p.text === "later post");
+  assert.deepEqual(out.replies.map(r => r.text), ["its reply"]);
+  assert.equal(store.garden.queue.length, 0);
+});
+
+test("host: the GM queues replies under a queued post, its reply and the feed; a thread moves and goes with its post", async () => {
+  await hostSetup();
+  const now = Math.floor(gardenNow());
+  const mae = store._addAccount({ handle: "noodle_mae", name: "Mae", kind: "citizen" });
+  const live = await store._publish(mae, { text: "on the feed", wt: now - 600 });
+  const top = store._addReply(live, mae.id, "a reply there", now - 300);
+  store._enqueuePost({ id: "qa", accountId: mae.id, text: "first", image: null, tier: null, wt: now + 3600 });
+  store._enqueuePost({ id: "qb", accountId: mae.id, text: "second", image: null, tier: null, wt: now + 7200 });
+  const reply = (id, text, more = {}) => gmSays("garden-queue", { op: "reply", id, item: { accountId: mae.id, text, minutes: 0, ...more } });
+  await reply("qa", "under first");
+  const r1 = store.garden.queue.find(q => q.text === "under first");
+  assert.equal(r1.wt, now + 3600, "never before its post");
+  await reply(r1.id, "answering it");
+  await reply(null, "under the feed's reply", { postId: live.id, replyId: top.id });
+  const r2 = store.garden.queue.find(q => q.text === "answering it");
+  assert.equal(queuedParent(store.garden.queue, r2), r1);
+  // "first" moves past "second": its thread moves with it.
+  await gmSays("garden-queue", { op: "down", id: "qa", other: "qb" });
+  assert.deepEqual(["first", "under first", "answering it", "second"].map(t => store.garden.queue.find(q => q.text === t).wt - now), [7200, 7200, 7200, 3600]);
+  // Everything out: the threads land where they belong.
+  await gmSays("garden-queue", { op: "remove", id: "qb" });
+  for (const q of store.garden.queue) q.wt = now - 1;
+  await store._tickGarden();
+  const first = Object.values(store.garden.posts).find(p => p.text === "first");
+  const [a, b] = first.replies;
+  assert.deepEqual([a.text, b.text, b.parentId], ["under first", "answering it", a.id]);
+  assert.equal(live.replies.find(r => r.text === "under the feed's reply").parentId, top.id);
+  // Skipping a post skips what's queued under it.
+  store._enqueuePost({ id: "qc", accountId: mae.id, text: "third", image: null, tier: null, wt: now + 3600 });
+  await reply("qc", "under third");
+  await gmSays("garden-queue", { op: "remove", id: "qc" });
+  assert.equal(store.garden.queue.length, 0);
 });

@@ -38,7 +38,17 @@
         <h4 class="agent-garden-day">{{label}}</h4>
         <ol class="agent-app-list">
           {{#each rows}}
-            <li class="agent-app-item compact agent-garden-draft{{#unless include}} faded{{/unless}}" data-key="{{key}}">
+            {{#if ctx}}
+            <li class="agent-app-item compact agent-garden-draft agent-garden-thread-row context depth-{{depth}}" title="Already on the feed">
+              <span class="agent-icon-btn"><i class="fas fa-eye"></i></span>
+              <div class="agent-app-item-main">
+                <b>{{author}}</b>
+                {{#if when}}<span class="agent-row-time">{{when}}</span>{{/if}}
+                <small>{{body}}</small>
+              </div>
+            </li>
+            {{else}}
+            <li class="agent-app-item compact agent-garden-draft agent-garden-thread-row depth-{{depth}}{{#unless include}} faded{{/unless}}{{#if cutWith}} faded{{/if}}" data-key="{{key}}">
               <a class="agent-icon-btn" data-action="garden-draft-toggle" data-batch="{{batch}}" data-key="{{key}}" title="{{#if include}}Included: tap to cut{{else}}Cut: tap to include{{/if}}"><i class="fas {{#if include}}fa-square-check{{else}}fa-square{{/if}}"></i></a>
               <div class="agent-app-item-main">
                 <b><i class="fas {{kindIcon}}" title="{{kindName}}"></i> {{author}}</b>
@@ -57,10 +67,12 @@
                   {{#if repNames}}<br><i class="fas fa-star"></i> Reputation: {{repNames}}{{/if}}
                   {{#if why}}<br><em>why: {{why}}</em>{{/if}}
                   {{#each problems}}<br><span class="agent-garden-problem"><i class="fas fa-triangle-exclamation"></i> {{this}}</span>{{/each}}
+                  {{#if cutWith}}<br><em>cut with the post or reply it's under</em>{{/if}}
                 </small>
               </div>
               {{#if editable}}<a class="agent-icon-btn" data-action="garden-draft-edit" data-batch="{{batch}}" data-key="{{key}}" title="Edit"><i class="fas fa-pen"></i></a>{{/if}}
             </li>
+            {{/if}}
           {{/each}}
         </ol>
       {{/each}}

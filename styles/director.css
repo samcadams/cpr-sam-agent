@@ -1163,6 +1163,19 @@ body.reduce-motion .ctp-director .director-call.ringing {
   flex-basis: 100%;
 }
 
+/* A reply's discussion, indented under it. */
+.ctp-director .director-answers {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  padding: 0 0 0 12px;
+  list-style: none;
+  border-left: 2px solid var(--dir-hair);
+}
+
+.ctp-director .director-replies .director-answers li {
+  border-bottom: none;
+}
+
 .ctp-director .director-item {
   display: flex;
   align-items: center;
@@ -1172,6 +1185,11 @@ body.reduce-motion .ctp-director .director-call.ringing {
 .ctp-director .director-item.faded {
   opacity: 0.5;
 }
+
+/* The Garden's Drafts and Queue as threads: replies indented under their post, the feed's own greyed. */
+.ctp-director .director-item.depth-1 { margin-left: 1.5em; border-left: 2px solid rgba(var(--agent-cyan-rgb), 0.35); }
+.ctp-director .director-item.depth-2 { margin-left: 3em; border-left: 2px solid rgba(var(--agent-cyan-rgb), 0.35); }
+.ctp-director .director-item.context { opacity: 0.55; font-style: italic; }
 
 .ctp-director .director-item-main {
   flex: 1;

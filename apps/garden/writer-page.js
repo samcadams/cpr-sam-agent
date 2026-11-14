@@ -50,7 +50,7 @@ function profileFields(p = {}, { cast = true } = {}) {
     { name: "ties", label: "Knows", value: list(p.ties), placeholder: "accounts, NPCs, characters" },
     ...(cast ? [
       { name: "arc", label: "Arc", value: p.arc ?? "", placeholder: "Where their storyline is now, in a line" },
-      { name: "lines", label: "Own replies", type: "textarea", rows: 4, value: (p.lines ?? []).join("\n"), placeholder: "One per line: their auto-replies between batches", hint: "The Garden uses these for their replies before their mood's word list." }
+      { name: "lines", label: "Own replies", type: "textarea", rows: 4, value: (p.lines ?? []).join("\n"), placeholder: "One per line: what they say about a happening", hint: "Stir uses the ones with {place} or {thing}." }
     ] : [])
   ];
 }

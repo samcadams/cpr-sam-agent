@@ -1,7 +1,7 @@
 import { fieldsDialog } from "../../scripts/ui/dialogs/forms.js";
 import { store } from "../../scripts/store.js";
-import { gardenNow, gardenTiers, gardenWhen, spanLabel } from "./model.js";
-import { batchMix, RINGS } from "./drafts.js";
+import { gardenNow, gardenTiers, gardenWhen, replyParent, spanLabel } from "./model.js";
+import { batchMix, nestRows, RINGS } from "./drafts.js";
 import { dataFolder } from "../../scripts/config.js";
 import { INBOX, PACK_FILE } from "./pack.js";
 import { parseSpan, spanText } from "./writer.js";
@@ -21,8 +21,7 @@ const KIND = {
   account: { icon: "fa-user-plus", name: "Account" },
   format: { icon: "fa-repeat", name: "Recurring post" },
   profile: { icon: "fa-feather", name: "Profile" },
-  stage: { icon: "fa-forward", name: "Stage" },
-  chatter: { icon: "fa-comments", name: "Crowd chatter" }
+  stage: { icon: "fa-forward", name: "Stage" }
 };
 
 /** Re-read the pack's `written` at most this often (real ms) while the Drafts tab is drawn. */
@@ -164,31 +163,68 @@ export const methods = {
     };
     const batches = Object.values(drafts.batches ?? {}).sort((a, b) => a.ts - b.ts).map(batch => {
       const items = withEdits(batch, this._draftEdits?.[batch.id]);
-      const days = new Map();
+      const keys = new Set(items.map(i => i.key));
+      // What's already on the feed, greyed above the replies that go under it.
+      const context = new Map();
+      const live = (id, parent, account, text, wt) => {
+        if (!context.has(id)) context.set(id, { id, parent, ctx: true, author: handle(account) ?? "?", body: text, when: Number.isFinite(wt) ? `${gardenWhen(wt, now)} · on the feed` : null });
+        return id;
+      };
+      const parentOf = item => {
+        if (item.kind !== "reply") return null;
+        const inBatch = [item.under, item.to.key].find(k => k && keys.has(k));
+        if (inBatch) return inBatch;
+        const post = g.posts[item.to.postId ?? item.postId];
+        if (!post) return null;
+        const postNode = live(`post:${post.id}`, null, post.accountId, post.text, post.wt);
+        const top = post.replies.find(r => r.id === replyParent(post, item.to.replyId));
+        return top ? live(`reply:${top.id}`, postNode, top.accountId, top.text, top.wt) : postNode;
+      };
+      // A reply's target: its post, or (an answer) the reply it answers.
+      const replyTarget = r => {
+        if (r.to.replyId) return `reply ${r.to.replyId}`;
+        const under = r.under && batch.items.find(i => i.key === r.under);
+        if (under) return `${handle(under.accountId) ?? `@${under.newHandle}`}'s reply`;
+        return r.to.postId ? `post ${r.to.postId}` : `${batch.items.find(i => i.key === r.to.key)?.label ?? "the post above"}`;
+      };
+      const rows = [];
       for (const item of items) {
         const timed = Number.isFinite(item.wt);
-        const day = timed ? gardenWhen(item.wt, now).replace(/, \d\d?:\d\d.*$/, "") : item.kind === "chatter" ? "Crowd chatter (this week's auto-replies)" : "Now";
         const row = {
           ...item,
+          id: item.key,
+          parent: parentOf(item),
           batch: batch.id,
           kindIcon: KIND[item.kind].icon,
           kindName: KIND[item.kind].name,
           private: item.kind === "msg",
           author: item.kind === "post" || item.kind === "reply" ? (handle(item.accountId) ?? `@${item.newHandle}`) : item.kind === "msg" ? `${item.from} → ${item.to.join(", ")}`
-            : item.kind === "account" || item.kind === "format" ? `@${item.handle}` : item.kind === "chatter" ? `${item.mood ?? "any"} crowd${item.keywords.length ? ` · on ${item.keywords.join(", ")}` : ""}`
+            : item.kind === "account" || item.kind === "format" ? `@${item.handle}`
             : item.who ?? (item.kind === "stage" ? `${item.what} ${item.id}` : ""),
           isNew: (!!item.newHandle && item.newHandle !== "random" && !item.madeHere) || (item.kind === "account" && !item.accountId),
           when: timed ? (item.wt <= now ? `${gardenWhen(item.wt, now)} · goes out now, backdated` : `${gardenWhen(item.wt, now)} · in ${spanLabel(item.wt - now)}`) : null,
           ringName: RINGS[item.ring] ?? null,
           tierName: item.tier ? gardenTiers()[item.tier]?.name ?? item.tier : null,
-          replyTo: item.kind === "reply" ? (item.to.postId ? `post ${item.to.postId}` : `${batch.items.find(i => i.key === item.to.key)?.label ?? "the post above"}`) : null,
+          replyTo: item.kind === "reply" ? replyTarget(item) : null,
           body: item.kind === "dating" ? `${item.age} · ${item.prompts.join(" · ")}` : item.kind === "profile" ? `${item.field}: ${show(item.value)}`
             : item.kind === "account" ? `${item.name} · ${item.accountKind}${item.bio ? ` · ${item.bio}` : ""}` : item.kind === "format" ? `${item.when}: ${item.what}` : item.kind === "stage" ? `→ ${item.stage}${item.progress ? ` (${item.progress})` : ""}` : item.text,
           before: before(item),
           repNames: (item.rep ?? []).map(r => `${r.who} ${r.delta >= 0 ? "+" : ""}${r.delta}`).join(", "),
-          editable: ["post", "reply", "msg", "chatter"].includes(item.kind),
+          editable: ["post", "reply", "msg"].includes(item.kind),
           edited: !!this._draftEdits?.[batch.id]?.[item.key]?.text
         };
+        rows.push(row);
+      }
+      // As threads: each post with its replies under it, by the time the thread starts.
+      const days = new Map();
+      const cut = new Set();
+      let day;
+      for (const row of nestRows([...context.values(), ...rows])) {
+        if (row.parent == null) day = Number.isFinite(row.at) ? gardenWhen(row.at, now).replace(/, \d\d?:\d\d.*$/, "") : "Now";
+        // A reply whose post (or reply) is cut goes with it, as approving does.
+        row.cutWith = !row.ctx && cut.has(row.parent);
+        if (!row.ctx && (!row.include || row.cutWith)) cut.add(row.id);
+        if (row.parent != null) row.replyTo = null;
         if (!days.has(day)) days.set(day, []);
         days.get(day).push(row);
       }
@@ -198,7 +234,7 @@ export const methods = {
         ...batch,
         baseLabel: Number.isFinite(batch.base) ? gardenWhen(batch.base, now) : null,
         broken: batch.errors.length > 0,
-        included: items.filter(i => i.include).length,
+        included: items.filter(i => !cut.has(i.key)).length,
         mix: [
           { ring: "city", name: RINGS.city, n: mix.city, pct: pct(mix.city) },
           { ring: "close", name: RINGS.close, n: mix.close, pct: pct(mix.close) },
