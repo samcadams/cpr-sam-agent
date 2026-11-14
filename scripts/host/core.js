@@ -87,6 +87,7 @@ export const methods = {
         );
         this.requests = new Map(Object.values(data.requests ?? {}).map(r => [r.id, r]));
         this.quests = new Map(Object.values(data.quests ?? {}).map(q => [q.id, q]));
+        this.scheduled = new Map(Object.values(data.scheduled ?? {}).map(s => [s.id, s]));
         this.apps = { ...emptyApps(), ...(data.apps ?? {}) };
         this._traumaChanges(false); // what's loaded isn't a change
       }
@@ -449,6 +450,7 @@ export const methods = {
       calls,
       requests: this.visibleRequests(user),
       quests: this.visibleQuests(user),
+      scheduled: user.isGM ? [...this.scheduled.values()] : [],
       apps: appsFor(user, this.apps),
       garden: gardenFor(user, this.garden)
     });

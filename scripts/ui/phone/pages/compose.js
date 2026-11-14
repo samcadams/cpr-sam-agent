@@ -1,4 +1,4 @@
-import { attachPhotoDialog, moneyDialog, pickJobDialog } from "../../dialogs/forms.js";
+import { attachPhotoDialog, fieldsDialog, moneyDialog, pickJobDialog, scheduleDialog } from "../../dialogs/forms.js";
 import { openLocation, pickLocation } from "../../location.js";
 import { findContact, getContacts } from "../../../model/contacts.js";
 import { getService } from "../../../model/services.js";
@@ -6,6 +6,7 @@ import { canSendImages, commsOn, feature } from "../../../model/features.js";
 import { formatMoney, hasWallet } from "../../../model/money.js";
 import { QUEST_LABELS } from "../../../model/quests.js";
 import { store } from "../../../store.js";
+import { scheduleLabel } from "../../../util/agentTime.js";
 import { playPhoneSound } from "../../../util/audio.js";
 
 /*
@@ -16,6 +17,23 @@ import { playPhoneSound } from "../../../util/audio.js";
 export const actions = {
   send() {
     this._send(this.element.find(".agent-compose textarea")[0]);
+  },
+  /** GM: send what's in the box later, at a time on the phones' clock (host/texts.js). */
+  async schedule() {
+    const key = this.draftKey;
+    const typed = this.element.find(".agent-compose textarea").val()?.trim();
+    if (!typed && !this.locations[key] && !this.images[key] && !this.jobs[key]) return ui.notifications.warn("Write the text to schedule first.");
+    const at = await scheduleDialog();
+    if (at && this.draftKey === key) this._send(this.element.find(".agent-compose textarea")[0], at);
+  },
+  unschedule({ scheduledId }) {
+    store.request("unschedule-text", { id: scheduledId });
+  },
+  "text-edit"({ messageId }) {
+    this._editText(messageId);
+  },
+  "text-delete"({ messageId }) {
+    this._deleteText(messageId);
   },
   "quick-reply"({ text }) {
     this._sendMessage(text);
@@ -126,15 +144,18 @@ export const methods = {
     this.render(true);
   },
 
-  _send(textarea) {
-    if (this._sendMessage(textarea?.value.trim() ?? "") && textarea) {
+  _send(textarea, at = null) {
+    if (this._sendMessage(textarea?.value.trim() ?? "", at) && textarea) {
       textarea.value = "";
       delete this.drafts[this.draftKey];
     }
   },
 
-  /** Send text plus whatever location/photo is attached. Returns true if it went out. */
-  _sendMessage(text) {
+  /**
+   * Send text plus whatever location/photo is attached. Returns true if it went out. GM: `at` (from
+   * scheduleDialog) schedules it instead.
+   */
+  _sendMessage(text, at = null) {
     const key = this.draftKey;
     const location = this.locations[key] ?? null;
     const image = this.images[key] ?? null;
@@ -143,15 +164,16 @@ export const methods = {
     if ((!text && !location && !image && !job) || !this.view || !ctx) return false;
     let sent = false;
     const v = this.view;
+    const go = (type, data) => (at ? store.request("schedule-text", { ...at, request: { ...data, type } }) : store.request(type, data));
     if (v.kind === "direct") {
       const thread = this.resolveDirect();
-      sent = store.request("send", { threadId: thread?.id, actorId: v.actorId, contact: v.contact, hidden: v.hidden, text, location, image, job });
+      sent = go("send", { threadId: thread?.id, actorId: v.actorId, contact: v.contact, hidden: v.hidden, text, location, image, job });
     } else if (v.kind === "group") {
       const as = this.groupSpeaker(ctx, store.threads.get(v.groupId));
-      if (as) sent = store.request("group-send", { groupId: v.groupId, as, text, location, image, job });
+      if (as) sent = go("group-send", { groupId: v.groupId, as, text, location, image, job });
     } else if (v.kind === "service" && this.isGM) {
       const thread = store.findServiceThread(v.actorId, v.serviceId);
-      sent = store.request("service-reply", { threadId: thread?.id, actorId: v.actorId, serviceId: v.serviceId, text, location, image, job });
+      sent = go("service-reply", { threadId: thread?.id, actorId: v.actorId, serviceId: v.serviceId, text, location, image, job });
     } else if (v.kind === "service") {
       sent = store.request("service-send", { actorId: v.actorId, serviceId: v.serviceId, text, location, image });
     }
@@ -162,6 +184,52 @@ export const methods = {
       this.render();
     }
     return sent;
+  },
+
+  /** The open conversation's thread (direct, group or service), if it has one yet. */
+  _openThread() {
+    const v = this.view;
+    if (v?.kind === "direct") return this.resolveDirect();
+    if (v?.kind === "service") return store.findServiceThread(v.actorId, v.serviceId);
+    if (v?.kind === "group") return store.threads.get(v.groupId) ?? null;
+    return null;
+  },
+
+  /** GM: change a sent text's words on every phone that has it (host/texts.js). */
+  async _editText(messageId) {
+    const thread = this._openThread();
+    const message = thread?.messages.find(m => m.id === messageId);
+    if (!message) return;
+    const values = await fieldsDialog({ title: "Edit text", fields: [{ name: "text", label: "Text", type: "textarea", value: message.text ?? "" }] });
+    if (values?.text && values.text !== message.text) store.request("edit-text", { threadId: thread.id, messageId, text: values.text });
+  },
+
+  /** GM: take a sent text off every phone that has it. */
+  _deleteText(messageId) {
+    const thread = this._openThread();
+    if (!thread?.messages.some(m => m.id === messageId)) return;
+    Dialog.confirm({
+      title: "Delete text",
+      content: "<p>Delete this text from every phone? This can't be undone.</p>",
+      yes: () => store.request("delete-text", { threadId: thread.id, messageId })
+    });
+  },
+
+  /** GM: the texts scheduled in the open conversation (host/texts.js), soonest first. */
+  _scheduledHere() {
+    const v = this.view;
+    if (!this.isGM || !v) return [];
+    const thread = this._openThread();
+    const here = r => {
+      if (v.kind === "direct") return r.type === "send" && (r.threadId ? r.threadId === thread?.id : r.actorId === v.actorId && r.contact === (thread?.contact ?? v.contact));
+      if (v.kind === "group") return r.type === "group-send" && r.groupId === v.groupId;
+      return v.kind === "service" && r.type === "service-reply" && r.actorId === v.actorId && r.serviceId === v.serviceId;
+    };
+    return [...store.scheduled.values()].filter(s => here(s.request)).sort((a, b) => a.at - b.at).map(s => ({
+      id: s.id,
+      text: s.request.text || (s.request.image ? "Photo" : s.request.location ? "Location" : "Job offer"),
+      when: scheduleLabel(s)
+    }));
   },
 
   /** Toggle my reaction on a message in the open conversation. */

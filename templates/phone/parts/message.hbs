@@ -3,7 +3,8 @@
   canReact (show the react button), sharing (picking texts to share: each text is a checkbox, and
   picked marks the ones in the run); optional sender, color and persona (groups: the sender's colour,
   and whether to mark one of the GM's own NPCs with it), viewed and setViewed (direct: the "Viewed"
-  label, and the GM's button to set it) and action (services).
+  label, and the GM's button to set it) and action (services). @root.canEditTexts: the GM's edit and
+  delete buttons (host/texts.js).
 --}}
 {{#if dateLabel}}<div class="agent-date-sep">{{dateLabel}}</div>{{/if}}
 {{#if system}}
@@ -90,7 +91,12 @@
         {{#if text}}{{#unless money}}<div class="agent-bubble-text">{{text}}</div>{{/unless}}{{/if}}
       </div>
     {{/if}}
-    <div class="agent-meta">{{time}}{{#if viewed}} · <span class="agent-viewed">{{@root.appearance.labels.viewed}}</span>{{/if}}</div>
+    <div class="agent-meta">{{time}}{{#if viewed}} · <span class="agent-viewed">{{@root.appearance.labels.viewed}}</span>{{/if}}
+      {{#if @root.canEditTexts}}<span class="agent-gm-text-tools">
+        {{#unless action}}<a data-action="text-edit" data-message-id="{{id}}" title="Edit this text (GM)" aria-label="Edit this text"><i class="fas fa-pen"></i></a>{{/unless}}
+        <a data-action="text-delete" data-message-id="{{id}}" title="Delete this text (GM)" aria-label="Delete this text"><i class="fas fa-trash"></i></a>
+      </span>{{/if}}
+    </div>
     {{#if setViewed}}<a class="agent-set-viewed" data-action="set-viewed" title="Show the player their message was seen"><i class="fas fa-eye"></i> Set as {{@root.appearance.labels.viewed}}</a>{{/if}}
     {{#if reactions.length}}
       <div class="agent-reactions">

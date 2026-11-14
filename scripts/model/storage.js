@@ -5,7 +5,7 @@ import { APP_TABLES } from "../apps/manifest.js";
  * only rewrites what changed (host/core.js compares each file with what it last wrote).
  *
  * worlds/<world>/cpr-sam-agent/
- *   messages.json                 { version, requests, quests, files: [the files below it] }
+ *   messages.json                 { version, requests, quests, scheduled, files: [the files below it] }
  *   threads/<id>.json             one conversation each
  *   apps/<table>.json             each app's tables (apps/manifest.js `tables`), e.g. subs, watch
  *   apps/<table>-<YYYY-MM>.json   the tables marked `monthly` (alerts, ledger, rides…), by the month
@@ -38,7 +38,7 @@ function byMonth(table, prefix, parts) {
 }
 
 /** The message data as files: { index, parts: { path: content } } (paths relative to the folder). */
-export function splitMessages({ threads, requests, quests, apps }) {
+export function splitMessages({ threads, requests, quests, scheduled, apps }) {
   const parts = {};
   for (const thread of threads.values()) parts[`threads/${fileId(thread.id)}.json`] = thread;
   for (const [key, table] of Object.entries(apps ?? {})) {
@@ -49,14 +49,15 @@ export function splitMessages({ threads, requests, quests, apps }) {
     version: VERSION,
     requests: Object.fromEntries(requests),
     quests: Object.fromEntries(quests),
+    scheduled: Object.fromEntries(scheduled ?? []),
     files: Object.keys(parts)
   };
   return { index, parts };
 }
 
-/** Back from files: { threads, requests, quests, apps } as plain objects (like the old single file). */
+/** Back from files: { threads, requests, quests, scheduled, apps } as plain objects (like the old single file). */
 export function joinMessages(index, parts) {
-  const data = { threads: {}, requests: index.requests ?? {}, quests: index.quests ?? {}, apps: {} };
+  const data = { threads: {}, requests: index.requests ?? {}, quests: index.quests ?? {}, scheduled: index.scheduled ?? {}, apps: {} };
   for (const path of index.files ?? []) {
     const content = parts[path];
     if (!content) continue;

@@ -1,6 +1,7 @@
 /*
  * Texts between the GM Phone and a player's Agent, through the real phones: arriving, unread badges,
- * replying by typing, reactions, Viewed, hidden caller ID, PC to PC, deleting, and sharing to chat.
+ * replying by typing, reactions, Viewed, hidden caller ID, PC to PC, deleting, sharing to chat, and the GM's
+ * edit, delete and scheduled texts (host/texts.js).
  */
 
 import { check, same, test } from "./lib.mjs";
@@ -173,6 +174,78 @@ test("deleting a conversation removes it; a new text brings it back", async ({ g
   await gm.run(a => api.text({ to: a.pc.id, from: a.contact, text: `${a.tag} you there?` }), { pc, contact, tag });
   const back = await pl.run(a => until(() => els('[data-action="open-thread"]').some(e => e.dataset.contact === a.contact), "the row to come back"), { contact });
   check(back, "the conversation comes back with the new text");
+});
+
+test("the GM edits a sent text and deletes another; the player's phone follows, and the player has no tools", async ({ gm, pl, pc, contact, tag }) => {
+  const [first, second] = [`${tag} edit me`, `${tag} delete me`];
+  for (const t of [first, second]) await gm.run(a => api.text({ to: a.pc.id, from: a.contact, text: a.t }), { pc, contact, t });
+  await pl.run(async a => {
+    await until(() => store.findThread(a.pc.id, a.contact)?.messages.some(m => m.text === a.second), "both texts");
+    await go("messages");
+    const row = await until(() => els('[data-action="open-thread"]').find(e => e.dataset.contact === a.contact), "the inbox row");
+    row.click();
+    await until(() => els(".agent-bubble-text").some(e => e.textContent.includes(a.second)), "the conversation");
+  }, { pc, contact, second });
+  same(await pl.run(() => els('[data-action="text-edit"], [data-action="text-delete"], [data-action="schedule"]').length), 0, "the player sees no edit, delete or schedule buttons");
+
+  const edited = `${tag} edited`;
+  await gm.run(async a => {
+    api.openConversation({ to: a.pc.id, from: a.contact });
+    const msgs = () => store.findThread(a.pc.id, a.contact).messages;
+    const id = await until(() => msgs().find(m => m.text === a.first)?.id, "the first text");
+    await tap(`[data-action="text-edit"][data-message-id="${id}"]`);
+    const d = await dialog("Edit text");
+    inDialog(d, 'textarea[name="text"]', a.edited);
+    await press(d, "Save");
+    await until(() => msgs().some(m => m.text === a.edited), "the edit at the GM");
+    const gone = await until(() => msgs().find(m => m.text === a.second)?.id, "the second text");
+    await tap(`[data-action="text-delete"][data-message-id="${gone}"]`);
+    await press(await dialog("Delete text"), "Yes");
+    await until(() => !msgs().some(m => m.text === a.second), "the delete at the GM");
+  }, { pc, contact, first, second, edited });
+
+  const seen = await pl.run(a => until(() => {
+    const shown = els(".agent-bubble-text").map(e => e.textContent);
+    return shown.some(t => t.includes(a.edited)) && !shown.some(t => t.includes(a.second)) && !shown.some(t => t.includes(a.first)) && { shown, edited: !/edited/i.test(text(".agent-messages").replace(a.edited, "")) };
+  }, "the player's phone to follow"), { first, second, edited });
+  check(seen.edited, "no Edited mark on the player's phone");
+});
+
+test("the GM schedules a text: it waits on the GM Phone only, can be cancelled, and sends when its time comes", async ({ gm, pl, pc, contact, tag }) => {
+  const [later, cancel] = [`${tag} scheduled`, `${tag} cancelled`];
+  const r = await gm.run(async a => {
+    api.openConversation({ to: a.pc.id, from: a.contact });
+    await tap('[data-action="schedule"]'); // empty box: a warning, no dialog
+    const noDialog = ![...document.querySelectorAll(".app.dialog, .application.dialog")].some(d => d.textContent.includes("Schedule text"));
+    // The schedule dialog opens with the phones' clock as its starting values.
+    await fill(".agent-compose textarea", a.cancel);
+    await tap('[data-action="schedule"]');
+    const d = await dialog("Schedule text");
+    d.querySelector(".header-button.close, [data-action=\"close\"]").click(); // closed: nothing scheduled
+    const thread = store.findThread(a.pc.id, a.contact);
+    const req = text => ({ type: "send", threadId: thread.id, actorId: a.pc.id, contact: a.contact, text });
+    store.request("schedule-text", { at: Date.now() + 3_600_000, unit: "real", request: req(a.cancel) });
+    store.request("schedule-text", { at: Date.now() + 2_000, unit: "real", request: req(a.later) });
+    await until(() => els(".agent-scheduled-text").length >= 2, "the scheduled list");
+    const listed = text(".agent-scheduled");
+    const id = [...store.scheduled.values()].find(s => s.request.text === a.cancel).id;
+    await tap(`[data-action="unschedule"][data-scheduled-id="${id}"]`);
+    await until(() => !store.scheduled.has(id), "the cancel");
+    return { noDialog, listed: listed.includes(a.later) && listed.includes(a.cancel) };
+  }, { pc, contact, later, cancel });
+  check(r.noDialog, "an empty box doesn't open the schedule dialog");
+  check(r.listed, "both scheduled texts are listed above the box");
+  same(await pl.run(() => store.scheduled.size), 0, "the player's phone never has scheduled texts");
+
+  // The host's clock tick (every 30 s) sends it.
+  const got = await pl.run(async a => {
+    const msgs = () => store.findThread(a.pc.id, a.contact)?.messages ?? [];
+    await until(() => msgs().some(m => m.text === a.later), "the scheduled text", 45_000);
+    await sleep(500);
+    return msgs().some(m => m.text === a.cancel);
+  }, { pc, contact, later, cancel });
+  check(!got, "the cancelled text never sends");
+  same(await gm.run(a => [...store.scheduled.values()].filter(s => s.request.text.startsWith(a.tag)).length, { tag }), 0, "nothing of ours is left scheduled");
 });
 
 test("sharing texts posts a chat card with them", async ({ pl, pc, contact, tag }) => {

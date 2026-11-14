@@ -164,3 +164,70 @@ export function dateFieldFor(dateOffset) {
   const n = new Date(todayUtc() + (dateOffset ?? 0) * DAY_MS);
   return isoDate(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate());
 }
+
+/* ---------------- Scheduled texts (GM) ---------------- */
+
+/**
+ * How a scheduled text's time is entered, by clock: "calendar" (Simple Calendar's year, month and day),
+ * "days" (SmallTime has no date: days from today) or "date" (the phones' date, real or the GM's).
+ */
+function scheduleKind(clock) {
+  if ((clock.source === "auto" || clock.source === "calendar") && simpleCalendar()) return "calendar";
+  return worldClock(clock) ? "days" : "date";
+}
+
+/** The schedule form's kind and starting values: the phones' time now. */
+export function scheduleForm() {
+  const clock = clockSettings();
+  const kind = scheduleKind(clock);
+  if (kind === "calendar") {
+    const sc = simpleCalendar();
+    const d = sc.timestampToDate(sc.timestamp());
+    const months = sc.getAllMonths().map((m, i) => ({ value: i, label: m.name }));
+    return { kind, months, year: d.year, month: d.month, day: d.day + 1, time: `${pad(d.hour)}:${pad(d.minute)}` };
+  }
+  if (kind === "days") {
+    const minutes = Math.floor((((game.time.worldTime % 86400) + 86400) % 86400) / 60);
+    return { kind, days: 0, time: `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}` };
+  }
+  if (clock.source === "custom") return { kind, ...customClockFields(clock.offset) };
+  const n = new Date();
+  if (clock.dateOffset !== null) n.setDate(n.getDate() + clock.dateOffset);
+  return { kind, date: isoDate(n.getFullYear(), n.getMonth(), n.getDate()), time: `${pad(n.getHours())}:${pad(n.getMinutes())}` };
+}
+
+/**
+ * When the schedule form's values come round on the phones' clock: { at, unit } (unit "world": world-time
+ * seconds; "real": real milliseconds), or null if they don't parse.
+ */
+export function scheduleAt(values) {
+  const [h, m] = String(values?.time ?? "").split(":").map(Number);
+  if (!Number.isInteger(h) || !Number.isInteger(m)) return null;
+  const clock = clockSettings();
+  const kind = scheduleKind(clock);
+  if (kind === "calendar") {
+    const [year, month, day] = [values.year, values.month, values.day].map(Number);
+    if (![year, month, day].every(Number.isInteger) || day < 1) return null;
+    const at = simpleCalendar().dateToTimestamp({ year, month, day: day - 1, hour: h, minute: m, seconds: 0 });
+    return Number.isFinite(at) ? { at, unit: "world" } : null;
+  }
+  if (kind === "days") {
+    const days = Number(values.days) || 0;
+    return { at: (Math.floor(game.time.worldTime / 86400) + days) * 86400 + (h * 60 + m) * 60, unit: "world" };
+  }
+  const day = parseDate(values.date);
+  if (!Number.isFinite(day)) return null;
+  // The GM's clock reads in UTC (see customClockOffset); system time in this computer's time zone.
+  if (clock.source === "custom") return { at: day + (h * 60 + m) * 60_000 - clock.offset, unit: "real" };
+  const [y, mo, d] = values.date.split("-").map(Number);
+  return { at: new Date(y, mo - 1, d - (clock.dateOffset ?? 0), h, m).getTime(), unit: "real" };
+}
+
+/** Has a scheduled text's time come? */
+export const scheduleDue = ({ at, unit }) => (unit === "world" ? game.time.worldTime : Date.now()) >= at;
+
+/** A scheduled text's time as the phones will read it. */
+export function scheduleLabel({ at, unit }) {
+  const { time, date } = agentTimestamp(unit === "world" ? at : at / 1000);
+  return date ? `${date}, ${time}` : time;
+}

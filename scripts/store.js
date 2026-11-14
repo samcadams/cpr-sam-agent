@@ -22,7 +22,7 @@ import { subscriptionsOf, subscriptionState } from "../apps/pool/model.js";
  */
 
 /** Socket messages the host sends out; every other type is a request to the host. */
-const PUSHES = new Set(["thread", "remove", "sync", "call", "call-end", "requests", "quests", "notice", "world-sound", "world-sound-stop", "apps", "garden", "gm-card", "job-popout"]);
+const PUSHES = new Set(["thread", "remove", "sync", "call", "call-end", "requests", "quests", "scheduled", "notice", "world-sound", "world-sound-stop", "apps", "garden", "gm-card", "job-popout"]);
 
 /* -------------------------------------------- */
 /*  Store                                        */
@@ -33,6 +33,7 @@ class MessageStore {
   calls = new Map();
   requests = new Map();
   quests = new Map();
+  scheduled = new Map(); // GMs only: texts the GM scheduled (host/texts.js)
   apps = emptyApps(); // the apps' data (model/apps.js)
   garden = emptyGarden(); // The Garden (apps/garden/model.js)
   loaded = false;
@@ -223,6 +224,7 @@ class MessageStore {
         this.calls = new Map((msg.calls ?? []).map(c => [c.id, c]));
         this.requests = new Map((msg.requests ?? []).map(r => [r.id, r]));
         this.quests = new Map((msg.quests ?? []).map(q => [q.id, q]));
+        this.scheduled = new Map((msg.scheduled ?? []).map(s => [s.id, s]));
         this.apps = { ...emptyApps(), ...(msg.apps ?? {}) };
         this._traumaChanges(false);
         this.garden = { ...emptyGarden(), ...(msg.garden ?? {}) };
@@ -239,6 +241,9 @@ class MessageStore {
         this.quests = new Map(msg.quests.map(q => [q.id, q]));
         if (msg.notice) Hooks.callAll(`${MODULE_ID}.questNotice`, msg.notice);
         return this._changed({ quests: true });
+      case "scheduled":
+        this.scheduled = new Map(msg.scheduled.map(s => [s.id, s]));
+        return this._changed({ scheduled: true });
       case "notice":
         return Hooks.callAll(`${MODULE_ID}.notice`, msg.notice);
       case "apps":

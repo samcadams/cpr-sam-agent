@@ -4,7 +4,7 @@ import { APP_MANIFEST } from "../apps/manifest.js";
  * Host: one clock for the apps. Every 30 real seconds (and whenever world time moves), each app gets
  * a tick: the Garden's queue and engagement run on real minutes (and Combat Cabb's rides, on real seconds, as a
  * backstop for their own timers); Trauma Team billing and WatchBox
- * assessments run on world time.
+ * assessments run on world time. The GM's scheduled texts go out on either (host/texts.js).
  * Which apps tick, and with what method, is in apps/manifest.js.
  * Methods run on the store (`this`); see host/index.js.
  */
@@ -32,6 +32,7 @@ export const methods = {
 
   /** Each app's tick (apps/manifest.js `tick`), one after another. */
   async _tick({ world = false } = {}) {
+    await this._sendScheduled(); // the GM's scheduled texts (host/texts.js)
     for (const { method, realTimeOnly } of TICKS) {
       if (!(world && realTimeOnly)) await this[method]();
     }

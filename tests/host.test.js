@@ -8,6 +8,7 @@ import * as messages from "../scripts/host/messages.js";
 import * as groups from "../scripts/host/groups.js";
 import * as services from "../scripts/host/services.js";
 import * as reactions from "../scripts/host/reactions.js";
+import * as texts from "../scripts/host/texts.js";
 import * as quests from "../scripts/host/quests.js";
 import * as money from "../scripts/host/money.js";
 import * as contactRequests from "../scripts/host/contactRequests.js";
@@ -31,7 +32,7 @@ beforeEach(async () => {
   actAs(gm);
   addActor({ id: "pcA", name: "V", owners: ["alice"], wealth: 500, flags: { contacts: [{ name: "Rogue", img: "rogue.png" }, { name: "Judy", actorId: "pcB" }] } });
   addActor({ id: "pcB", name: "Judy", owners: ["bob"], wealth: 1000 });
-  Object.assign(store, { threads: new Map(), calls: new Map(), requests: new Map(), quests: new Map(), loaded: true, loadFailed: false, gardenFailed: false, _written: new Map(), _writing: null });
+  Object.assign(store, { threads: new Map(), calls: new Map(), requests: new Map(), quests: new Map(), scheduled: new Map(), loaded: true, loadFailed: false, gardenFailed: false, _written: new Map(), _writing: null });
   store._folders = store._ensureFolders();
 });
 
@@ -50,10 +51,10 @@ const onlyThread = () => {
 };
 
 test("every request type is handled by an existing method", () => {
-  const features = [core, messages, groups, services, reactions, quests, money, contactRequests, maintenance, calls, sounds];
+  const features = [core, messages, groups, services, reactions, texts, quests, money, contactRequests, maintenance, calls, sounds];
   const methods = Object.assign({}, ...features.map(f => f.methods));
   const types = features.flatMap(f => Object.entries(f.requests ?? {}));
-  assert.equal(types.length, 36);
+  assert.equal(types.length, 40);
   for (const [type, handler] of types) {
     const name = typeof handler === "string" ? handler : handler.name;
     assert.equal(typeof methods[name], "function", `${type} → ${name}`);
@@ -745,4 +746,95 @@ test("sharing texts: a public card built from the stored run, as the sharer's ph
   from(alice, "share-texts", { threadId: thread.id, from: first.id, to: second.id });
   await settle();
   assert.equal(chats.length, 2);
+});
+
+/* ---------------- The GM's tools for texts (host/texts.js) ---------------- */
+
+/** V and Judy's PC-to-PC conversation, both copies: [V's, Judy's]. */
+const pcToPc = async () => {
+  from(alice, "send", { actorId: "pcA", contact: "Judy", text: "Meet at the Afterlife" });
+  await settle();
+  const vs = [...store.threads.values()].find(t => t.actorId === "pcA");
+  const judys = [...store.threads.values()].find(t => t.actorId === "pcB");
+  return [vs, judys];
+};
+
+test("the GM edits a sent text on both PCs' phones; players can't", async () => {
+  const [vs, judys] = await pcToPc();
+  from(alice, "edit-text", { threadId: vs.id, messageId: vs.messages[0].id, text: "player edit" });
+  await settle();
+  assert.equal(vs.messages[0].text, "Meet at the Afterlife");
+
+  store.request("edit-text", { threadId: vs.id, messageId: vs.messages[0].id, text: "  Meet at Lizzie's  " });
+  await settle();
+  assert.equal(vs.messages[0].text, "Meet at Lizzie's");
+  assert.equal(judys.messages[0].text, "Meet at Lizzie's", "the other copy too");
+  assert.equal(vs.messages[0].edited, undefined, "silent: no edited mark");
+  assert.ok(receivedBy(bob).some(p => p.type === "thread" && p.thread.messages[0]?.text === "Meet at Lizzie's"), "Judy's phone is told");
+
+  store.request("edit-text", { threadId: vs.id, messageId: vs.messages[0].id, text: "   " });
+  await settle();
+  assert.equal(vs.messages[0].text, "Meet at Lizzie's", "an empty edit is ignored");
+});
+
+test("the GM deletes a sent text from both PCs' phones; players can't", async () => {
+  const [vs, judys] = await pcToPc();
+  from(bob, "react", { threadId: judys.id, messageId: judys.messages[0].id, emoji: "👍" });
+  from(alice, "delete-text", { threadId: vs.id, messageId: vs.messages[0].id });
+  await settle();
+  assert.equal(vs.messages.length, 1);
+
+  store.request("delete-text", { threadId: vs.id, messageId: vs.messages[0].id });
+  await settle();
+  assert.equal(vs.messages.length, 0);
+  assert.equal(judys.messages.length, 0, "the other copy too");
+  assert.equal(vs.lastReaction, undefined, "its reaction preview goes with it");
+  assert.ok(receivedBy(bob).some(p => p.type === "thread" && p.thread.id === judys.id && p.thread.messages.length === 0));
+});
+
+test("a scheduled text waits, unseen by players, then sends when the clock reaches it", async () => {
+  const request = { type: "send", actorId: "pcA", contact: "Rogue", text: "Job's on. Midnight." };
+  from(alice, "schedule-text", { at: Date.now() - 1, unit: "real", request });
+  await settle();
+  assert.equal(store.scheduled.size, 0, "players can't schedule");
+
+  store.request("schedule-text", { at: Date.now() + 60_000, unit: "real", request });
+  store.request("schedule-text", { at: 3600, unit: "world", request: { ...request, text: "World-time text" } });
+  await settle();
+  assert.equal(store.scheduled.size, 2);
+  assert.equal(store.threads.size, 0, "nothing sent yet");
+  assert.ok(!receivedBy(alice).some(p => p.type === "scheduled"), "players never get the schedule");
+  store.syncUser(Object.assign(alice, { active: true }));
+  assert.deepEqual(receivedBy(alice).find(p => p.type === "sync").scheduled, []);
+
+  await store._enqueue(() => store._tick());
+  await settle();
+  assert.equal(store.threads.size, 0, "not due on either clock");
+
+  game.time.worldTime = 3600;
+  await store._enqueue(() => store._tick({ world: true }));
+  await settle();
+  assert.deepEqual(onlyThread().messages.map(m => [m.from, m.text]), [["contact", "World-time text"]]);
+  assert.equal(store.scheduled.size, 1, "the real-time one still waits");
+
+  const [left] = store.scheduled.values();
+  left.at = Date.now() - 1;
+  await store._enqueue(() => store._tick());
+  await settle();
+  assert.deepEqual(onlyThread().messages.map(m => m.text), ["World-time text", "Job's on. Midnight."]);
+  assert.equal(store.scheduled.size, 0);
+});
+
+test("the GM cancels a scheduled text; only the GM's sends can be scheduled", async () => {
+  store.request("schedule-text", { at: Date.now() - 1, unit: "real", request: { type: "delete", threadId: "x" } });
+  store.request("schedule-text", { at: Date.now() + 60_000, unit: "real", request: { type: "send", actorId: "pcA", contact: "Rogue", text: "hi" } });
+  await settle();
+  assert.equal(store.scheduled.size, 1, "only sends");
+  const [entry] = store.scheduled.values();
+  from(alice, "unschedule-text", { id: entry.id });
+  await settle();
+  assert.equal(store.scheduled.size, 1, "players can't cancel");
+  store.request("unschedule-text", { id: entry.id });
+  await settle();
+  assert.equal(store.scheduled.size, 0);
 });

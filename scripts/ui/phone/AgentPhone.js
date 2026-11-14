@@ -425,6 +425,10 @@ export class AgentPhone extends Application {
     // The GM offers jobs from any conversation it writes in.
     data.canJob = feature("jobs") && this.isGM && !!(data.thread || data.group || data.service?.canReply);
     data.canLocation = feature("locations");
+    // GM: schedule texts, and edit or delete sent ones (host/texts.js).
+    data.canSchedule = this.isGM && ctx.perspective === "gm" && !!(data.thread?.canSend || data.group?.canSend || data.service?.canReply);
+    data.scheduled = this._scheduledHere();
+    data.canEditTexts = this.isGM && this.online && !this.share;
     const canSend = data.thread?.canSend || data.group?.canSend || data.service?.canReply || data.service?.canText;
     data.canMoney = !!(data.thread?.canSend || (data.service?.canMoney && data.service?.canCompose));
     data.quickReplies = canSend ? ctx.settings.quickReplies : [];

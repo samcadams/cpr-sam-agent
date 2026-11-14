@@ -1,7 +1,18 @@
 {{!--
-  Quick replies, attachments waiting to go, and the message box.
+  Quick replies, attachments waiting to go, the GM's scheduled texts, and the message box.
   Context: the phone's data plus placeholder and canSend.
 --}}
+{{#if scheduled.length}}
+  <ul class="agent-scheduled" aria-label="Scheduled texts">
+    {{#each scheduled}}
+      <li class="agent-scheduled-text">
+        <i class="fas fa-clock" aria-hidden="true"></i>
+        <span class="agent-scheduled-body"><span class="agent-scheduled-when">{{when}}</span> {{text}}</span>
+        <a data-action="unschedule" data-scheduled-id="{{id}}" title="Cancel this scheduled text" aria-label="Cancel this scheduled text"><i class="fas fa-xmark"></i></a>
+      </li>
+    {{/each}}
+  </ul>
+{{/if}}
 {{#if quickReplies.length}}
   <div class="agent-quick">
     {{#each quickReplies}}<a class="agent-quick-reply" data-action="quick-reply" data-text="{{this}}">{{this}}</a>{{/each}}
@@ -31,5 +42,6 @@
   {{#if canJob}}<a class="agent-icon-btn agent-attach" data-action="attach-job" title="Offer a job"><i class="{{appearance.icons.jobs}}"></i></a>{{/if}}
   {{#if canPhoto}}<a class="agent-icon-btn agent-attach" data-action="attach-photo" title="Send a photo"><i class="{{appearance.icons.photo}}"></i></a>{{/if}}
   <textarea rows="2" placeholder="{{placeholder}}" {{#unless canSend}}disabled{{/unless}}></textarea>
+  {{#if canSchedule}}<a class="agent-icon-btn agent-attach agent-schedule-btn" data-action="schedule" title="Schedule this text" aria-label="Schedule this text"><i class="fas fa-clock"></i></a>{{/if}}
   <button type="button" data-action="send" title="Send" {{#unless canSend}}disabled{{/unless}}><i class="fas fa-paper-plane"></i></button>
 </div>

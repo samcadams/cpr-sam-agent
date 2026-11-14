@@ -3,6 +3,7 @@ import * as messages from "./messages.js";
 import * as groups from "./groups.js";
 import * as services from "./services.js";
 import * as reactions from "./reactions.js";
+import * as texts from "./texts.js";
 import * as quests from "./quests.js";
 import * as money from "./money.js";
 import * as contactRequests from "./contactRequests.js";
@@ -23,7 +24,7 @@ import { commsOn, COMMS_REQUESTS } from "../model/features.js";
  */
 
 const FEATURES = {
-  core, messages, groups, services, reactions, quests, money, contactRequests, maintenance, calls, sounds, clock,
+  core, messages, groups, services, reactions, texts, quests, money, contactRequests, maintenance, calls, sounds, clock,
   ...apps // each app's (apps/hosts.js)
 };
 

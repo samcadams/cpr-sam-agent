@@ -336,6 +336,44 @@ test("the clock: system time (on another date or not), the GM's own clock, with 
   assert.equal(agentTimestamp().time, hhmm);
 });
 
+test("a scheduled text's time, on each clock the phones can follow", async () => {
+  const { customClockOffset, dateOffsetFor, scheduleAt, scheduleDue } = await import("../scripts/util/agentTime.js");
+  const hours = (h, m) => (h * 60 + m) * 60;
+
+  // System time: this computer's date and time.
+  await game.settings.set("cpr-sam-agent", "clock", { source: "system" });
+  assert.deepEqual(scheduleAt({ date: "2030-01-02", time: "09:30" }), { at: new Date(2030, 0, 2, 9, 30).getTime(), unit: "real" });
+  assert.equal(scheduleAt({ date: "2030-01-02", time: "" }), null);
+  assert.equal(scheduleAt({ date: "", time: "09:30" }), null);
+
+  // System time on another date: the phones' date, so the real day is earlier by the offset.
+  const days = dateOffsetFor("2045-03-07");
+  await game.settings.set("cpr-sam-agent", "clock", { source: "system", dateOffset: days });
+  const real = new Date(Date.now() + 86_400_000);
+  const shown = new Date(real); shown.setDate(shown.getDate() + days);
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  assert.equal(scheduleAt({ date: iso(shown), time: "08:00" }).at, new Date(real.getFullYear(), real.getMonth(), real.getDate(), 8, 0).getTime());
+
+  // The GM's clock: due when that clock reaches it.
+  const offset = customClockOffset("2045-10-31", "23:15");
+  await game.settings.set("cpr-sam-agent", "clock", { source: "custom", offset });
+  const soon = scheduleAt({ date: "2045-10-31", time: "23:45" });
+  assert.equal(soon.unit, "real");
+  assert.ok(Math.abs(soon.at - (Date.now() + 30 * 60_000)) < 120_000, "half an hour on the GM's clock is half an hour from now");
+  assert.equal(scheduleDue(soon), false);
+  assert.equal(scheduleDue(scheduleAt({ date: "2045-10-31", time: "23:00" })), true);
+
+  // SmallTime: world time, in days from today.
+  game.modules.set("smalltime", { active: true });
+  game.time.worldTime = 3 * 86400 + hours(20, 0);
+  await game.settings.set("cpr-sam-agent", "clock", { source: "auto" });
+  assert.deepEqual(scheduleAt({ days: 0, time: "21:00" }), { at: 3 * 86400 + hours(21, 0), unit: "world" });
+  assert.deepEqual(scheduleAt({ days: 2, time: "06:15" }), { at: 5 * 86400 + hours(6, 15), unit: "world" });
+  assert.equal(scheduleDue({ at: 3 * 86400 + hours(19, 0), unit: "world" }), true);
+  game.modules.delete("smalltime");
+  game.time.worldTime = 0;
+});
+
 test("each phone keeps its own new-text notification style", async () => {
   const { notifyStyle, setPhoneSettings } = await import("../scripts/model/agent.js");
   const gm = addUser({ id: "gm", isGM: true });

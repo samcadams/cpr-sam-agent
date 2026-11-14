@@ -2,6 +2,7 @@ import { formDialog, formIn } from "./formDialog.js";
 import { DIALOGS, photoFolder } from "../../config.js";
 import { currencyLabel, formatMoney } from "../../model/money.js";
 import { QUEST_LABELS, QUEST_STATUSES } from "../../model/quests.js";
+import { scheduleAt, scheduleDue, scheduleForm } from "../../util/agentTime.js";
 import { esc } from "../../util/text.js";
 import { labelFormGroups } from "../a11y.js";
 
@@ -219,7 +220,7 @@ const readDrops = (form, name) => [...form.querySelectorAll(`.ctp-drops[data-nam
  * A simple form built from a list of fields, for the apps' small dialogs.
  * @param {object} options
  * @param {string} options.title
- * @param {Array<{name: string, label: string, type?: "text"|"number"|"textarea"|"select"|"checkbox"|"image",
+ * @param {Array<{name: string, label: string, type?: "text"|"number"|"textarea"|"select"|"checkbox"|"image"|"date"|"time",
  *   value?: any, options?: Array<{value: string, label: string}>, placeholder?: string, hint?: string, search?: boolean,
  *   showIf?: {field: string, value: string}}>} options.fields
  *   showIf: the field's row is shown only while the field named `field` has that value
@@ -248,6 +249,9 @@ export function fieldsDialog({ title, fields, label = "Save", note = "" }) {
         return `<input type="checkbox" name="${f.name}"${f.value ? " checked" : ""}>`;
       case "number":
         return `<input type="number" name="${f.name}" value="${value}"${ph}${f.step ? ` step="${f.step}"` : ""}>`;
+      case "date":
+      case "time":
+        return `<input type="${f.type}" name="${f.name}" value="${value}">`;
       case "textfile":
         return `<div class="form-fields"><button type="button" class="ctp-load-text" data-target="${esc(f.target)}"><i class="fas fa-file-arrow-up"></i> Choose a .txt file</button><span class="ctp-load-text-name notes"></span></div>`;
       case "image":
@@ -336,4 +340,35 @@ export function fieldsDialog({ title, fields, label = "Save", note = "" }) {
       }));
     }
   });
+}
+
+/**
+ * GM: when a scheduled text goes out, on the phones' clock (util/agentTime.js scheduleForm).
+ * @returns {Promise<{at: number, unit: "world"|"real"}|null>}
+ */
+export async function scheduleDialog() {
+  const form = scheduleForm();
+  const time = { name: "time", label: "Time", type: "time", value: form.time };
+  const fields = {
+    calendar: () => [
+      { name: "month", label: "Month", type: "select", options: form.months, value: form.month },
+      { name: "day", label: "Day", type: "number", value: form.day },
+      { name: "year", label: "Year", type: "number", value: form.year },
+      time
+    ],
+    days: () => [{ name: "days", label: "Days from today", type: "number", value: form.days }, time],
+    date: () => [{ name: "date", label: "Date", type: "date", value: form.date }, time]
+  }[form.kind]();
+  const values = await fieldsDialog({ title: "Schedule text", fields, label: "Schedule", note: "It sends when the phones' clock reaches this time." });
+  if (!values) return null;
+  const at = scheduleAt(values);
+  if (!at) {
+    ui.notifications.warn("That date or time doesn't read right.");
+    return null;
+  }
+  if (scheduleDue(at)) {
+    ui.notifications.warn("That time has already passed on the phones' clock.");
+    return null;
+  }
+  return at;
 }
